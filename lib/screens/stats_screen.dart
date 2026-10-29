@@ -1,3 +1,4 @@
+import '../i18n.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -65,7 +66,7 @@ class _StatsScreenState extends State<StatsScreen> {
       appBar: AppBar(
         backgroundColor: C.bg,
         surfaceTintColor: Colors.transparent,
-        title: const Text('Моя статистика', style: T.h2),
+        title: Text(L('Моя статистика', 'My stats'), style: T.h2),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -79,23 +80,23 @@ class _StatsScreenState extends State<StatsScreen> {
         ],
       ),
       body: s.accountId == null
-          ? const Center(
+          ? Center(
               child: Padding(
                 padding: EdgeInsets.all(24),
-                child: Text('Сначала укажи Steam ID во вкладке «Мои герои».', textAlign: TextAlign.center, style: T.body),
+                child: Text(L('Сначала укажи Steam ID во вкладке «Мои герои».', 'Add your Steam ID on the My heroes tab first.'), textAlign: TextAlign.center, style: T.body),
               ),
             )
           : ms == null
               ? Center(
                   child: s.myMatchesLoading
-                      ? const Column(mainAxisSize: MainAxisSize.min, children: [
+                      ? Column(mainAxisSize: MainAxisSize.min, children: [
                           CircularProgressIndicator(),
                           SizedBox(height: 12),
-                          Text('Загружаю последние матчи…', style: T.small),
+                          Text(L('Загружаю последние матчи…', 'Loading recent matches…'), style: T.small),
                         ])
                       : Padding(
                           padding: const EdgeInsets.all(24),
-                          child: Text(s.myMatchesError ?? 'Нет данных', textAlign: TextAlign.center, style: T.body),
+                          child: Text(s.myMatchesError ?? L('Нет данных', 'No data'), textAlign: TextAlign.center, style: T.body),
                         ),
                 )
               : _content(s, ms),
@@ -104,7 +105,7 @@ class _StatsScreenState extends State<StatsScreen> {
 
   Widget _content(AppState s, List<PlayerMatch> ms) {
     if (ms.isEmpty) {
-      return Center(child: Text(s.myMatchesError ?? 'Матчей нет', style: T.body));
+      return Center(child: Text(s.myMatchesError ?? L('Матчей нет', 'No matches'), style: T.body));
     }
     final d = s.data!;
     final total = _Agg();
@@ -178,8 +179,8 @@ class _StatsScreenState extends State<StatsScreen> {
       cmp[g] = {for (final k in sums.keys) k: sums[k]! / weights[k]!};
     }
 
-    const times = ['Ночь 0–6', 'Утро 6–12', 'День 12–18', 'Вечер 18–24'];
-    const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+    final times = [L('Ночь 0–6', 'Night 0–6'), L('Утро 6–12', 'Morning 6–12'), L('День 12–18', 'Day 12–18'), L('Вечер 18–24', 'Evening 18–24')];
+    final days = [L('Пн', 'Mon'), L('Вт', 'Tue'), L('Ср', 'Wed'), L('Чт', 'Thu'), L('Пт', 'Fri'), L('Сб', 'Sat'), L('Вс', 'Sun')];
     final heroRows = byHero.entries.where((e) => e.value.length >= 2).toList()
       ..sort((a, b) => b.value.length.compareTo(a.value.length));
 
@@ -188,14 +189,14 @@ class _StatsScreenState extends State<StatsScreen> {
       children: [
         AppCard(
           child: Row(children: [
-            _big('${total.n}', 'игр'),
-            _big(pct(total.wr), 'винрейт', color: total.wr >= 0.5 ? C.ally : C.enemy),
+            _big('${total.n}', L('игр', 'games')),
+            _big(pct(total.wr), L('винрейт', 'win rate'), color: total.wr >= 0.5 ? C.ally : C.enemy),
             _big(fmtNum(me.kda, 2), 'KDA'),
-            _big('$streak${streakWin ? 'W' : 'L'}', 'серия', color: streakWin ? C.ally : C.enemy),
+            _big('$streak${streakWin ? 'W' : 'L'}', L('серия', 'streak'), color: streakWin ? C.ally : C.enemy),
           ]),
         ),
         const SizedBox(height: 4),
-        Text('Последние ${ms.length} рейтинговых и обычных матчей · ${rankName(s.rankTier)}', style: T.small),
+        Text(L('Последние ${ms.length} рейтинговых и обычных матчей · ${rankName(s.rankTier)}', 'Last ${ms.length} ranked and normal matches · ${rankName(s.rankTier)}'), style: T.small),
         if (todayLosses >= 3 && today.length >= 3 || (!streakWin && streak >= 3)) ...[
           const SizedBox(height: 10),
           AppCard(
@@ -205,8 +206,9 @@ class _StatsScreenState extends State<StatsScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Похоже на тильт: ${!streakWin && streak >= 3 ? '$streak поражений подряд' : '$todayLosses поражений за сессию'}. '
-                  'Сделай перерыв 15–30 минут — после серии поражений винрейт обычно ниже.',
+                  L('Похоже на тильт: ${!streakWin && streak >= 3 ? '$streak поражений подряд' : '$todayLosses поражений за сессию'}. '
+                  'Сделай перерыв 15–30 минут — после серии поражений винрейт обычно ниже.', 'Looks like tilt: ${!streakWin && streak >= 3 ? '$streak losses in a row' : '$todayLosses losses this session'}. '
+                  'Take a 15–30 minute break — win rate is usually lower after a losing streak.'),
                   style: T.body.copyWith(fontSize: 13.5),
                 ),
               ),
@@ -217,20 +219,22 @@ class _StatsScreenState extends State<StatsScreen> {
           const SizedBox(height: 10),
           AppCard(
             child: Text(
-              'После двух поражений подряд ты выигрываешь ${pct(afterTwoLosses.wr, digits: 0)} '
+              L('После двух поражений подряд ты выигрываешь ${pct(afterTwoLosses.wr, digits: 0)} '
               '(${afterTwoLosses.n} игр) против ${pct(total.wr, digits: 0)} в среднем. '
-              '${afterTwoLosses.wr < total.wr - 0.04 ? 'Лучше делать паузу после двух проигрышей.' : 'Ты хорошо держишь удар.'}',
+              '${afterTwoLosses.wr < total.wr - 0.04 ? 'Лучше делать паузу после двух проигрышей.' : 'Ты хорошо держишь удар.'}', 'After two losses in a row you win ${pct(afterTwoLosses.wr, digits: 0)} '
+              '(${afterTwoLosses.n} games) vs ${pct(total.wr, digits: 0)} on average. '
+              '${afterTwoLosses.wr < total.wr - 0.04 ? 'Better take a break after two losses.' : 'You handle losses well.'}'),
               style: T.body.copyWith(fontSize: 13.5),
             ),
           ),
         ],
-        const SectionLabel('Ты против среднего игрока на тех же героях'),
+        SectionLabel(L('Ты против среднего игрока на тех же героях', 'You vs the average player on the same heroes')),
         if (cmp.values.every((m) => m.isEmpty))
           AppCard(
             child: Text(
               s.bench.isEmpty
-                  ? 'Средние цифры по рангам ещё собираются — появятся после ближайшего обновления данных.'
-                  : 'Мало данных по твоим героям для сравнения.',
+                  ? L('Средние цифры по рангам ещё собираются — появятся после ближайшего обновления данных.', 'Average numbers by rank are still being collected — they will appear after the next data update.')
+                  : L('Мало данных по твоим героям для сравнения.', 'Not enough data on your heroes to compare.'),
               style: T.small,
             ),
           )
@@ -244,7 +248,7 @@ class _StatsScreenState extends State<StatsScreen> {
                   SizedBox(
                     width: 70,
                     child: Text(
-                      g < my ? 'ниже\n${rankGroupsShort[g]}' : g == my ? 'твой ранг\n${rankGroupsShort[g]}' : 'выше\n${rankGroupsShort[g]}',
+                      g < my ? L('ниже\n${rankGroupsShort[g]}', 'lower\n${rankGroupsShort[g]}') : g == my ? L('твой ранг\n${rankGroupsShort[g]}', 'your rank\n${rankGroupsShort[g]}') : L('выше\n${rankGroupsShort[g]}', 'higher\n${rankGroupsShort[g]}'),
                       textAlign: TextAlign.right,
                       style: T.small.copyWith(fontSize: 10, color: g == my ? C.accent : C.muted),
                     ),
@@ -268,27 +272,28 @@ class _StatsScreenState extends State<StatsScreen> {
                   ]),
                 ),
               const SizedBox(height: 6),
-              const Text(
-                'Насколько твои цифры больше (+) или меньше (−) средних на тех же героях. '
-                'Зелёный — лучше среднего, красный — хуже. Для смертей меньше — лучше.',
+              Text(
+                L('Насколько твои цифры больше (+) или меньше (−) средних на тех же героях. '
+                'Зелёный — лучше среднего, красный — хуже. Для смертей меньше — лучше.', 'How much your numbers are above (+) or below (−) the average on the same heroes. '
+                'Green — better than average, red — worse. For deaths, fewer is better.'),
                 style: T.small,
               ),
             ]),
           ),
-        const SectionLabel('По позиции героя'),
+        SectionLabel(L('По позиции героя', 'By hero position')),
         _aggCard([
           for (final p in [1, 2, 3, 4, 5])
             if (byPos[p] != null) (positionNames[p]!, byPos[p]!),
         ]),
-        const SectionLabel('По времени суток'),
+        SectionLabel(L('По времени суток', 'By time of day')),
         _aggCard([for (var i = 0; i < 4; i++) (times[i], byTime[i])]),
-        const SectionLabel('По дням недели'),
+        SectionLabel(L('По дням недели', 'By weekday')),
         _aggCard([for (var i = 0; i < 7; i++) (days[i], byDay[i])]),
-        const SectionLabel('По длине матча'),
+        SectionLabel(L('По длине матча', 'By match length')),
         _aggCard([for (var i = 0; i < 4; i++) (durationLabels[i], byDur[i])]),
-        const SectionLabel('Соло или с друзьями'),
-        _aggCard([('Соло', solo), ('В пати', party)]),
-        const SectionLabel('Герои в этих матчах'),
+        SectionLabel(L('Соло или с друзьями', 'Solo or with friends')),
+        _aggCard([(L('Соло', 'Solo'), solo), (L('В пати', 'In party'), party)]),
+        SectionLabel(L('Герои в этих матчах', 'Heroes in these matches')),
         AppCard(
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Column(children: [
@@ -296,7 +301,7 @@ class _StatsScreenState extends State<StatsScreen> {
               if (d.byId[e.key] != null) _heroRow(s, d.byId[e.key]!, e.value),
           ]),
         ),
-        SectionLabel('С кем играешь',
+        SectionLabel(L('С кем играешь', 'Who you play with'),
             trailing: peersLoading ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)) : null),
         if (peersError != null) Text(peersError!, style: T.small.copyWith(color: C.enemy)),
         if (peers != null) _peers(peers!),
@@ -369,8 +374,9 @@ class _StatsScreenState extends State<StatsScreen> {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(h.name, style: T.body.copyWith(fontSize: 13.5)),
               Text(
-                '${list.length} игр · KDA ${fmtNum(mine.kda, 1)} · ${mine.gpm.round()} GPM'
-                '${gpmDiff == null ? '' : ' (${signedPct(gpmDiff, digits: 0)})'}',
+                L('${list.length} игр · KDA ${fmtNum(mine.kda, 1)} · ${mine.gpm.round()} GPM'
+                '${gpmDiff == null ? '' : ' (${signedPct(gpmDiff, digits: 0)})'}', '${list.length} games · KDA ${fmtNum(mine.kda, 1)} · ${mine.gpm.round()} GPM'
+                '${gpmDiff == null ? '' : ' (${signedPct(gpmDiff, digits: 0)})'}'),
                 style: T.small,
               ),
             ]),
@@ -383,7 +389,7 @@ class _StatsScreenState extends State<StatsScreen> {
 
   Widget _peers(List<Peer> ps) {
     final list = ps.where((p) => p.withGames >= 3).toList()..sort((a, b) => b.withGames.compareTo(a.withGames));
-    if (list.isEmpty) return const AppCard(child: Text('Нет игроков, с которыми ты сыграл хотя бы 3 матча.', style: T.small));
+    if (list.isEmpty) return AppCard(child: Text(L('Нет игроков, с которыми ты сыграл хотя бы 3 матча.', 'No players you played at least 3 matches with.'), style: T.small));
     return AppCard(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Column(children: [
@@ -404,14 +410,14 @@ class _StatsScreenState extends State<StatsScreen> {
               ),
               const SizedBox(width: 10),
               Expanded(child: Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: T.body.copyWith(fontSize: 13.5))),
-              Text('${p.withGames} игр  ', style: T.small),
+              Text(L('${p.withGames} игр  ', '${p.withGames} games  '), style: T.small),
               Text(pct(p.withWins / p.withGames, digits: 0),
                   style: T.num(13.5, color: p.withWins * 2 >= p.withGames ? C.ally : C.enemy)),
             ]),
           ),
-        const Padding(
+        Padding(
           padding: EdgeInsets.fromLTRB(12, 4, 12, 6),
-          child: Text('Винрейт, когда вы в одной команде.', style: T.small),
+          child: Text(L('Винрейт, когда вы в одной команде.', 'Win rate when you are on the same team.'), style: T.small),
         ),
       ]),
     );

@@ -1,3 +1,4 @@
+import 'i18n.dart';
 import 'data.dart';
 import 'engine.dart';
 import 'knowledge.dart';
@@ -38,23 +39,23 @@ Composition analyzeTeam(List<DHero> t) {
     checks.add(CheckItem(title, n == 0 ? missing : names, level));
   }
 
-  add('Инициация', _count(t, initiator), 1, _names(t, initiator), 'Нет героя, который начинает драку');
-  add('Контроль', _count(t, disabler), 2, _names(t, disabler), 'Мало станов и замедлений');
-  add('Сейвы', _count(t, saver), 1, _names(t, saver), 'Некому спасать союзников');
-  add('Фронтлайн', _count(t, durable), 1, _names(t, durable), 'Нет крепкого героя впереди');
-  add('Пуш', _count(t, pusher), 1, _names(t, pusher), 'Тяжело ломать вышки');
-  add('Лечение', _count(t, healer), 1, _names(t, healer), 'Нет лечения — важны регенерация и бутылки');
-  add('Кор на поздний этап', _count(t, carry), 1, _names(t, carry), 'Нет керри — заканчивайте игру раньше');
+  add(L('Инициация', 'Initiation'), _count(t, initiator), 1, _names(t, initiator), L('Нет героя, который начинает драку', 'No hero to start fights'));
+  add(L('Контроль', 'Control'), _count(t, disabler), 2, _names(t, disabler), L('Мало станов и замедлений', 'Few stuns and slows'));
+  add(L('Сейвы', 'Saves'), _count(t, saver), 1, _names(t, saver), L('Некому спасать союзников', 'Nobody to save allies'));
+  add(L('Фронтлайн', 'Frontline'), _count(t, durable), 1, _names(t, durable), L('Нет крепкого героя впереди', 'No durable hero in front'));
+  add(L('Пуш', 'Push'), _count(t, pusher), 1, _names(t, pusher), L('Тяжело ломать вышки', 'Hard to take towers'));
+  add(L('Лечение', 'Healing'), _count(t, healer), 1, _names(t, healer), L('Нет лечения — важны регенерация и бутылки', 'No healing — regen and bottles matter'));
+  add(L('Кор на поздний этап', 'Late-game core'), _count(t, carry), 1, _names(t, carry), L('Нет керри — заканчивайте игру раньше', 'No carry — end the game earlier'));
 
   final m = _count(t, magic);
   final share = m / t.length;
   if (t.length >= 3) {
     if (share >= 0.8) {
-      checks.add(const CheckItem('Тип урона', 'Почти весь урон магический — враги соберут BKB и Pipe', 0));
+      checks.add(CheckItem(L('Тип урона', 'Damage type'), L('Почти весь урон магический — враги соберут BKB и Pipe', 'Almost all damage is magical — enemies will buy BKB and Pipe'), 0));
     } else if (share <= 0.2) {
-      checks.add(const CheckItem('Тип урона', 'Почти весь урон физический — враги соберут броню и Ghost', 0));
+      checks.add(CheckItem(L('Тип урона', 'Damage type'), L('Почти весь урон физический — враги соберут броню и Ghost', 'Almost all damage is physical — enemies will buy armor and Ghost'), 0));
     } else {
-      checks.add(CheckItem('Тип урона', 'Магический и физический урон сбалансированы (${(share * 100).round()}% магии)', 2));
+      checks.add(CheckItem(L('Тип урона', 'Damage type'), L('Магический и физический урон сбалансированы (${(share * 100).round()}% магии)', 'Magical and physical damage are balanced (${(share * 100).round()}% magic)'), 2));
     }
   }
   return Composition(checks, share);
@@ -70,47 +71,47 @@ List<ItemTip> itemTips(List<DHero> enemies) {
   final disablers = enemies.where((h) => h.has('Disabler')).length;
 
   if (magicN >= 3) {
-    tips.add(ItemTip('Много магии', 'Магический урон: ${enemies.where((h) => magicDamage.contains(h.key)).map((h) => h.name).join(', ')}',
+    tips.add(ItemTip(L('Много магии', 'Lots of magic'), L('Магический урон: ${enemies.where((h) => magicDamage.contains(h.key)).map((h) => h.name).join(', ')}', 'Magic damage: ${enemies.where((h) => magicDamage.contains(h.key)).map((h) => h.name).join(', ')}'),
         const ['black_king_bar', 'pipe', 'glimmer_cape', 'eternal_shroud']));
   }
   if (physN >= 2) {
-    tips.add(const ItemTip('Сильный физический урон', 'Несколько керри с уроном с руки',
+    tips.add(ItemTip(L('Сильный физический урон', 'Strong physical damage'), L('Несколько керри с уроном с руки', 'Several right-click carries'),
         ['ghost', 'shivas_guard', 'crimson_guard', 'heavens_halberd', 'solar_crest']));
   }
   final heal = who(healers);
   if (heal.isNotEmpty) {
-    tips.add(ItemTip('Лечение у врагов', heal.join(', '), const ['spirit_vessel', 'shivas_guard', 'skadi']));
+    tips.add(ItemTip(L('Лечение у врагов', 'Enemy healing'), heal.join(', '), const ['spirit_vessel', 'shivas_guard', 'skadi']));
   }
   final inv = who(invisible);
   if (inv.isNotEmpty) {
-    tips.add(ItemTip('Невидимость', inv.join(', '), const ['dust', 'ward_sentry', 'gem']));
+    tips.add(ItemTip(L('Невидимость', 'Invisibility'), inv.join(', '), const ['dust', 'ward_sentry', 'gem']));
   }
   final ill = who(illusions);
   if (ill.isNotEmpty) {
-    tips.add(ItemTip('Иллюзии и призывы', ill.join(', '), const ['bfury', 'mjollnir', 'radiance', 'shivas_guard']));
+    tips.add(ItemTip(L('Иллюзии и призывы', 'Illusions and summons'), ill.join(', '), const ['bfury', 'mjollnir', 'radiance', 'shivas_guard']));
   }
   final ev = who(evasion);
   if (ev.isNotEmpty) {
-    tips.add(ItemTip('Уклонение', ev.join(', '), const ['monkey_king_bar', 'bloodthorn']));
+    tips.add(ItemTip(L('Уклонение', 'Evasion'), ev.join(', '), const ['monkey_king_bar', 'bloodthorn']));
   }
   final br = who(breakTargets);
   if (br.isNotEmpty) {
-    tips.add(ItemTip('Сильные пассивки', br.join(', '), const ['silver_edge']));
+    tips.add(ItemTip(L('Сильные пассивки', 'Strong passives'), br.join(', '), const ['silver_edge']));
   }
   final st = who(singleTarget);
   if (st.isNotEmpty) {
-    tips.add(ItemTip('Опасные заклинания в цель', st.join(', '), const ['sphere', 'lotus_orb']));
+    tips.add(ItemTip(L('Опасные заклинания в цель', 'Dangerous targeted spells'), st.join(', '), const ['sphere', 'lotus_orb']));
   }
   final sil = who(silencers);
   if (sil.isNotEmpty) {
-    tips.add(ItemTip('Сайленсы', sil.join(', '), const ['manta', 'cyclone', 'lotus_orb']));
+    tips.add(ItemTip(L('Сайленсы', 'Silences'), sil.join(', '), const ['manta', 'cyclone', 'lotus_orb']));
   }
   if (disablers >= 3) {
-    tips.add(const ItemTip('Много контроля', 'Три и больше героев со станами', ['black_king_bar', 'force_staff', 'glimmer_cape']));
+    tips.add(ItemTip(L('Много контроля', 'Lots of disables'), L('Три и больше героев со станами', 'Three or more heroes with stuns'), ['black_king_bar', 'force_staff', 'glimmer_cape']));
   }
   final sv = who(savers);
   if (sv.length >= 2) {
-    tips.add(ItemTip('Сейвы у врагов', sv.join(', '), const ['nullifier']));
+    tips.add(ItemTip(L('Сейвы у врагов', 'Enemy saves'), sv.join(', '), const ['nullifier']));
   }
   return tips;
 }
@@ -164,11 +165,11 @@ LanePlan lanes(StatsData d, List<DHero> allies, List<DHero> enemies) {
   if (allies.length < 3 || enemies.length < 3) return const LanePlan([], null);
   final ap = Engine.assign(allies).$2, ep = Engine.assign(enemies).$2;
   List<Lane> build(Map<int, int> ours) => [
-        Lane('Лёгкая линия', _byPos(allies, ours, [1, 5]), _byPos(enemies, ep, [3, 4]),
+        Lane(L('Лёгкая линия', 'Safe lane'), _byPos(allies, ours, [1, 5]), _byPos(enemies, ep, [3, 4]),
             _laneScore(d, _byPos(allies, ours, [1, 5]), _byPos(enemies, ep, [3, 4]))),
-        Lane('Мид', _byPos(allies, ours, [2]), _byPos(enemies, ep, [2]),
+        Lane(L('Мид', 'Mid'), _byPos(allies, ours, [2]), _byPos(enemies, ep, [2]),
             _laneScore(d, _byPos(allies, ours, [2]), _byPos(enemies, ep, [2]))),
-        Lane('Сложная линия', _byPos(allies, ours, [3, 4]), _byPos(enemies, ep, [1, 5]),
+        Lane(L('Сложная линия', 'Off lane'), _byPos(allies, ours, [3, 4]), _byPos(enemies, ep, [1, 5]),
             _laneScore(d, _byPos(allies, ours, [3, 4]), _byPos(enemies, ep, [1, 5]))),
       ];
   final now = build(ap);
@@ -180,8 +181,9 @@ LanePlan lanes(StatsData d, List<DHero> allies, List<DHero> enemies) {
     final alt = build(swapped);
     double total(List<Lane> l) => l.fold(0.0, (s, x) => s + x.score);
     if (total(alt) - total(now) > 0.01) {
-      tip = 'Попробуй поменять саппортов: ${s4.first.name} на лёгкую линию, ${s5.first.name} на сложную '
-          '(${(100 * (total(alt) - total(now))).toStringAsFixed(1)}% в сумме по линиям).';
+      tip = L('Попробуй поменять саппортов: ${s4.first.name} на лёгкую линию, ${s5.first.name} на сложную '
+          '(${(100 * (total(alt) - total(now))).toStringAsFixed(1)}% в сумме по линиям).', 'Try swapping supports: ${s4.first.name} to the safe lane, ${s5.first.name} to the off lane '
+          '(${(100 * (total(alt) - total(now))).toStringAsFixed(1)}% total across lanes).');
     }
   }
   return LanePlan(now, tip);

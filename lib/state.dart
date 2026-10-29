@@ -257,7 +257,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
     try {
       myMatches = await OpenDota.matches(accountId!, limit: 300);
-      if (myMatches!.isEmpty) myMatchesError = 'Матчи не найдены — проверь, открыт ли доступ к данным матчей.';
+      if (myMatches!.isEmpty) myMatchesError = L('Матчи не найдены — проверь, открыт ли доступ к данным матчей.', 'No matches found — check that public match data is enabled.');
     } on OdException catch (e) {
       myMatchesError = e.message;
     } finally {
@@ -297,7 +297,7 @@ class AppState extends ChangeNotifier {
     try {
       data = await DataRepo.loadLocal();
     } catch (e) {
-      error = 'Не удалось загрузить данные: $e';
+      error = L('Не удалось загрузить данные: $e', 'Could not load data: $e');
     }
     bench = await BenchRepo.loadLocal();
     await _loadInfo();
@@ -422,7 +422,7 @@ class AppState extends ChangeNotifier {
   Future<String?> loadPlayer(String input) async {
     final id = OpenDota.parseAccountId(input);
     if (id == null) {
-      return 'Нужен числовой ID: Friend ID из Dota 2 или ссылка вида steamcommunity.com/profiles/7656…';
+      return L('Нужен числовой ID: Friend ID из Dota 2 или ссылка вида steamcommunity.com/profiles/7656…', 'Need a numeric ID: Friend ID from Dota 2 or a link like steamcommunity.com/profiles/7656…');
     }
     playerLoading = true;
     playerError = null;
@@ -443,7 +443,7 @@ class AppState extends ChangeNotifier {
         ..clear()
         ..addAll(h);
       if (h.isEmpty) {
-        playerError = 'Матчи не найдены. Включи в Dota 2: Настройки → Общение → «Открыть общий доступ к данным матчей».';
+        playerError = L('Матчи не найдены. Включи в Dota 2: Настройки → Общение → «Открыть общий доступ к данным матчей».', 'No matches found. In Dota 2 enable: Settings → Social → "Expose Public Match Data".');
       }
     } on OdException catch (e) {
       playerError = e.message;

@@ -1,3 +1,4 @@
+import 'i18n.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
@@ -37,8 +38,8 @@ Future<void> notify(int id, String title, String body) async {
       id,
       title,
       body,
-      const NotificationDetails(
-        android: AndroidNotificationDetails('meta', 'Мета и патчи', importance: Importance.defaultImportance),
+      NotificationDetails(
+        android: AndroidNotificationDetails('meta', L('Мета и патчи', 'Meta and patches'), importance: Importance.defaultImportance),
       ),
     );
   } catch (_) {}

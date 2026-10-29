@@ -1,3 +1,4 @@
+import 'i18n.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -127,11 +128,11 @@ class HeroImg extends StatelessWidget {
   }
 }
 
-String pct(double v, {int digits = 1}) => '${(v * 100).toStringAsFixed(digits).replaceAll('.', ',')}%';
+String pct(double v, {int digits = 1}) => '${isEn ? (v * 100).toStringAsFixed(digits) : (v * 100).toStringAsFixed(digits).replaceAll('.', ',')}%';
 
 String signedPct(double v, {int digits = 1}) => '${v >= 0 ? '+' : '−'}${pct(v.abs(), digits: digits)}';
 
-String posShort(int p) => 'поз. $p';
+String posShort(int p) => L('поз. $p', 'pos. $p');
 
 String positionsText(DHero h) => h.positions.map((p) => positionNames[p] ?? '$p').join(' / ');
 

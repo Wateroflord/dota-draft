@@ -1,3 +1,4 @@
+import 'i18n.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -41,16 +42,16 @@ class TimerEvent {
 }
 
 /// Значения по умолчанию. В новых патчах тайминги могут меняться — их можно поправить в приложении.
-const defaultTimerEvents = [
-  TimerEvent('bounty', 'Руны богатства', 0, 180, lead: 15),
-  TimerEvent('power', 'Руна силы', 360, 120, lead: 15),
-  TimerEvent('water', 'Водные руны', 120, 120, until: 240, lead: 10),
-  TimerEvent('wisdom', 'Руны мудрости', 420, 420, lead: 30),
-  TimerEvent('lotus', 'Лотосы', 180, 180, lead: 10, enabled: false),
-  TimerEvent('stack', 'Стак лагеря', 53, 60, lead: 0, enabled: false),
-  TimerEvent('night', 'Наступает ночь', 300, 600, lead: 0, enabled: false),
-  TimerEvent('day', 'Наступает день', 600, 600, lead: 0, enabled: false),
-  TimerEvent('tormentor', 'Торментор', 1200, 0, lead: 30),
+List<TimerEvent> get defaultTimerEvents => [
+  TimerEvent('bounty', L('Руны богатства', 'Bounty runes'), 0, 180, lead: 15),
+  TimerEvent('power', L('Руна силы', 'Power rune'), 360, 120, lead: 15),
+  TimerEvent('water', L('Водные руны', 'Water runes'), 120, 120, until: 240, lead: 10),
+  TimerEvent('wisdom', L('Руны мудрости', 'Wisdom runes'), 420, 420, lead: 30),
+  TimerEvent('lotus', L('Лотосы', 'Lotuses'), 180, 180, lead: 10, enabled: false),
+  TimerEvent('stack', L('Стак лагеря', 'Camp stack'), 53, 60, lead: 0, enabled: false),
+  TimerEvent('night', L('Наступает ночь', 'Night is coming'), 300, 600, lead: 0, enabled: false),
+  TimerEvent('day', L('Наступает день', 'Day is coming'), 600, 600, lead: 0, enabled: false),
+  TimerEvent('tormentor', L('Торментор', 'Tormentor'), 1200, 0, lead: 30),
 ];
 
 /// Точка на карте (координаты 0–100, начало — левый верхний угол; Свет внизу слева).
@@ -119,7 +120,11 @@ class ToolsState extends ChangeNotifier {
   int quizBest = 0;
 
   List<TimerEvent> get timerEvents => [
-        for (final d in defaultTimerEvents) timerOverrides[d.id] ?? d,
+        for (final d in defaultTimerEvents)
+          if (timerOverrides[d.id] case final o?)
+            TimerEvent(d.id, d.title, o.first, o.every, until: d.until, lead: o.lead, enabled: o.enabled)
+          else
+            d,
       ];
 
   void updateTimer(TimerEvent e) {

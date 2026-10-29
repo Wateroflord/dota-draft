@@ -1,3 +1,4 @@
+import 'i18n.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -140,13 +141,13 @@ class OpenDota {
     try {
       res = await http.get(Uri.parse('$_base$path')).timeout(const Duration(seconds: 25));
     } on TimeoutException {
-      throw OdException('OpenDota не ответил. Попробуй ещё раз.');
+      throw OdException(L('OpenDota не ответил. Попробуй ещё раз.', 'OpenDota did not respond. Try again.'));
     } catch (_) {
-      throw OdException('Нет соединения с интернетом.');
+      throw OdException(L('Нет соединения с интернетом.', 'No internet connection.'));
     }
-    if (res.statusCode == 429) throw OdException('Слишком много запросов к OpenDota. Подожди минуту.');
-    if (res.statusCode == 404) throw OdException('Не найдено.');
-    if (res.statusCode != 200) throw OdException('Ошибка OpenDota (${res.statusCode}).');
+    if (res.statusCode == 429) throw OdException(L('Слишком много запросов к OpenDota. Подожди минуту.', 'Too many requests to OpenDota. Wait a minute.'));
+    if (res.statusCode == 404) throw OdException(L('Не найдено.', 'Not found.'));
+    if (res.statusCode != 200) throw OdException(L('Ошибка OpenDota (${res.statusCode}).', 'OpenDota error (${res.statusCode}).'));
     return jsonDecode(utf8.decode(res.bodyBytes));
   }
 
@@ -156,11 +157,11 @@ class OpenDota {
     final j = await _get('/players/$id');
     final p = j is Map ? j['profile'] : null;
     if (p is! Map) {
-      throw OdException('Профиль не найден или скрыт. В Dota 2: Настройки → Общение → «Открыть общий доступ к данным матчей».');
+      throw OdException(L('Профиль не найден или скрыт. В Dota 2: Настройки → Общение → «Открыть общий доступ к данным матчей».', 'Profile not found or hidden. In Dota 2: Settings → Social → "Expose Public Match Data".'));
     }
     return PlayerProfile(
       id,
-      p['personaname']?.toString() ?? 'Игрок $id',
+      p['personaname']?.toString() ?? L('Игрок $id', 'Player $id'),
       p['avatarmedium']?.toString() ?? '',
       j['rank_tier'] is num ? (j['rank_tier'] as num).toInt() : null,
     );
@@ -243,7 +244,7 @@ class OpenDota {
     final out = <Peer>[];
     if (j is List) {
       for (final r in j.whereType<Map>()) {
-        out.add(Peer(_i(r['account_id']), r['personaname']?.toString() ?? 'Игрок', r['avatar']?.toString() ?? '',
+        out.add(Peer(_i(r['account_id']), r['personaname']?.toString() ?? L('Игрок', 'Player'), r['avatar']?.toString() ?? '',
             _i(r['with_games']), _i(r['with_win']), _i(r['against_games']), _i(r['against_win'])));
       }
     }
@@ -269,7 +270,7 @@ class OpenDota {
 
   static Future<MatchInfo> match(int matchId) async {
     final j = await _get('/matches/$matchId');
-    if (j is! Map || j['players'] is! List) throw OdException('Матч не найден.');
+    if (j is! Map || j['players'] is! List) throw OdException(L('Матч не найден.', 'Match not found.'));
     final r = <int>[], d = <int>[];
     final players = <MatchPlayer>[];
     for (final p in (j['players'] as List).whereType<Map>()) {
@@ -330,12 +331,13 @@ class OpenDota {
       await http.post(Uri.parse('$_base/request/$matchId')).timeout(const Duration(seconds: 20));
     } catch (_) {}
   }
+}
 
 /// Название ранга по rank_tier (например, 54 → Легенда 4).
 String rankName(int? tier) {
-  if (tier == null || tier <= 0) return 'ранг скрыт';
-  const names = ['', 'Рекрут', 'Страж', 'Рыцарь', 'Герой', 'Легенда', 'Властелин', 'Божество', 'Титан'];
+  if (tier == null || tier <= 0) return L('ранг скрыт', 'rank hidden');
+  final names = ['', L('Рекрут', 'Herald'), L('Страж', 'Guardian'), L('Рыцарь', 'Crusader'), L('Герой', 'Archon'), L('Легенда', 'Legend'), L('Властелин', 'Ancient'), L('Божество', 'Divine'), L('Титан', 'Immortal')];
   final t = tier ~/ 10, s = tier % 10;
-  if (t < 1 || t > 8) return 'ранг скрыт';
+  if (t < 1 || t > 8) return L('ранг скрыт', 'rank hidden');
   return t == 8 || s == 0 ? names[t] : '${names[t]} $s';
 }

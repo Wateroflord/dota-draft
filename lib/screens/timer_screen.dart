@@ -1,3 +1,4 @@
+import '../i18n.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -44,7 +45,7 @@ class _TimerScreenState extends State<TimerScreen> {
   @override
   void initState() {
     super.initState();
-    tts.setLanguage('ru-RU');
+    tts.setLanguage(isEn ? 'en-US' : 'ru-RU');
     tts.setSpeechRate(0.55);
     ticker = Timer.periodic(const Duration(milliseconds: 500), (_) => _tick());
   }
@@ -98,15 +99,15 @@ class _TimerScreenState extends State<TimerScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: C.surface,
-        title: const Text('Сколько сейчас в игре?', style: T.h2),
+        title: Text(L('Сколько сейчас в игре?', 'What is the game time now?'), style: T.h2),
         content: Row(children: [
-          Expanded(child: TextField(controller: m, keyboardType: TextInputType.number, decoration: fieldDeco('мин'))),
+          Expanded(child: TextField(controller: m, keyboardType: TextInputType.number, decoration: fieldDeco(L('мин', 'min')))),
           const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text(':', style: T.h2)),
-          Expanded(child: TextField(controller: s, keyboardType: TextInputType.number, decoration: fieldDeco('сек'))),
+          Expanded(child: TextField(controller: s, keyboardType: TextInputType.number, decoration: fieldDeco(L('сек', 'sec')))),
         ]),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Отмена')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Старт')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(L('Отмена', 'Cancel'))),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(L('Старт', 'Start'))),
         ],
       ),
     );
@@ -129,7 +130,7 @@ class _TimerScreenState extends State<TimerScreen> {
 
   void _addOneShots(List<_OneShot> list) {
     if (!running) {
-      showToast(context, 'Сначала запусти таймер');
+      showToast(context, L('Сначала запусти таймер', 'Start the timer first'));
       return;
     }
     setState(() => oneShots.addAll(list));
@@ -144,7 +145,7 @@ class _TimerScreenState extends State<TimerScreen> {
       final next = e.nextAt(t);
       if (next == null) continue;
       if (e.lead > 0 && t == next - e.lead && fired.add('${e.id}@$next-lead')) {
-        _say('Через ${e.lead} секунд — ${e.title.toLowerCase()}');
+        _say(L('Через ${e.lead} секунд — ${e.title.toLowerCase()}', 'In ${e.lead} seconds — ${e.title.toLowerCase()}'));
       }
       if (t == next && fired.add('${e.id}@$next')) {
         HapticFeedback.heavyImpact();
@@ -153,7 +154,7 @@ class _TimerScreenState extends State<TimerScreen> {
     }
     for (final o in oneShots) {
       if (o.lead > 0 && t == o.at - o.lead && fired.add('${o.title}@${o.at}-lead')) {
-        _say('Через ${o.lead} секунд — ${o.title.toLowerCase()}');
+        _say(L('Через ${o.lead} секунд — ${o.title.toLowerCase()}', 'In ${o.lead} seconds — ${o.title.toLowerCase()}'));
       }
       if (t == o.at && fired.add('${o.title}@${o.at}')) {
         HapticFeedback.heavyImpact();
@@ -183,15 +184,15 @@ class _TimerScreenState extends State<TimerScreen> {
       appBar: AppBar(
         backgroundColor: C.bg,
         surfaceTintColor: Colors.transparent,
-        title: const Text('Таймеры матча', style: T.h2),
+        title: Text(L('Таймеры матча', 'Match timers'), style: T.h2),
         actions: [
           IconButton(
-            tooltip: 'Голос',
+            tooltip: L('Голос', 'Voice'),
             icon: Icon(tools.voice ? Icons.volume_up_outlined : Icons.volume_off_outlined),
             onPressed: () => tools.setVoice(!tools.voice),
           ),
           IconButton(
-            tooltip: 'Настроить тайминги',
+            tooltip: L('Настроить тайминги', 'Edit timings'),
             icon: const Icon(Icons.tune),
             onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TimerSettingsScreen())),
           ),
@@ -204,7 +205,7 @@ class _TimerScreenState extends State<TimerScreen> {
             child: Column(children: [
               Text(mmss(t), style: T.num(56, color: running ? C.text : C.muted)),
               const SizedBox(height: 4),
-              Text(running ? 'идёт игра' : (startedAt == null ? 'нажми «Старт» вместе с горном 0:00' : 'пауза'),
+              Text(running ? L('идёт игра', 'game running') : (startedAt == null ? L('нажми «Старт» вместе с горном 0:00', 'tap Start together with the 0:00 horn') : L('пауза', 'paused')),
                   style: T.small),
               const SizedBox(height: 14),
               Row(children: [
@@ -213,14 +214,14 @@ class _TimerScreenState extends State<TimerScreen> {
                     style: FilledButton.styleFrom(backgroundColor: C.accent, minimumSize: const Size(0, 46)),
                     onPressed: startedAt == null ? () => _start() : _pause,
                     icon: Icon(running ? Icons.pause : Icons.play_arrow),
-                    label: Text(startedAt == null ? 'Старт 0:00' : (running ? 'Пауза' : 'Продолжить')),
+                    label: Text(startedAt == null ? L('Старт 0:00', 'Start 0:00') : (running ? L('Пауза', 'Pause') : L('Продолжить', 'Resume'))),
                   ),
                 ),
                 const SizedBox(width: 8),
                 OutlinedButton(
                   style: OutlinedButton.styleFrom(minimumSize: const Size(0, 46), side: const BorderSide(color: C.border)),
                   onPressed: _setTime,
-                  child: const Text('Задать время'),
+                  child: Text(L('Задать время', 'Set time')),
                 ),
                 const SizedBox(width: 8),
                 IconButton(onPressed: _reset, icon: const Icon(Icons.restart_alt, color: C.muted)),
@@ -230,29 +231,29 @@ class _TimerScreenState extends State<TimerScreen> {
           const SizedBox(height: 10),
           Row(children: [
             Expanded(
-              child: _bigBtn('Рошан убит', Icons.whatshot, C.gold, () {
+              child: _bigBtn(L('Рошан убит', 'Roshan killed'), Icons.whatshot, C.gold, () {
                 _addOneShots([
-                  _OneShot('Аегис пропадает', t + 300, 30),
-                  _OneShot('Рошан может возродиться', t + 480, 20),
-                  _OneShot('Рошан точно возродился', t + 660, 0),
+                  _OneShot(L('Аегис пропадает', 'Aegis expires'), t + 300, 30),
+                  _OneShot(L('Рошан может возродиться', 'Roshan may respawn'), t + 480, 20),
+                  _OneShot(L('Рошан точно возродился', 'Roshan has respawned'), t + 660, 0),
                 ]);
-                showToast(context, 'Аегис до ${mmss(t + 300)}, Рошан с ${mmss(t + 480)} до ${mmss(t + 660)}');
+                showToast(context, L('Аегис до ${mmss(t + 300)}, Рошан с ${mmss(t + 480)} до ${mmss(t + 660)}', 'Aegis until ${mmss(t + 300)}, Roshan between ${mmss(t + 480)} and ${mmss(t + 660)}'));
               }),
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: _bigBtn('Торментор убит', Icons.diamond_outlined, C.intel, () {
-                _addOneShots([_OneShot('Торментор возродился', t + 600, 20)]);
-                showToast(context, 'Торментор вернётся в ${mmss(t + 600)}');
+              child: _bigBtn(L('Торментор убит', 'Tormentor killed'), Icons.diamond_outlined, C.intel, () {
+                _addOneShots([_OneShot(L('Торментор возродился', 'Tormentor respawned'), t + 600, 20)]);
+                showToast(context, L('Торментор вернётся в ${mmss(t + 600)}', 'Tormentor returns at ${mmss(t + 600)}'));
               }),
             ),
           ]),
-          const SectionLabel('Ближайшие события'),
+          SectionLabel(L('Ближайшие события', 'Upcoming events')),
           AppCard(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Column(children: [
               if (upcoming.isEmpty)
-                const Padding(padding: EdgeInsets.all(14), child: Text('Нет включённых таймеров.', style: T.small)),
+                Padding(padding: EdgeInsets.all(14), child: Text(L('Нет включённых таймеров.', 'No timers enabled.'), style: T.small)),
               for (final u in upcoming.take(8))
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -262,7 +263,7 @@ class _TimerScreenState extends State<TimerScreen> {
                     const SizedBox(width: 12),
                     SizedBox(
                       width: 56,
-                      child: Text('через ${mmss(u.$2 - t)}',
+                      child: Text(L('через ${mmss(u.$2 - t)}', 'in ${mmss(u.$2 - t)}'),
                           textAlign: TextAlign.right,
                           style: T.small.copyWith(color: u.$2 - t <= 20 ? C.gold : C.muted)),
                     ),
@@ -271,9 +272,10 @@ class _TimerScreenState extends State<TimerScreen> {
             ]),
           ),
           const SizedBox(height: 10),
-          const Text(
-            'Экран не гаснет, пока таймер запущен. Если матч уже идёт — нажми «Задать время» и введи время с игровых часов. '
-            'Тайминги можно поменять в настройках (иконка вверху), если в новом патче они изменятся.',
+          Text(
+            L('Экран не гаснет, пока таймер запущен. Если матч уже идёт — нажми «Задать время» и введи время с игровых часов. '
+            'Тайминги можно поменять в настройках (иконка вверху), если в новом патче они изменятся.', 'The screen stays on while the timer runs. If the match is already going, tap Set time and enter the game clock. '
+            'Timings can be changed in settings (icon at the top) if a new patch changes them.'),
             style: T.small,
           ),
         ],
@@ -313,15 +315,15 @@ class TimerSettingsScreen extends StatelessWidget {
         backgroundColor: C.surface,
         title: Text(e.title, style: T.h2),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(controller: first, decoration: fieldDeco('Первый раз (мм:сс)')),
+          TextField(controller: first, decoration: fieldDeco(L('Первый раз (мм:сс)', 'First time (mm:ss)'))),
           const SizedBox(height: 8),
-          TextField(controller: every, decoration: fieldDeco('Повтор каждые (мм:сс), пусто — один раз')),
+          TextField(controller: every, decoration: fieldDeco(L('Повтор каждые (мм:сс), пусто — один раз', 'Repeat every (mm:ss), empty — once'))),
           const SizedBox(height: 8),
-          TextField(controller: lead, keyboardType: TextInputType.number, decoration: fieldDeco('Предупредить за, сек')),
+          TextField(controller: lead, keyboardType: TextInputType.number, decoration: fieldDeco(L('Предупредить за, сек', 'Warn before, sec'))),
         ]),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Отмена')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Сохранить')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(L('Отмена', 'Cancel'))),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(L('Сохранить', 'Save'))),
         ],
       ),
     );
@@ -347,8 +349,8 @@ class TimerSettingsScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: C.bg,
         surfaceTintColor: Colors.transparent,
-        title: const Text('Тайминги', style: T.h2),
-        actions: [TextButton(onPressed: tools.resetTimers, child: const Text('Сбросить'))],
+        title: Text(L('Тайминги', 'Timings'), style: T.h2),
+        actions: [TextButton(onPressed: tools.resetTimers, child: Text(L('Сбросить', 'Reset')))],
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 0, 14, 32),
@@ -364,8 +366,9 @@ class TimerSettingsScreen extends StatelessWidget {
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(e.title, style: T.body.copyWith(fontWeight: FontWeight.w600)),
                       Text(
-                        'с ${mmss(e.first)}${e.every > 0 ? ', каждые ${mmss(e.every)}' : ''}'
-                        '${e.until > 0 ? ' до ${mmss(e.until)}' : ''}${e.lead > 0 ? ' · предупредить за ${e.lead} с' : ''}',
+                        L('с ${mmss(e.first)}${e.every > 0 ? ', каждые ${mmss(e.every)}' : ''}'
+                        '${e.until > 0 ? ' до ${mmss(e.until)}' : ''}${e.lead > 0 ? ' · предупредить за ${e.lead} с' : ''}', 'from ${mmss(e.first)}${e.every > 0 ? ', every ${mmss(e.every)}' : ''}'
+                        '${e.until > 0 ? ' until ${mmss(e.until)}' : ''}${e.lead > 0 ? ' · warn ${e.lead}s before' : ''}'),
                         style: T.small,
                       ),
                     ]),
@@ -379,9 +382,10 @@ class TimerSettingsScreen extends StatelessWidget {
               ),
             ),
           const SizedBox(height: 6),
-          const Text(
-            'Нажми на событие, чтобы изменить время. Значения по умолчанию — для последних известных патчей; '
-            'если Valve поменяет тайминги, поправь их здесь.',
+          Text(
+            L('Нажми на событие, чтобы изменить время. Значения по умолчанию — для последних известных патчей; '
+            'если Valve поменяет тайминги, поправь их здесь.', 'Tap an event to change its time. Defaults are for the latest known patches; '
+            'if Valve changes the timings, adjust them here.'),
             style: T.small,
           ),
         ],

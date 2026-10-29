@@ -1,3 +1,4 @@
+import '../i18n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -27,10 +28,10 @@ class _ShareScreenState extends State<ShareScreen> {
   void _apply(String code) {
     final s = StateScope.read(context);
     if (s.applyCode(code)) {
-      showToast(context, 'Драфт загружен');
+      showToast(context, L('Драфт загружен', 'Draft loaded'));
       Navigator.of(context).pop();
     } else {
-      showToast(context, 'Не похоже на код драфта. Он начинается с DD1;');
+      showToast(context, L('Не похоже на код драфта. Он начинается с DD1;', 'This does not look like a draft code. It starts with DD1;'));
     }
   }
 
@@ -49,13 +50,13 @@ class _ShareScreenState extends State<ShareScreen> {
       appBar: AppBar(
         backgroundColor: C.bg,
         surfaceTintColor: Colors.transparent,
-        title: const Text('Поделиться драфтом', style: T.h2),
+        title: Text(L('Поделиться драфтом', 'Share draft'), style: T.h2),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
         children: [
           if (empty)
-            const AppCard(child: Text('Драфт пустой — добавь героев на вкладке «Драфт», чтобы поделиться.', style: T.body))
+            AppCard(child: Text(L('Драфт пустой — добавь героев на вкладке «Драфт», чтобы поделиться.', 'The draft is empty — add heroes on the Draft tab to share.'), style: T.body))
           else ...[
             Center(
               child: Container(
@@ -65,7 +66,7 @@ class _ShareScreenState extends State<ShareScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            const Text('Друг открывает Dota Draft → «Поделиться» → «Сканировать QR».',
+            Text(L('Друг открывает Dota Draft → «Поделиться» → «Сканировать QR».', 'Your friend opens Dota Draft → Share → Scan QR.'),
                 textAlign: TextAlign.center, style: T.small),
             const SizedBox(height: 14),
             AppCard(
@@ -76,28 +77,28 @@ class _ShareScreenState extends State<ShareScreen> {
                   icon: const Icon(Icons.copy, color: C.accent),
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: code));
-                    showToast(context, 'Код скопирован — отправь его другу в Discord или Telegram');
+                    showToast(context, L('Код скопирован — отправь его другу в Discord или Telegram', 'Code copied — send it to your friend in Discord or Telegram'));
                   },
                 ),
               ]),
             ),
           ],
-          const SectionLabel('Открыть чужой драфт'),
+          SectionLabel(L('Открыть чужой драфт', 'Open someone else\'s draft')),
           SizedBox(
             height: 46,
             child: FilledButton.icon(
               style: FilledButton.styleFrom(backgroundColor: C.accent),
               onPressed: _scan,
               icon: const Icon(Icons.qr_code_scanner),
-              label: const Text('Сканировать QR'),
+              label: Text(L('Сканировать QR', 'Scan QR')),
             ),
           ),
           const SizedBox(height: 12),
           Row(children: [
-            Expanded(child: TextField(controller: input, style: T.body, decoration: fieldDeco('Вставь код DD1;…'))),
+            Expanded(child: TextField(controller: input, style: T.body, decoration: fieldDeco(L('Вставь код DD1;…', 'Paste a DD1;… code')))),
             const SizedBox(width: 6),
             IconButton(
-              tooltip: 'Вставить из буфера',
+              tooltip: L('Вставить из буфера', 'Paste from clipboard'),
               icon: const Icon(Icons.content_paste, color: C.muted),
               onPressed: () async {
                 final d = await Clipboard.getData('text/plain');
@@ -109,10 +110,10 @@ class _ShareScreenState extends State<ShareScreen> {
           OutlinedButton(
             style: OutlinedButton.styleFrom(side: const BorderSide(color: C.border)),
             onPressed: () => _apply(input.text),
-            child: const Text('Открыть по коду'),
+            child: Text(L('Открыть по коду', 'Open by code')),
           ),
           const SizedBox(height: 8),
-          const Text('Текущий драфт будет заменён.', style: T.small),
+          Text(L('Текущий драфт будет заменён.', 'The current draft will be replaced.'), style: T.small),
         ],
       ),
     );
@@ -133,7 +134,7 @@ class _ScanScreenState extends State<_ScanScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(backgroundColor: Colors.black, title: const Text('Наведи на QR-код', style: T.h2)),
+      appBar: AppBar(backgroundColor: Colors.black, title: Text(L('Наведи на QR-код', 'Point at the QR code'), style: T.h2)),
       body: MobileScanner(
         onDetect: (capture) {
           if (done) return;

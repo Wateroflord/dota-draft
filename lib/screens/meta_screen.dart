@@ -58,8 +58,8 @@ class _MetaScreenState extends State<MetaScreen> {
         list = all.where((h) => h.proPicks + h.proBans > 0).toList()
           ..sort((a, b) => (b.proPicks + b.proBans).compareTo(a.proPicks + a.proBans));
         hint = d.hasPro
-            ? 'Самые популярные герои профессиональных матчей: пики + баны, винрейт на про-сцене.'
-            : 'Данные про-сцены появятся после ближайшего обновления статистики.';
+            ? L('Самые популярные герои профессиональных матчей: пики + баны, винрейт на про-сцене.', 'Most popular heroes of professional matches: picks + bans, pro win rate.')
+            : L('Данные про-сцены появятся после ближайшего обновления статистики.', 'Pro scene data will appear after the next stats update.');
       case 3:
         final patch = s.patches.isEmpty ? null : s.patches.first;
         list = all.where((h) => patch != null && patch.forHero(h.id).isNotEmpty).toList()
@@ -76,36 +76,36 @@ class _MetaScreenState extends State<MetaScreen> {
         list = all.where((h) => h.trendAt(g) != null).toList()
           ..sort((a, b) => b.trendAt(g)!.compareTo(a.trendAt(g)!));
         hint = d.hasTrends
-            ? 'Изменение винрейта с ${d.trendFrom ?? 'прошлой недели'}. Вверху — кто растёт, внизу — кто падает.'
-            : 'Тренды появятся через несколько дней: нужна статистика минимум за два дня.';
+            ? L('Изменение винрейта с ${d.trendFrom ?? 'прошлой недели'}. Вверху — кто растёт, внизу — кто падает.', 'Win rate change since ${d.trendFrom ?? 'last week'}. Rising heroes on top, falling at the bottom.')
+            : L('Тренды появятся через несколько дней: нужна статистика минимум за два дня.', 'Trends will appear in a few days: at least two days of stats are needed.');
       default:
         list = [...all]..sort((a, b) => switch (sort) {
               1 => b.wrAt(g).compareTo(a.wrAt(g)),
               2 => b.prAt(g).compareTo(a.prAt(g)),
               _ => scores[b.id]!.compareTo(scores[a.id]!),
             });
-        hint = 'Тир — винрейт с поправкой на популярность. S — лучшие 8% героев, D — слабейшие.';
+        hint = L('Тир — винрейт с поправкой на популярность. S — лучшие 8% героев, D — слабейшие.', 'Tier — win rate adjusted for popularity. S — top 8% of heroes, D — the weakest.');
     }
 
     return Scaffold(
       backgroundColor: C.bg,
-      appBar: AppBar(backgroundColor: C.bg, surfaceTintColor: Colors.transparent, title: const Text('Мета', style: T.h2)),
+      appBar: AppBar(backgroundColor: C.bg, surfaceTintColor: Colors.transparent, title: Text(L('Мета', 'Meta'), style: T.h2)),
       body: ListView.builder(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
         itemCount: list.length + 1,
         itemBuilder: (_, i) {
           if (i == 0) {
             return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              _chips(['Тир-лист', 'Про-сцена', 'Тренды', L('Патч', 'Patch')], mode, (v) => setState(() => mode = v)),
+              _chips([L('Тир-лист', 'Tier list'), L('Про-сцена', 'Pro scene'), L('Тренды', 'Trends'), L('Патч', 'Patch')], mode, (v) => setState(() => mode = v)),
               const SizedBox(height: 8),
               if (mode != 1) ...[
                 _chips(rankGroupsShort, g, s.setGroup),
                 const SizedBox(height: 8),
               ],
-              _chips(const ['Любая', 'Керри', 'Мид', 'Хард', 'Поз. 4', 'Поз. 5'], pos, (v) => setState(() => pos = v)),
+              _chips([L('Любая', 'Any'), L('Керри', 'Carry'), L('Мид', 'Mid'), L('Хард', 'Offlane'), L('Поз. 4', 'Pos. 4'), L('Поз. 5', 'Pos. 5')], pos, (v) => setState(() => pos = v)),
               if (mode == 0) ...[
                 const SizedBox(height: 8),
-                _chips(const ['Мета', 'Винрейт', 'Популярность'], sort, (v) => setState(() => sort = v)),
+                _chips([L('Мета', 'Meta'), L('Винрейт', 'Win rate'), L('Популярность', 'Popularity')], sort, (v) => setState(() => sort = v)),
               ],
               const SizedBox(height: 10),
               Text(hint, style: T.small),
@@ -124,12 +124,12 @@ class _MetaScreenState extends State<MetaScreen> {
           } else if (mode == 1) {
             right = Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
               Text(h.proPicks > 0 ? pct(h.proWr) : '—', style: T.num(14, color: h.proWr >= 0.5 ? C.ally : C.enemy)),
-              Text('П ${h.proPicks} · Б ${h.proBans}', style: T.small.copyWith(fontSize: 11)),
+              Text(L('П ${h.proPicks} · Б ${h.proBans}', 'P ${h.proPicks} · B ${h.proBans}'), style: T.small.copyWith(fontSize: 11)),
             ]);
           } else if (mode == 2) {
             right = Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
               Text(signedPct(trend ?? 0), style: T.num(14, color: (trend ?? 0) >= 0 ? C.ally : C.enemy)),
-              Text('сейчас ${pct(h.wrAt(g))}', style: T.small.copyWith(fontSize: 11)),
+              Text(L('сейчас ${pct(h.wrAt(g))}', 'now ${pct(h.wrAt(g))}'), style: T.small.copyWith(fontSize: 11)),
             ]);
           } else {
             right = Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
@@ -138,7 +138,7 @@ class _MetaScreenState extends State<MetaScreen> {
                   Icon(trend > 0 ? Icons.arrow_upward : Icons.arrow_downward, size: 12, color: trend > 0 ? C.ally : C.enemy),
                 Text(pct(h.wrAt(g)), style: T.num(14, color: h.wrAt(g) >= 0.5 ? C.ally : C.enemy)),
               ]),
-              Text('в ${pct(h.prAt(g))} игр', style: T.small.copyWith(fontSize: 11)),
+              Text(L('в ${pct(h.prAt(g))} игр', 'in ${pct(h.prAt(g))} games'), style: T.small.copyWith(fontSize: 11)),
             ]);
           }
           return Padding(

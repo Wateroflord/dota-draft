@@ -13,11 +13,11 @@ import 'cm_screen.dart';
 import 'scan_draft_screen.dart';
 import '../i18n.dart';
 
-const stageTitles = {1: '1 пик', 2: '2 пик', 3: '3 пик'};
-const stageHints = {
-  1: 'Первые пики: сильные и надёжные герои, которых трудно законтрить.',
-  2: 'Середина драфта: учитываем и врагов, и союзников, но не открываемся под контрпик.',
-  3: 'Последний пик: максимальный контрпик против уже выбранных врагов.',
+Map<int, String> get stageTitles => {1: L('1 пик', '1st pick'), 2: L('2 пик', '2nd pick'), 3: L('3 пик', '3rd pick')};
+Map<int, String> get stageHints => {
+  1: L('Первые пики: сильные и надёжные герои, которых трудно законтрить.', 'First picks: strong, safe heroes that are hard to counter.'),
+  2: L('Середина драфта: учитываем и врагов, и союзников, но не открываемся под контрпик.', 'Mid draft: considers both enemies and allies without exposing you to counters.'),
+  3: L('Последний пик: максимальный контрпик против уже выбранных врагов.', 'Last pick: the strongest counter to the enemies already picked.'),
 };
 
 class DraftScreen extends StatelessWidget {
@@ -131,8 +131,8 @@ class DraftScreen extends StatelessWidget {
           const SizedBox(height: 8),
           _Bans(),
           SectionLabel(
-            'Кого брать',
-            trailing: Text(s.stageOverride == null ? 'авто' : 'вручную', style: T.small),
+            L('Кого брать', 'What to pick'),
+            trailing: Text(s.stageOverride == null ? L('авто', 'auto') : L('вручную', 'manual'), style: T.small),
           ),
           Row(children: [
             for (final st in const [1, 2, 3]) ...[
@@ -160,9 +160,9 @@ class DraftScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Wrap(spacing: 4, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
             const Icon(Icons.star_border, size: 16, color: C.gold),
-            const Text('Мои герои:', style: T.small),
+            Text(L('Мои герои:', 'My heroes:'), style: T.small),
             for (final m in const [0, 1, 2])
-              Pill(const ['не учитывать', 'приоритет', 'только мои'][m],
+              Pill([L('не учитывать', 'ignore'), L('приоритет', 'priority'), L('только мои', 'only mine')][m],
                   color: C.gold, filled: s.comfortMode == m, onTap: () => s.setComfortMode(m)),
           ]),
           const SizedBox(height: 6),
@@ -186,9 +186,9 @@ class DraftScreen extends StatelessWidget {
             const SizedBox(height: 6),
             Row(children: [
               Expanded(
-                child: Text('Свободные позиции: ${missing.map((p) => positionNames[p]).join(', ')}', style: T.small),
+                child: Text(L('Свободные позиции: ${missing.map((p) => positionNames[p]).join(', ')}', 'Open positions: ${missing.map((p) => positionNames[p]).join(', ')}'), style: T.small),
               ),
-              const Text('только они', style: T.small),
+              Text(L('только они', 'only these'), style: T.small),
               Switch(
                 value: s.roleFilter,
                 activeTrackColor: C.accent,
@@ -198,18 +198,18 @@ class DraftScreen extends StatelessWidget {
           ],
           const SizedBox(height: 8),
           if (allies.length >= 5)
-            const AppCard(child: Text('Твоя команда собрана. Смотри шанс победы вверху.', style: T.body))
+            AppCard(child: Text(L('Твоя команда собрана. Смотри шанс победы вверху.', 'Your team is complete. See the win chance above.'), style: T.body))
           else
             for (final p in picks) _PickCard(p: p, stage: s.stage),
           if (allies.length < 5) ...[
-            const SectionLabel('Лучшая команда для победы'),
+            SectionLabel(L('Лучшая команда для победы', 'Best team to win')),
             _BestTeam(),
           ],
-          SectionLabel(enemies.length >= 5 ? 'Опасные герои' : 'Опасные пики противника — кандидаты в бан'),
+          SectionLabel(enemies.length >= 5 ? L('Опасные герои', 'Dangerous heroes') : L('Опасные пики противника — кандидаты в бан', 'Dangerous enemy picks — ban candidates')),
           _Threats(),
           const SizedBox(height: 14),
           Text(
-            'Нажми на героя в рекомендациях, чтобы добавить его в свою команду. Долгое нажатие — другие действия.',
+            L('Нажми на героя в рекомендациях, чтобы добавить его в свою команду. Долгое нажатие — другие действия.', 'Tap a recommended hero to add it to your team. Long press for other actions.'),
             style: T.small,
           ),
         ],
@@ -230,13 +230,13 @@ class _WinCard extends StatelessWidget {
       child: Column(children: [
         Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('ШАНС ПОБЕДЫ', style: T.label),
+            Text(L('ШАНС ПОБЕДЫ', 'WIN CHANCE'), style: T.label),
             const SizedBox(height: 4),
             Text(empty ? '—' : pct(chance, digits: 0), style: T.num(34, color: empty ? C.muted : (good ? C.ally : C.enemy))),
           ]),
           const Spacer(),
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            const Text('СИЛА КОМАНД', style: T.label),
+            Text(L('СИЛА КОМАНД', 'TEAM STRENGTH'), style: T.label),
             const SizedBox(height: 6),
             Row(children: [
               Text(us == 0 ? '—' : us.round().toString(), style: T.num(18, color: C.ally)),
@@ -257,7 +257,7 @@ class _WinCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        const Text('Оценка по статистике матчей: винрейты героев, контрпики и синергия. Игра решает больше драфта.',
+        Text(L('Оценка по статистике матчей: винрейты героев, контрпики и синергия. Игра решает больше драфта.', 'Estimated from match stats: hero win rates, counters and synergy. The game matters more than the draft.'),
             style: T.small),
       ]),
     );
@@ -275,7 +275,7 @@ class _TeamRow extends StatelessWidget {
     final id = ids[slot];
     if (id == null) {
       final h = await pickHero(context,
-          title: ally ? 'Герой в твою команду' : 'Герой противника', disabled: s.unavailable);
+          title: ally ? L('Герой в твою команду', 'Hero for your team') : L('Герой противника', 'Enemy hero'), disabled: s.unavailable);
       if (h != null) s.setSlot(ally, slot, h);
       return;
     }
@@ -293,16 +293,16 @@ class _TeamRow extends StatelessWidget {
             Expanded(child: Text(hero.name, style: T.h2)),
           ]),
           const SizedBox(height: 12),
-          _sheetBtn(context, Icons.swap_horiz, 'Заменить', () async {
+          _sheetBtn(context, Icons.swap_horiz, L('Заменить', 'Replace'), () async {
             Navigator.pop(context);
-            final h = await pickHero(context, title: 'Заменить ${hero.name}', disabled: s.unavailable);
+            final h = await pickHero(context, title: L('Заменить ${hero.name}', 'Replace ${hero.name}'), disabled: s.unavailable);
             if (h != null) s.setSlot(ally, slot, h);
           }),
-          _sheetBtn(context, Icons.close, 'Убрать', () {
+          _sheetBtn(context, Icons.close, L('Убрать', 'Remove'), () {
             s.setSlot(ally, slot, null);
             Navigator.pop(context);
           }),
-          _sheetBtn(context, Icons.info_outline, 'Подробнее о герое', () {
+          _sheetBtn(context, Icons.info_outline, L('Подробнее о герое', 'Hero details'), () {
             Navigator.pop(context);
             openHero(context, hero);
           }),
@@ -319,7 +319,7 @@ class _TeamRow extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(10, 10, 10, 8),
       borderColor: color.withValues(alpha: 0.35),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(ally ? 'ТВОЯ КОМАНДА' : 'ПРОТИВНИКИ', style: T.label.copyWith(color: color)),
+        Text(ally ? L('ТВОЯ КОМАНДА', 'YOUR TEAM') : L('ПРОТИВНИКИ', 'ENEMIES'), style: T.label.copyWith(color: color)),
         const SizedBox(height: 8),
         Row(children: [
           for (var i = 0; i < 5; i++) ...[
@@ -344,7 +344,7 @@ class _TeamRow extends StatelessWidget {
                         : HeroImg(h, width: c.maxWidth),
                     const SizedBox(height: 4),
                     Text(
-                      h == null ? '' : (positions[h.id] == null ? h.name : 'поз. ${positions[h.id]}'),
+                      h == null ? '' : (positions[h.id] == null ? h.name : L('поз. ${positions[h.id]}', 'pos. ${positions[h.id]}')),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 10.5, color: C.muted),
@@ -381,13 +381,13 @@ class _Bans extends StatelessWidget {
     return AppCard(
       padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
       child: Row(children: [
-        const Text('БАНЫ', style: T.label),
+        Text(L('БАНЫ', 'BANS'), style: T.label),
         const SizedBox(width: 10),
         Expanded(
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(children: [
-              if (banned.isEmpty) const Text('нет', style: T.small),
+              if (banned.isEmpty) Text(L('нет', 'none'), style: T.small),
               for (final h in banned) ...[
                 GestureDetector(
                   onTap: () => s.toggleBan(h.id),
@@ -403,10 +403,10 @@ class _Bans extends StatelessWidget {
         ),
         IconButton(
           visualDensity: VisualDensity.compact,
-          tooltip: 'Забанить героя',
+          tooltip: L('Забанить героя', 'Ban a hero'),
           icon: const Icon(Icons.add_circle_outline, color: C.accent2),
           onPressed: () async {
-            final h = await pickHero(context, title: 'Бан', disabled: s.unavailable);
+            final h = await pickHero(context, title: L('Бан', 'Ban'), disabled: s.unavailable);
             if (h != null) s.toggleBan(h);
           },
         ),
@@ -429,19 +429,19 @@ Future<void> heroActions(BuildContext context, DHero h) {
           Expanded(child: Text(h.name, style: T.h2)),
         ]),
         const SizedBox(height: 10),
-        _sheetBtn(context, Icons.add, 'В мою команду', () {
+        _sheetBtn(context, Icons.add, L('В мою команду', 'To my team'), () {
           Navigator.pop(context);
-          if (!s.add(true, h.id)) showToast(context, 'Твоя команда уже полная');
+          if (!s.add(true, h.id)) showToast(context, L('Твоя команда уже полная', 'Your team is already full'));
         }, color: C.ally),
-        _sheetBtn(context, Icons.add, 'Противнику', () {
+        _sheetBtn(context, Icons.add, L('Противнику', 'To the enemy'), () {
           Navigator.pop(context);
-          if (!s.add(false, h.id)) showToast(context, 'У противников уже 5 героев');
+          if (!s.add(false, h.id)) showToast(context, L('У противников уже 5 героев', 'The enemy already has 5 heroes'));
         }, color: C.enemy),
-        _sheetBtn(context, Icons.block, 'Забанить', () {
+        _sheetBtn(context, Icons.block, L('Забанить', 'Ban'), () {
           Navigator.pop(context);
           s.toggleBan(h.id);
         }),
-        _sheetBtn(context, Icons.info_outline, 'Подробнее о герое', () {
+        _sheetBtn(context, Icons.info_outline, L('Подробнее о герое', 'Hero details'), () {
           Navigator.pop(context);
           openHero(context, h);
         }),
@@ -473,7 +473,7 @@ class _PickCard extends StatelessWidget {
           style: T.small.copyWith(fontSize: 11.5, color: r.value >= 0 ? C.accent2 : C.enemy)));
     }
     if (stage < 3 && p.counters.isNotEmpty) {
-      lines.add(Text('Контрят: ${p.counters.take(3).map((x) => x.name).join(', ')}',
+      lines.add(Text(L('Контрят: ${p.counters.take(3).map((x) => x.name).join(', ')}', 'Countered by: ${p.counters.take(3).map((x) => x.name).join(', ')}'),
           maxLines: 1, overflow: TextOverflow.ellipsis, style: T.small.copyWith(fontSize: 11.5)));
     }
     if (p.friends.isNotEmpty) {
@@ -485,7 +485,7 @@ class _PickCard extends StatelessWidget {
       child: AppCard(
         padding: const EdgeInsets.all(10),
         onTap: () {
-          if (!s.add(true, h.id)) showToast(context, 'Твоя команда уже полная');
+          if (!s.add(true, h.id)) showToast(context, L('Твоя команда уже полная', 'Your team is already full'));
         },
         onLongPress: () => heroActions(context, h),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -506,7 +506,7 @@ class _PickCard extends StatelessWidget {
               ]),
               const SizedBox(height: 2),
               Text(
-                '${p.position == null ? '' : '${positionNames[p.position]} · '}винрейт ${pct(h.wrAt(g))}',
+                L('${p.position == null ? '' : '${positionNames[p.position]} · '}винрейт ${pct(h.wrAt(g))}', '${p.position == null ? '' : '${positionNames[p.position]} · '}win rate ${pct(h.wrAt(g))}'),
                 style: T.small.copyWith(fontSize: 11.5),
               ),
               const SizedBox(height: 3),
@@ -538,8 +538,8 @@ class _BestTeam extends StatelessWidget {
         Row(children: [
           const Icon(Icons.auto_awesome, color: C.gold, size: 18),
           const SizedBox(width: 8),
-          const Expanded(child: Text('Дополнить команду', style: T.section)),
-          Text('шанс ${pct(res.winChance, digits: 0)}', style: T.num(14, color: C.gold)),
+          Expanded(child: Text(L('Дополнить команду', 'Complete the team'), style: T.section)),
+          Text(L('шанс ${pct(res.winChance, digits: 0)}', 'chance ${pct(res.winChance, digits: 0)}'), style: T.num(14, color: C.gold)),
         ]),
         const SizedBox(height: 10),
         for (final h in sorted)
@@ -565,8 +565,8 @@ class _BestTeam extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           s.enemyHeroes.isEmpty
-              ? 'Подобрано по силе героев и синергии. Когда добавишь врагов, учтутся и контрпики.'
-              : 'Подобрано с учётом врагов, синергии и позиций 1–5.',
+              ? L('Подобрано по силе героев и синергии. Когда добавишь врагов, учтутся и контрпики.', 'Chosen by hero strength and synergy. Add enemies to include counters too.')
+              : L('Подобрано с учётом врагов, синергии и позиций 1–5.', 'Chosen considering enemies, synergy and positions 1–5.'),
           style: T.small,
         ),
         const SizedBox(height: 10),
@@ -577,7 +577,7 @@ class _BestTeam extends StatelessWidget {
             style: FilledButton.styleFrom(backgroundColor: C.accent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
             onPressed: () => s.applyTeam(res.heroes),
             icon: const Icon(Icons.check, size: 18),
-            label: const Text('Поставить этих героев', style: TextStyle(fontWeight: FontWeight.w700)),
+            label: Text(L('Поставить этих героев', 'Use these heroes'), style: TextStyle(fontWeight: FontWeight.w700)),
           ),
         ),
       ]),
@@ -590,7 +590,7 @@ class _Threats extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = StateScope.of(context);
     if (s.enemyHeroes.length >= 5) {
-      return const AppCard(child: Text('Противники выбрали всех героев.', style: T.small));
+      return AppCard(child: Text(L('Противники выбрали всех героев.', 'The enemy has picked all heroes.'), style: T.small));
     }
     final list = s.engine.threats(allies: s.allyHeroes, enemies: s.enemyHeroes, unavailable: s.unavailable, limit: 8);
     return SizedBox(

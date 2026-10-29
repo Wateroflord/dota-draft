@@ -1,3 +1,4 @@
+import '../i18n.dart';
 import 'package:flutter/material.dart';
 
 import '../data.dart';
@@ -20,26 +21,27 @@ class HistoryScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: C.bg,
-      appBar: AppBar(backgroundColor: C.bg, surfaceTintColor: Colors.transparent, title: const Text('История драфтов', style: T.h2)),
+      appBar: AppBar(backgroundColor: C.bg, surfaceTintColor: Colors.transparent, title: Text(L('История драфтов', 'Draft history'), style: T.h2)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 4, 14, 32),
         children: [
           AppCard(
             child: Row(children: [
-              _stat('Точность', rated.isEmpty ? '—' : pct(correct / rated.length, digits: 0), C.gold),
-              _stat('Побед', rated.isEmpty ? '—' : '$wins из ${rated.length}', C.ally),
-              _stat('Ожидалось', rated.isEmpty ? '—' : pct(avgPred, digits: 0), C.accent2),
+              _stat(L('Точность', 'Accuracy'), rated.isEmpty ? '—' : pct(correct / rated.length, digits: 0), C.gold),
+              _stat(L('Побед', 'Wins'), rated.isEmpty ? '—' : L('$wins из ${rated.length}', '$wins of ${rated.length}'), C.ally),
+              _stat(L('Ожидалось', 'Expected'), rated.isEmpty ? '—' : pct(avgPred, digits: 0), C.accent2),
             ]),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Точность — как часто фаворит по драфту действительно побеждал. Отмечай результат после каждой игры: '
-            'через 20–30 матчей станет понятно, насколько подсказкам можно доверять.',
+          Text(
+            L('Точность — как часто фаворит по драфту действительно побеждал. Отмечай результат после каждой игры: '
+            'через 20–30 матчей станет понятно, насколько подсказкам можно доверять.', 'Accuracy — how often the draft favourite actually won. Mark the result after each game: '
+            'after 20–30 matches you will see how much the advice can be trusted.'),
             style: T.small,
           ),
           const SizedBox(height: 10),
           if (s.history.isEmpty)
-            const AppCard(child: Text('Пока пусто. Сохраняй драфт кнопкой 🔖 на вкладке «Драфт».', style: T.small)),
+            AppCard(child: Text(L('Пока пусто. Сохраняй драфт кнопкой 🔖 на вкладке «Драфт».', 'Empty for now. Save drafts with the 🔖 button on the Draft tab.'), style: T.small)),
           for (final x in s.history)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
@@ -50,7 +52,7 @@ class HistoryScreen extends StatelessWidget {
                   Row(children: [
                     Text(_date(x.ts), style: T.small),
                     const Spacer(),
-                    Text('шанс ${pct(x.chance, digits: 0)}', style: T.num(13.5, color: x.chance >= 0.5 ? C.ally : C.enemy)),
+                    Text(L('шанс ${pct(x.chance, digits: 0)}', 'chance ${pct(x.chance, digits: 0)}'), style: T.num(13.5, color: x.chance >= 0.5 ? C.ally : C.enemy)),
                   ]),
                   const SizedBox(height: 6),
                   _row(d, x.allies),
@@ -58,24 +60,24 @@ class HistoryScreen extends StatelessWidget {
                   _row(d, x.enemies),
                   const SizedBox(height: 8),
                   Row(children: [
-                    Pill('Победа', color: C.ally, filled: x.win == true, onTap: () => s.setResult(x.id, x.win == true ? null : true)),
+                    Pill(L('Победа', 'Win'), color: C.ally, filled: x.win == true, onTap: () => s.setResult(x.id, x.win == true ? null : true)),
                     const SizedBox(width: 6),
-                    Pill('Поражение',
+                    Pill(L('Поражение', 'Loss'),
                         color: C.enemy, filled: x.win == false, onTap: () => s.setResult(x.id, x.win == false ? null : false)),
                     const Spacer(),
                     IconButton(
                       visualDensity: VisualDensity.compact,
-                      tooltip: 'Открыть в драфте',
+                      tooltip: L('Открыть в драфте', 'Open in draft'),
                       icon: const Icon(Icons.open_in_new, size: 18, color: C.accent2),
                       onPressed: () {
                         s.loadDraft(x);
                         Navigator.pop(context);
-                        showToast(context, 'Драфт открыт на вкладке «Драфт»');
+                        showToast(context, L('Драфт открыт на вкладке «Драфт»', 'Draft opened on the Draft tab'));
                       },
                     ),
                     IconButton(
                       visualDensity: VisualDensity.compact,
-                      tooltip: 'Удалить',
+                      tooltip: L('Удалить', 'Delete'),
                       icon: const Icon(Icons.delete_outline, size: 18, color: C.muted),
                       onPressed: () => s.deleteDraft(x.id),
                     ),

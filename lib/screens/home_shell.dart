@@ -1,3 +1,4 @@
+import '../i18n.dart';
 import 'package:flutter/material.dart';
 
 import '../theme.dart';
@@ -18,12 +19,12 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int index = 0;
 
-  static const _tabs = [
-    (Icons.grid_view_outlined, Icons.grid_view_rounded, 'Драфт'),
-    (Icons.insights_outlined, Icons.insights, 'Анализ'),
-    (Icons.leaderboard_outlined, Icons.leaderboard, 'Мета'),
-    (Icons.sports_esports_outlined, Icons.sports_esports, 'Игра'),
-    (Icons.person_outline, Icons.person, 'Мои герои'),
+  static List<(IconData, IconData, String)> get _tabs => [
+    (Icons.grid_view_outlined, Icons.grid_view_rounded, L('Драфт', 'Draft')),
+    (Icons.insights_outlined, Icons.insights, L('Анализ', 'Analysis')),
+    (Icons.leaderboard_outlined, Icons.leaderboard, L('Мета', 'Meta')),
+    (Icons.sports_esports_outlined, Icons.sports_esports, L('Игра', 'Game')),
+    (Icons.person_outline, Icons.person, L('Мои герои', 'My heroes')),
   ];
 
   @override

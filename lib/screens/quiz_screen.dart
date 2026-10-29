@@ -1,3 +1,4 @@
+import '../i18n.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -83,8 +84,8 @@ class _QuizScreenState extends State<QuizScreen> {
             .toList();
         if (wrong.length < 3) return null;
         final opts = [right, ...wrong]..shuffle(rnd);
-        return _Q('Кто сильнее всего против ${h.name}?', h, [for (final o in opts) _Opt(o.name, hero: o)], opts.indexOf(right),
-            '${right.name} повышает шанс победы против ${h.name} на ${signedPct(d.advantage(right, h))}.');
+        return _Q(L('Кто сильнее всего против ${h.name}?', 'Who is strongest against ${h.name}?'), h, [for (final o in opts) _Opt(o.name, hero: o)], opts.indexOf(right),
+            L('${right.name} повышает шанс победы против ${h.name} на ${signedPct(d.advantage(right, h))}.', '${right.name} raises the win chance against ${h.name} by ${signedPct(d.advantage(right, h))}.'));
       case 1: // синергия
         final h = _pick(pool);
         final p = e.partners(h);
@@ -95,9 +96,9 @@ class _QuizScreenState extends State<QuizScreen> {
             .toList();
         if (wrong.length < 3) return null;
         final opts = [right, ...wrong]..shuffle(rnd);
-        return _Q('Кто лучше всего сочетается с ${h.name} в одной команде?', h,
+        return _Q(L('Кто лучше всего сочетается с ${h.name} в одной команде?', 'Who works best with ${h.name} on the same team?'), h,
             [for (final o in opts) _Opt(o.name, hero: o)], opts.indexOf(right),
-            'Вместе с ${right.name} шанс победы выше на ${signedPct(d.synergy(h, right))}.');
+            L('Вместе с ${right.name} шанс победы выше на ${signedPct(d.synergy(h, right))}.', 'With ${right.name} the win chance is higher by ${signedPct(d.synergy(h, right))}.'));
       case 2: // у кого выше винрейт
         final g = s.group == 4 ? 0 : s.group;
         final four = (pool.toList()..shuffle(rnd)).take(4).toList();
@@ -105,7 +106,7 @@ class _QuizScreenState extends State<QuizScreen> {
         if (four[0].wrAt(g) - four[1].wrAt(g) < 0.012) return null;
         final right = four[0];
         final opts = four.toList()..shuffle(rnd);
-        return _Q('У кого сейчас самый высокий винрейт (${rankGroupsShort[g]})?', null,
+        return _Q(L('У кого сейчас самый высокий винрейт (${rankGroupsShort[g]})?', 'Who has the highest win rate now (${rankGroupsShort[g]})?'), null,
             [for (final o in opts) _Opt(o.name, hero: o)], opts.indexOf(right),
             [for (final o in four) '${o.name} — ${pct(o.wrAt(g))}'].join('\n'));
       case 3: // позиция
@@ -115,17 +116,17 @@ class _QuizScreenState extends State<QuizScreen> {
         final right = h.positions.first;
         final opts = [1, 2, 3, 4, 5]..shuffle(rnd);
         final four = [right, ...opts.where((p) => !h.positions.contains(p)).take(3)]..shuffle(rnd);
-        return _Q('На какой позиции чаще всего играют ${h.name}?', h,
+        return _Q(L('На какой позиции чаще всего играют ${h.name}?', 'Which position is ${h.name} played in most?'), h,
             [for (final p in four) _Opt('$p — ${positionNames[p]}')], four.indexOf(right),
             '${h.name}: ${h.positions.map((p) => positionNames[p]).join(', ')}.');
       default: // предмет против героя
         final traits = [
-          (invisible, const ['dust', 'gem', 'ward_sentry'], 'становится невидимым — нужна истинная видимость'),
-          (evasion, const ['monkey_king_bar', 'bloodthorn'], 'уклоняется от атак — нужна true strike'),
-          (breakTargets, const ['silver_edge'], 'силён за счёт пассивки — Silver Edge её выключает'),
-          (illusions, const ['bfury', 'mjollnir', 'radiance'], 'создаёт иллюзии или призывы — нужен урон по области'),
-          (healers, const ['spirit_vessel', 'shivas_guard', 'skadi'], 'сильно лечится — нужно снижение лечения'),
-          (singleTarget, const ['sphere', 'lotus_orb'], 'кастует опасные заклинания в цель — их можно заблокировать'),
+          (invisible, const ['dust', 'gem', 'ward_sentry'], L('становится невидимым — нужна истинная видимость', 'turns invisible — you need true sight')),
+          (evasion, const ['monkey_king_bar', 'bloodthorn'], L('уклоняется от атак — нужна true strike', 'evades attacks — you need true strike')),
+          (breakTargets, const ['silver_edge'], L('силён за счёт пассивки — Silver Edge её выключает', 'relies on a passive — Silver Edge breaks it')),
+          (illusions, const ['bfury', 'mjollnir', 'radiance'], L('создаёт иллюзии или призывы — нужен урон по области', 'creates illusions or summons — you need area damage')),
+          (healers, const ['spirit_vessel', 'shivas_guard', 'skadi'], L('сильно лечится — нужно снижение лечения', 'heals a lot — you need healing reduction')),
+          (singleTarget, const ['sphere', 'lotus_orb'], L('кастует опасные заклинания в цель — их можно заблокировать', 'casts dangerous targeted spells — they can be blocked')),
         ];
         final t = _pick(traits);
         final heroes = d.heroes.where((h) => t.$1.contains(h.key)).toList();
@@ -139,7 +140,7 @@ class _QuizScreenState extends State<QuizScreen> {
         final right = _pick(t.$2);
         final wrong = (itemNames.keys.where((k) => !alsoGood.contains(k)).toList()..shuffle(rnd)).take(3).toList();
         final opts = [right, ...wrong]..shuffle(rnd);
-        return _Q('Какой предмет особенно полезен против ${h.name}?', h,
+        return _Q(L('Какой предмет особенно полезен против ${h.name}?', 'Which item is especially useful against ${h.name}?'), h,
             [for (final k in opts) _Opt(itemNames[k] ?? k, item: k)], opts.indexOf(right),
             '${h.name} ${t.$3}: ${t.$2.map((k) => itemNames[k] ?? k).join(', ')}.');
     }
@@ -153,13 +154,13 @@ class _QuizScreenState extends State<QuizScreen> {
       appBar: AppBar(
         backgroundColor: C.bg,
         surfaceTintColor: Colors.transparent,
-        title: const Text('Квиз', style: T.h2),
+        title: Text(L('Квиз', 'Quiz'), style: T.h2),
         actions: [
-          Center(child: Padding(padding: const EdgeInsets.only(right: 16), child: Text('Рекорд: ${tools.quizBest}/$total', style: T.small))),
+          Center(child: Padding(padding: const EdgeInsets.only(right: 16), child: Text(L('Рекорд: ${tools.quizBest}/$total', 'Best: ${tools.quizBest}/$total'), style: T.small))),
         ],
       ),
       body: qs.isEmpty
-          ? const Center(child: Text('Не удалось составить вопросы — нет данных.', style: T.body))
+          ? Center(child: Text(L('Не удалось составить вопросы — нет данных.', 'Could not build questions — no data.'), style: T.body))
           : i >= qs.length
               ? _result(tools)
               : _question(qs[i]),
@@ -168,10 +169,10 @@ class _QuizScreenState extends State<QuizScreen> {
 
   Widget _result(ToolsState tools) {
     final msg = score >= 9
-        ? 'Отлично! Ты знаешь мету как про.'
+        ? L('Отлично! Ты знаешь мету как про.', 'Excellent! You know the meta like a pro.')
         : score >= 6
-            ? 'Хорошо! Ещё немного — и будешь драфтить как капитан.'
-            : 'Есть куда расти — загляни в карточки героев: там контрпики и союзники.';
+            ? L('Хорошо! Ещё немного — и будешь драфтить как капитан.', 'Good! A little more and you will draft like a captain.')
+            : L('Есть куда расти — загляни в карточки героев: там контрпики и союзники.', 'Room to grow — check hero pages for counters and allies.');
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -179,13 +180,13 @@ class _QuizScreenState extends State<QuizScreen> {
         const SizedBox(height: 10),
         Text(msg, textAlign: TextAlign.center, style: T.body),
         const SizedBox(height: 6),
-        Text('Рекорд: ${tools.quizBest}', style: T.small),
+        Text(L('Рекорд: ${tools.quizBest}', 'Best: ${tools.quizBest}'), style: T.small),
         const SizedBox(height: 20),
         FilledButton.icon(
           style: FilledButton.styleFrom(backgroundColor: C.accent),
           onPressed: _start,
           icon: const Icon(Icons.replay),
-          label: const Text('Ещё раз'),
+          label: Text(L('Ещё раз', 'Again')),
         ),
       ]),
     );
@@ -197,9 +198,9 @@ class _QuizScreenState extends State<QuizScreen> {
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
       children: [
         Row(children: [
-          Text('Вопрос ${i + 1} из ${qs.length}', style: T.small),
+          Text(L('Вопрос ${i + 1} из ${qs.length}', 'Question ${i + 1} of ${qs.length}'), style: T.small),
           const Spacer(),
-          Text('Счёт: $score', style: T.small.copyWith(color: C.text)),
+          Text(L('Счёт: $score', 'Score: $score'), style: T.small.copyWith(color: C.text)),
         ]),
         const SizedBox(height: 6),
         ClipRRect(
@@ -244,7 +245,7 @@ class _QuizScreenState extends State<QuizScreen> {
         if (answered) ...[
           const SizedBox(height: 6),
           AppCard(
-            child: Text('${picked == q.correct ? 'Верно! ' : 'Не совсем. '}${q.explain}', style: T.body.copyWith(fontSize: 13.5)),
+            child: Text(L('${picked == q.correct ? 'Верно! ' : 'Не совсем. '}${q.explain}', '${picked == q.correct ? 'Correct! ' : 'Not quite. '}${q.explain}'), style: T.body.copyWith(fontSize: 13.5)),
           ),
           const SizedBox(height: 12),
           SizedBox(
@@ -258,7 +259,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 });
                 if (i >= qs.length) ToolsScope.read(context).setQuizBest(score);
               },
-              child: Text(i + 1 >= qs.length ? 'Результат' : 'Дальше'),
+              child: Text(i + 1 >= qs.length ? L('Результат', 'Result') : L('Дальше', 'Next')),
             ),
           ),
         ],

@@ -1,3 +1,4 @@
+import 'i18n.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -6,15 +7,15 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
 /// Группы рангов (как в данных): 0 — все, 1 — Рекрут–Страж, 2 — Рыцарь–Легенда, 3 — Властелин–Титан, 4 — Турбо.
-const rankGroups = ['Все ранги', 'Рекрут – Страж', 'Рыцарь – Легенда', 'Властелин – Титан', 'Турбо'];
-const rankGroupsShort = ['Все', 'Рекрут–Страж', 'Рыцарь–Легенда', 'Властелин–Титан', 'Турбо'];
+List<String> get rankGroups => [L('Все ранги', 'All ranks'), L('Рекрут – Страж', 'Herald – Guardian'), L('Рыцарь – Легенда', 'Crusader – Legend'), L('Властелин – Титан', 'Ancient – Immortal'), L('Турбо', 'Turbo')];
+List<String> get rankGroupsShort => [L('Все', 'All'), L('Рекрут–Страж', 'Herald–Guardian'), L('Рыцарь–Легенда', 'Crusader–Legend'), L('Властелин–Титан', 'Ancient–Immortal'), L('Турбо', 'Turbo')];
 
-const positionNames = {1: 'Керри', 2: 'Мид', 3: 'Хард', 4: 'Полусаппорт', 5: 'Саппорт'};
+Map<int, String> get positionNames => {1: L('Керри', 'Carry'), 2: L('Мид', 'Mid'), 3: L('Хард', 'Offlane'), 4: L('Полусаппорт', 'Soft support'), 5: L('Саппорт', 'Hard support')};
 
-const attrNames = {'str': 'Сила', 'agi': 'Ловкость', 'int': 'Интеллект', 'all': 'Универсал'};
+Map<String, String> get attrNames => {'str': L('Сила', 'Strength'), 'agi': L('Ловкость', 'Agility'), 'int': L('Интеллект', 'Intelligence'), 'all': L('Универсал', 'Universal')};
 
 /// Отрезки длительности матча для «силы по времени».
-const durationLabels = ['до 25 мин', '25–35', '35–45', '45+ мин'];
+List<String> get durationLabels => [L('до 25 мин', 'under 25 min'), '25–35', '35–45', L('45+ мин', '45+ min')];
 
 class DItem {
   final int id;

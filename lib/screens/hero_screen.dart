@@ -30,12 +30,12 @@ class HeroScreen extends StatelessWidget {
         title: Text(h.name, style: T.h2),
         actions: [
           IconButton(
-            tooltip: 'Сравнить с другим героем',
+            tooltip: L('Сравнить с другим героем', 'Compare with another hero'),
             icon: const Icon(Icons.compare_arrows),
             onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CompareScreen(first: h))),
           ),
           IconButton(
-            tooltip: s.inPool(h.id) ? 'Убрать из моих героев' : 'В мои герои',
+            tooltip: s.inPool(h.id) ? L('Убрать из моих героев', 'Remove from my heroes') : L('В мои герои', 'Add to my heroes'),
             icon: Icon(s.inPool(h.id) ? Icons.star : Icons.star_border, color: C.gold),
             onPressed: () => s.togglePool(h.id),
           ),
@@ -52,23 +52,23 @@ class HeroScreen extends StatelessWidget {
           ]),
           if (h.roles.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Text('Роли: ${h.roles.join(', ')}', style: T.small),
+            Text(L('Роли: ${h.roles.join(', ')}', 'Roles: ${h.roles.join(', ')}'), style: T.small),
           ],
           const SizedBox(height: 12),
           Row(children: [
             Expanded(
-              child: _Btn(inAllies ? 'В команде' : 'В команду', Icons.add, C.ally, inAllies ? null : () {
-                if (!s.add(true, h.id)) showToast(context, 'Твоя команда уже полная');
+              child: _Btn(inAllies ? L('В команде', 'In team') : L('В команду', 'To team'), Icons.add, C.ally, inAllies ? null : () {
+                if (!s.add(true, h.id)) showToast(context, L('Твоя команда уже полная', 'Your team is already full'));
               }),
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: _Btn(inEnemies ? 'У врагов' : 'Во враги', Icons.add, C.enemy, inEnemies ? null : () {
-                if (!s.add(false, h.id)) showToast(context, 'У противников уже 5 героев');
+              child: _Btn(inEnemies ? L('У врагов', 'Enemy has') : L('Во враги', 'To enemies'), Icons.add, C.enemy, inEnemies ? null : () {
+                if (!s.add(false, h.id)) showToast(context, L('У противников уже 5 героев', 'The enemy already has 5 heroes'));
               }),
             ),
             const SizedBox(width: 8),
-            Expanded(child: _Btn(banned ? 'Снять бан' : 'Бан', Icons.block, C.muted, () => s.toggleBan(h.id))),
+            Expanded(child: _Btn(banned ? L('Снять бан', 'Unban') : L('Бан', 'Ban'), Icons.block, C.muted, () => s.toggleBan(h.id))),
           ]),
           if (s.info.heroes[h.id] != null) ...[
             if (s.info.heroes[h.id]!.npe.isNotEmpty) ...[
@@ -78,7 +78,7 @@ class HeroScreen extends StatelessWidget {
             SectionLabel(L('Умения', 'Abilities')),
             AbilitiesSection(info: s.info.heroes[h.id]!),
           ],
-          const SectionLabel('Винрейт и популярность по рангам'),
+          SectionLabel(L('Винрейт и популярность по рангам', 'Win rate and popularity by rank')),
           AppCard(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Column(children: [
@@ -93,28 +93,28 @@ class HeroScreen extends StatelessWidget {
                     ),
                     Text(pct(h.wrAt(g)), style: T.num(14, color: h.wrAt(g) >= 0.5 ? C.ally : C.enemy)),
                     const SizedBox(width: 14),
-                    SizedBox(width: 64, child: Text('в ${pct(h.prAt(g))}', textAlign: TextAlign.right, style: T.small)),
+                    SizedBox(width: 64, child: Text(L('в ${pct(h.prAt(g))}', 'in ${pct(h.prAt(g))}'), textAlign: TextAlign.right, style: T.small)),
                   ]),
                 ),
             ]),
           ),
           const SizedBox(height: 6),
-          const Text('Справа — в какой доле матчей берут героя.', style: T.small),
+          Text(L('Справа — в какой доле матчей берут героя.', 'On the right — share of matches where the hero is picked.'), style: T.small),
           if (h.trendAt(s.group) != null) ...[
             const SizedBox(height: 6),
             Text(
-              'За неделю винрейт ${h.trendAt(s.group)! >= 0 ? 'вырос' : 'упал'} на ${pct(h.trendAt(s.group)!.abs())}',
+              L('За неделю винрейт ${h.trendAt(s.group)! >= 0 ? 'вырос' : 'упал'} на ${pct(h.trendAt(s.group)!.abs())}', 'This week the win rate ${h.trendAt(s.group)! >= 0 ? 'rose' : 'fell'} by ${pct(h.trendAt(s.group)!.abs())}'),
               style: T.small.copyWith(color: h.trendAt(s.group)! >= 0 ? C.ally : C.enemy),
             ),
           ],
           if (s.played[h.id] != null) ...[
-            const SectionLabel('Твоя игра на герое'),
+            SectionLabel(L('Твоя игра на герое', 'Your games on this hero')),
             AppCard(
               child: Row(children: [
                 const Icon(Icons.person, color: C.gold, size: 20),
                 const SizedBox(width: 10),
-                Expanded(child: Text('${s.played[h.id]![0]} игр', style: T.body)),
-                Text('винрейт ${pct(s.played[h.id]![1] / s.played[h.id]![0])}',
+                Expanded(child: Text(L('${s.played[h.id]![0]} игр', '${s.played[h.id]![0]} games'), style: T.body)),
+                Text(L('винрейт ${pct(s.played[h.id]![1] / s.played[h.id]![0])}', 'win rate ${pct(s.played[h.id]![1] / s.played[h.id]![0])}'),
                     style: T.num(14, color: s.played[h.id]![1] * 2 >= s.played[h.id]![0] ? C.ally : C.enemy)),
               ]),
             ),
@@ -123,20 +123,20 @@ class HeroScreen extends StatelessWidget {
           BenchSection(hero: h),
           SkillBuildSection(hero: h),
           if ((s.bench.neutral[h.id] ?? const []).isNotEmpty) ...[
-            const SectionLabel('Нейтральные предметы'),
+            SectionLabel(L('Нейтральные предметы', 'Neutral items')),
             AppCard(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 NeutralRow(hero: h),
                 const SizedBox(height: 6),
-                const Text('Что чаще всего берут из нейтральных: доля и винрейт с предметом. T — уровень.', style: T.small),
+                Text(L('Что чаще всего берут из нейтральных: доля и винрейт с предметом. T — уровень.', 'Most taken neutral items: share and win rate with the item. T — tier.'), style: T.small),
               ]),
             ),
           ],
           if (h.items.isNotEmpty) ...[
-            const SectionLabel('Популярные предметы'),
+            SectionLabel(L('Популярные предметы', 'Popular items')),
             AppCard(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                for (final ph in const [('s', 'Старт'), ('e', 'Начало игры'), ('m', 'Середина'), ('l', 'Поздняя игра')])
+                for (final ph in [('s', L('Старт', 'Start')), ('e', L('Начало игры', 'Early game')), ('m', L('Середина', 'Mid game')), ('l', L('Поздняя игра', 'Late game'))])
                   if ((h.items[ph.$1] ?? const []).isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 5),
@@ -152,33 +152,33 @@ class HeroScreen extends StatelessWidget {
                       ]),
                     ),
                 const SizedBox(height: 4),
-                const Text('Нажми и удерживай предмет, чтобы увидеть название.', style: T.small),
+                Text(L('Нажми и удерживай предмет, чтобы увидеть название.', 'Long-press an item to see its name.'), style: T.small),
               ]),
             ),
           ],
           if (h.dur.length == 4) ...[
-            const SectionLabel('Сила по времени игры'),
+            SectionLabel(L('Сила по времени игры', 'Strength by game time')),
             AppCard(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text('Винрейт героя в зависимости от длины матча', style: T.small),
+                Text(L('Винрейт героя в зависимости от длины матча', 'Hero win rate by match length'), style: T.small),
                 const SizedBox(height: 8),
                 ChanceBars(values: h.dur, labels: durationLabels),
               ]),
             ),
           ],
           if (h.proPicks > 0 || h.proBans > 0) ...[
-            const SectionLabel('Про-сцена'),
+            SectionLabel(L('Про-сцена', 'Pro scene')),
             AppCard(
               child: Row(children: [
-                Expanded(child: Text('Пики: ${h.proPicks}\nБаны: ${h.proBans}', style: T.body)),
-                Text(h.proPicks > 0 ? 'винрейт ${pct(h.proWr)}' : '—', style: T.num(14, color: h.proWr >= 0.5 ? C.ally : C.enemy)),
+                Expanded(child: Text(L('Пики: ${h.proPicks}\nБаны: ${h.proBans}', 'Picks: ${h.proPicks}\nBans: ${h.proBans}'), style: T.body)),
+                Text(h.proPicks > 0 ? L('винрейт ${pct(h.proWr)}', 'win rate ${pct(h.proWr)}') : '—', style: T.num(14, color: h.proWr >= 0.5 ? C.ally : C.enemy)),
               ]),
             ),
           ],
           VersusSection(hero: h),
-          _list(context, 'Силён против', e.matchups(h, best: true), C.ally),
-          _list(context, 'Его контрят', e.matchups(h, best: false), C.enemy, invert: true),
-          _list(context, 'Лучшие союзники', e.partners(h), C.gold),
+          _list(context, L('Силён против', 'Strong against'), e.matchups(h, best: true), C.ally),
+          _list(context, L('Его контрят', 'Countered by'), e.matchups(h, best: false), C.enemy, invert: true),
+          _list(context, L('Лучшие союзники', 'Best allies'), e.partners(h), C.gold),
         ],
       ),
     );

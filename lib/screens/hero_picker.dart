@@ -1,3 +1,4 @@
+import '../i18n.dart';
 import 'package:flutter/material.dart';
 
 import '../data.dart';
@@ -52,7 +53,7 @@ class _PickerState extends State<_Picker> {
               autofocus: false,
               onChanged: (_) => setState(() {}),
               style: T.body,
-              decoration: fieldDeco('Поиск: Pudge, Пудж, АМ, Войд…', icon: Icons.search),
+              decoration: fieldDeco(L('Поиск: Pudge, Пудж, АМ, Войд…', 'Search: Pudge, AM, Void…'), icon: Icons.search),
             ),
             const SizedBox(height: 8),
             SingleChildScrollView(
@@ -60,7 +61,7 @@ class _PickerState extends State<_Picker> {
               child: Row(children: [
                 for (final a in const ['', 'str', 'agi', 'int', 'all']) ...[
                   Pill(
-                    a.isEmpty ? 'Все' : attrNames[a]!,
+                    a.isEmpty ? L('Все', 'All') : attrNames[a]!,
                     color: a.isEmpty ? C.accent2 : C.attr(a),
                     filled: attr == a,
                     onTap: () => setState(() => attr = a),

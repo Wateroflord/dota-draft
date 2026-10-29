@@ -39,7 +39,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       showToast(context, err);
     } else {
       idCtrl.clear();
-      showToast(context, 'Загружено героев: ${s.played.length}');
+      showToast(context, L('Загружено героев: ${s.played.length}', 'Heroes loaded: ${s.played.length}'));
     }
   }
 
@@ -80,10 +80,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         backgroundColor: C.bg,
         surfaceTintColor: Colors.transparent,
-        title: const Text('Мои герои', style: T.h2),
+        title: Text(L('Мои герои', 'My heroes'), style: T.h2),
         actions: [
           IconButton(
-            tooltip: 'О данных',
+            tooltip: L('О данных', 'About the data'),
             icon: const Icon(Icons.info_outline),
             onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const InfoScreen())),
           ),
@@ -92,31 +92,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 0, 14, 32),
         children: [
-          const Text(
-            'Отметь героев, на которых хорошо играешь. В режиме «приоритет» они поднимаются в рекомендациях, '
-            'в режиме «только мои» — советуются только они.',
+          Text(
+            L('Отметь героев, на которых хорошо играешь. В режиме «приоритет» они поднимаются в рекомендациях, '
+            'в режиме «только мои» — советуются только они.', 'Mark heroes you play well. In priority mode they rise in recommendations, '
+            'in only-mine mode only they are suggested.'),
             style: T.small,
           ),
           const SizedBox(height: 10),
           Wrap(spacing: 6, runSpacing: 6, children: [
             for (final m in const [0, 1, 2])
-              Pill(const ['Не учитывать', 'Приоритет', 'Только мои'][m],
+              Pill([L('Не учитывать', 'Ignore'), L('Приоритет', 'Priority'), L('Только мои', 'Only mine')][m],
                   color: C.gold, filled: s.comfortMode == m, onTap: () => s.setComfortMode(m)),
           ]),
           SectionLabel(
-            'Приоритетные герои · ${pool.length}',
+            L('Приоритетные герои · ${pool.length}', 'Priority heroes · ${pool.length}'),
             trailing: GestureDetector(
               onTap: () async {
-                final id = await pickHero(context, title: 'Добавить в мои герои', disabled: s.pool);
+                final id = await pickHero(context, title: L('Добавить в мои герои', 'Add to my heroes'), disabled: s.pool);
                 if (id != null) s.togglePool(id);
               },
-              child: const Text('+ Добавить', style: TextStyle(color: C.accent, fontWeight: FontWeight.w700, fontSize: 13)),
+              child: Text(L('+ Добавить', '+ Add'), style: TextStyle(color: C.accent, fontWeight: FontWeight.w700, fontSize: 13)),
             ),
           ),
           if (pool.isEmpty)
-            const AppCard(
-              child: Text('Пока пусто. Нажми «+ Добавить» или звёздочку на странице героя. '
-                  'Можно и без Steam — просто выбери своих героев.', style: T.small),
+            AppCard(
+              child: Text(L('Пока пусто. Нажми «+ Добавить» или звёздочку на странице героя. '
+                  'Можно и без Steam — просто выбери своих героев.', 'Empty for now. Tap + Add or the star on a hero page. '
+                  'Works without Steam too — just choose your heroes.'), style: T.small),
             )
           else
             Wrap(spacing: 8, runSpacing: 8, children: [
@@ -147,7 +149,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
             ]),
-          const SectionLabel('Профиль Steam (необязательно)'),
+          SectionLabel(L('Профиль Steam (необязательно)', 'Steam profile (optional)')),
           AppCard(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               if (s.accountId != null) ...[
@@ -162,11 +164,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(s.playerName, style: T.body.copyWith(fontWeight: FontWeight.w700)),
-                      Text('${rankName(s.rankTier)} · ID ${s.accountId} · героев ${s.played.length}', style: T.small),
+                      Text(L('${rankName(s.rankTier)} · ID ${s.accountId} · героев ${s.played.length}', '${rankName(s.rankTier)} · ID ${s.accountId} · ${s.played.length} heroes'), style: T.small),
                     ]),
                   ),
                   IconButton(
-                    tooltip: 'Обновить',
+                    tooltip: L('Обновить', 'Refresh'),
                     icon: s.playerLoading
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.refresh),
@@ -178,7 +180,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               TextField(
                 controller: idCtrl,
                 style: T.body,
-                decoration: fieldDeco(s.accountId == null ? 'Friend ID или ссылка на профиль Steam' : 'Другой профиль',
+                decoration: fieldDeco(s.accountId == null ? L('Friend ID или ссылка на профиль Steam', 'Friend ID or Steam profile link') : L('Другой профиль', 'Another profile'),
                     icon: Icons.person_search),
                 onSubmitted: (_) => _load(s),
               ),
@@ -189,18 +191,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: FilledButton.styleFrom(
                         backgroundColor: C.accent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
                     onPressed: s.playerLoading ? null : () => _load(s),
-                    child: Text(s.playerLoading ? 'Загрузка…' : 'Загрузить'),
+                    child: Text(s.playerLoading ? L('Загрузка…', 'Loading…') : L('Загрузить', 'Load')),
                   ),
                 ),
                 if (s.accountId != null) ...[
                   const SizedBox(width: 8),
-                  TextButton(onPressed: s.forgetPlayer, child: const Text('Отвязать', style: TextStyle(color: C.muted))),
+                  TextButton(onPressed: s.forgetPlayer, child: Text(L('Отвязать', 'Unlink'), style: TextStyle(color: C.muted))),
                 ],
               ]),
               const SizedBox(height: 8),
-              const Text(
-                'Friend ID — число в Dota 2 у тебя в профиле (или ссылка steamcommunity.com/profiles/7656…). '
-                'В игре должно быть включено: Настройки → Общение → «Открыть общий доступ к данным матчей».',
+              Text(
+                L('Friend ID — число в Dota 2 у тебя в профиле (или ссылка steamcommunity.com/profiles/7656…). '
+                'В игре должно быть включено: Настройки → Общение → «Открыть общий доступ к данным матчей».', 'Friend ID is the number on your Dota 2 profile (or a steamcommunity.com/profiles/7656… link). '
+                'In the game enable: Settings → Social → "Expose Public Match Data".'),
                 style: T.small,
               ),
               if (s.playerError != null) ...[
@@ -211,13 +214,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           if (top.isNotEmpty) ...[
             SectionLabel(
-              'Твои самые игранные',
+              L('Твои самые игранные', 'Your most played'),
               trailing: GestureDetector(
                 onTap: () {
                   s.addTopToPool(10);
-                  showToast(context, 'Топ-10 добавлены в мои герои');
+                  showToast(context, L('Топ-10 добавлены в мои герои', 'Top 10 added to my heroes'));
                 },
-                child: const Text('Топ-10 в мои', style: TextStyle(color: C.accent, fontWeight: FontWeight.w700, fontSize: 13)),
+                child: Text(L('Топ-10 в мои', 'Top 10 to mine'), style: TextStyle(color: C.accent, fontWeight: FontWeight.w700, fontSize: 13)),
               ),
             ),
             AppCard(
@@ -233,7 +236,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           HeroImg(s.data!.byId[e.key]!, width: 54),
                           const SizedBox(width: 10),
                           Expanded(child: Text(s.data!.byId[e.key]!.name, style: T.body.copyWith(fontSize: 13.5))),
-                          Text('${e.value[0]} игр  ', style: T.small),
+                          Text(L('${e.value[0]} игр  ', '${e.value[0]} games  '), style: T.small),
                           Text(pct(e.value[1] / e.value[0], digits: 0),
                               style: T.num(13.5, color: e.value[1] * 2 >= e.value[0] ? C.ally : C.enemy)),
                           IconButton(
@@ -337,18 +340,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ]),
           ),
-          const SectionLabel('Ещё'),
+          SectionLabel(L('Ещё', 'More')),
           AppCard(
             onTap: s.accountId == null
-                ? () => showToast(context, 'Сначала загрузи профиль Steam')
+                ? () => showToast(context, L('Сначала загрузи профиль Steam', 'Load your Steam profile first'))
                 : () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const StatsScreen())),
-            child: const Row(children: [
+            child: Row(children: [
               Icon(Icons.query_stats, color: C.accent),
               SizedBox(width: 12),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('Моя статистика', style: T.body),
-                  Text('Ты против игроков своего, выше и ниже ранга; позиции, время, тильт, друзья', style: T.small),
+                  Text(L('Моя статистика', 'My stats'), style: T.body),
+                  Text(L('Ты против игроков своего, выше и ниже ранга; позиции, время, тильт, друзья', 'You vs players of your, higher and lower rank; positions, time, tilt, friends'), style: T.small),
                 ]),
               ),
               Icon(Icons.chevron_right, color: C.muted),
@@ -357,15 +360,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 8),
           AppCard(
             onTap: s.accountId == null
-                ? () => showToast(context, 'Сначала загрузи профиль Steam')
+                ? () => showToast(context, L('Сначала загрузи профиль Steam', 'Load your Steam profile first'))
                 : () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MatchesScreen())),
-            child: const Row(children: [
+            child: Row(children: [
               Icon(Icons.history_edu, color: C.accent),
               SizedBox(width: 12),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('Разбор последних матчей', style: T.body),
-                  Text('Шанс победы на драфте и кого лучше было взять', style: T.small),
+                  Text(L('Разбор последних матчей', 'Recent match breakdowns'), style: T.body),
+                  Text(L('Шанс победы на драфте и кого лучше было взять', 'Draft win chance and better picks'), style: T.small),
                 ]),
               ),
               Icon(Icons.chevron_right, color: C.muted),
@@ -379,11 +382,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Text('История драфтов', style: T.body),
+                  Text(L('История драфтов', 'Draft history'), style: T.body),
                   Text(
                     drafts.isEmpty
-                        ? 'Сохраняй драфты кнопкой 🔖 на вкладке «Драфт»'
-                        : 'Сохранено ${drafts.length}, с результатом ${rated.length}',
+                        ? L('Сохраняй драфты кнопкой 🔖 на вкладке «Драфт»', 'Save drafts with the 🔖 button on the Draft tab')
+                        : L('Сохранено ${drafts.length}, с результатом ${rated.length}', 'Saved ${drafts.length}, with result ${rated.length}'),
                     style: T.small,
                   ),
                 ]),

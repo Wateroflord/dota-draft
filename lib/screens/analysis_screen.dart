@@ -22,7 +22,7 @@ class AnalysisScreen extends StatelessWidget {
     final e = s.engine;
     return Scaffold(
       backgroundColor: C.bg,
-      appBar: AppBar(backgroundColor: C.bg, surfaceTintColor: Colors.transparent, title: const Text('Анализ драфта', style: T.h2)),
+      appBar: AppBar(backgroundColor: C.bg, surfaceTintColor: Colors.transparent, title: Text(L('Анализ драфта', 'Draft analysis'), style: T.h2)),
       body: allies.isEmpty && enemies.isEmpty
           ? Center(
               child: Padding(
@@ -30,13 +30,13 @@ class AnalysisScreen extends StatelessWidget {
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   const Icon(Icons.insights, color: C.muted, size: 48),
                   const SizedBox(height: 12),
-                  const Text('Выбери героев на вкладке «Драфт» — здесь появится разбор составов, линий и предметов.',
+                  Text(L('Выбери героев на вкладке «Драфт» — здесь появится разбор составов, линий и предметов.', 'Pick heroes on the Draft tab — the lineup, lanes and items breakdown will appear here.'),
                       textAlign: TextAlign.center, style: T.body),
                   const SizedBox(height: 16),
                   FilledButton(
                     style: FilledButton.styleFrom(backgroundColor: C.accent),
                     onPressed: onOpenDraft,
-                    child: const Text('К драфту'),
+                    child: Text(L('К драфту', 'To the draft')),
                   ),
                 ]),
               ),
@@ -45,25 +45,25 @@ class AnalysisScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(14, 0, 14, 32),
               children: [
                 _teamsRow(allies, enemies),
-                const SectionLabel('Состав твоей команды'),
+                SectionLabel(L('Состав твоей команды', 'Your team lineup')),
                 _CompositionCard(team: allies, color: C.ally),
                 if (enemies.isNotEmpty) ...[
-                  const SectionLabel('Состав противников'),
+                  SectionLabel(L('Состав противников', 'Enemy lineup')),
                   _CompositionCard(team: enemies, color: C.enemy),
                 ],
                 _CombosCard(allies: allies, enemies: enemies),
-                const SectionLabel('Сила по времени игры'),
+                SectionLabel(L('Сила по времени игры', 'Strength by game time')),
                 _TimeCard(curve: timeCurve(e, allies, enemies)),
-                const SectionLabel('Линии'),
+                SectionLabel(L('Линии', 'Lanes')),
                 _LanesCard(plan: lanes(s.data!, allies, enemies)),
-                const SectionLabel('Предметы против врагов'),
+                SectionLabel(L('Предметы против врагов', 'Items against the enemies')),
                 _TipsCard(tips: itemTips(enemies)),
                 if (allies.isNotEmpty) ...[
-                  const SectionLabel('Популярные сборки твоих героев'),
+                  SectionLabel(L('Популярные сборки твоих героев', 'Popular builds of your heroes')),
                   for (final h in allies) _BuildRow(hero: h, items: s.data!.items),
                 ],
                 if (allies.any((h) => (s.bench.neutral[h.id] ?? const []).isNotEmpty)) ...[
-                  const SectionLabel('Нейтральные предметы'),
+                  SectionLabel(L('Нейтральные предметы', 'Neutral items')),
                   AppCard(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       for (final h in allies)
@@ -77,7 +77,7 @@ class AnalysisScreen extends StatelessWidget {
                             ]),
                           ),
                       const SizedBox(height: 4),
-                      const Text('Самые частые нейтралки у героев твоей команды (T — уровень). Подробнее — в карточке героя.',
+                      Text(L('Самые частые нейтралки у героев твоей команды (T — уровень). Подробнее — в карточке героя.', 'Most common neutral items of your team (T — tier). More in the hero page.'),
                           style: T.small),
                     ]),
                   ),
@@ -110,7 +110,7 @@ class _CompositionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (team.isEmpty) return const AppCard(child: Text('Героев пока нет.', style: T.small));
+    if (team.isEmpty) return AppCard(child: Text(L('Героев пока нет.', 'No heroes yet.'), style: T.small));
     final c = analyzeTeam(team);
     return AppCard(
       borderColor: color.withValues(alpha: 0.35),
@@ -134,9 +134,9 @@ class _CompositionCard extends StatelessWidget {
             ]),
           ),
         if (team.length < 5)
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(top: 4),
-            child: Text('Состав ещё не полный — пустые пункты можно закрыть следующими пиками.', style: T.small),
+            child: Text(L('Состав ещё не полный — пустые пункты можно закрыть следующими пиками.', 'The lineup is not complete — missing points can be covered by the next picks.'), style: T.small),
           ),
       ]),
     );
@@ -150,7 +150,7 @@ class _TimeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (curve.isEmpty) {
-      return const AppCard(child: Text('Данные о длительности матчей появятся после ближайшего обновления статистики.', style: T.small));
+      return AppCard(child: Text(L('Данные о длительности матчей появятся после ближайшего обновления статистики.', 'Match duration data will appear after the next stats update.'), style: T.small));
     }
     var best = 0;
     for (var i = 1; i < curve.length; i++) {
@@ -162,17 +162,17 @@ class _TimeCard extends StatelessWidget {
     }
     final String advice;
     if (curve[best] - curve[worst] < 0.03) {
-      advice = 'Сила команд почти не зависит от времени — играйте от карты.';
+      advice = L('Сила команд почти не зависит от времени — играйте от карты.', 'Team strength barely depends on time — play the map.');
     } else if (best == 0) {
-      advice = 'Твоя команда сильнее в начале. Деритесь рано и старайтесь закончить до 30 минут.';
+      advice = L('Твоя команда сильнее в начале. Деритесь рано и старайтесь закончить до 30 минут.', 'Your team is stronger early. Fight early and try to finish before 30 minutes.');
     } else if (best == curve.length - 1) {
-      advice = 'Твоя команда сильнее в поздней игре. Не рискуйте рано, фармите и защищайте вышки.';
+      advice = L('Твоя команда сильнее в поздней игре. Не рискуйте рано, фармите и защищайте вышки.', 'Your team is stronger late. Avoid early risks, farm and defend towers.');
     } else {
-      advice = 'Пик силы — в середине игры (${durationLabels[best]} мин). Тогда и берите Рошана, ломайте вышки.';
+      advice = L('Пик силы — в середине игры (${durationLabels[best]} мин). Тогда и берите Рошана, ломайте вышки.', 'Peak strength is mid game (${durationLabels[best]} min). Take Roshan and towers then.');
     }
     return AppCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Шанс победы, если матч закончится в это время', style: T.small),
+        Text(L('Шанс победы, если матч закончится в это время', 'Win chance if the match ends at this time'), style: T.small),
         const SizedBox(height: 10),
         ChanceBars(values: curve, labels: durationLabels),
         const SizedBox(height: 10),
@@ -189,7 +189,7 @@ class _LanesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (plan.lanes.isEmpty) {
-      return const AppCard(child: Text('Нужно хотя бы по 3 героя в каждой команде.', style: T.small));
+      return AppCard(child: Text(L('Нужно хотя бы по 3 героя в каждой команде.', 'Need at least 3 heroes on each team.'), style: T.small));
     }
     return AppCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -219,7 +219,7 @@ class _LanesCard extends StatelessWidget {
           ]),
         ],
         const SizedBox(height: 6),
-        const Text('Позиции угаданы по типичным ролям героев. Оценка — по статистике противостояний этих героев.',
+        Text(L('Позиции угаданы по типичным ролям героев. Оценка — по статистике противостояний этих героев.', 'Positions are guessed from typical hero roles. The estimate uses matchup stats of these heroes.'),
             style: T.small),
       ]),
     );
@@ -233,7 +233,7 @@ class _TipsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (tips.isEmpty) {
-      return const AppCard(child: Text('Добавь героев противника — подскажу, какие предметы против них.', style: T.small));
+      return AppCard(child: Text(L('Добавь героев противника — подскажу, какие предметы против них.', 'Add enemy heroes — I will suggest items against them.'), style: T.small));
     }
     return Column(children: [
       for (final t in tips)
@@ -288,7 +288,7 @@ class _BuildRow extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: list.isEmpty
-                ? Text('${hero.name}: сборка появится после обновления данных', style: T.small)
+                ? Text(L('${hero.name}: сборка появится после обновления данных', '${hero.name}: build will appear after a data update'), style: T.small)
                 : Wrap(spacing: 4, runSpacing: 4, children: [for (final it in list.take(6)) ItemImg(it.key, width: 36)]),
           ),
           const Icon(Icons.chevron_right, color: C.muted, size: 18),

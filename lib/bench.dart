@@ -1,3 +1,4 @@
+import 'i18n.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -49,17 +50,17 @@ class BenchMetric {
   const BenchMetric(this.label, this.get, {this.higherBetter = true, this.digits = 0});
 }
 
-final benchMetrics = <BenchMetric>[
-  BenchMetric('Винрейт', (r) => r.wr * 100, digits: 1),
-  BenchMetric('Золото/мин (GPM)', (r) => r.gpm),
-  BenchMetric('Опыт/мин (XPM)', (r) => r.xpm),
-  BenchMetric('Добивания за 10 мин', (r) => r.lh10, digits: 1),
-  BenchMetric('Убийства', (r) => r.k, digits: 1),
-  BenchMetric('Смерти', (r) => r.d, higherBetter: false, digits: 1),
-  BenchMetric('Помощь', (r) => r.a, digits: 1),
+List<BenchMetric> get benchMetrics => [
+  BenchMetric(L('Винрейт', 'Win rate'), (r) => r.wr * 100, digits: 1),
+  BenchMetric(L('Золото/мин (GPM)', 'Gold/min (GPM)'), (r) => r.gpm),
+  BenchMetric(L('Опыт/мин (XPM)', 'XP/min (XPM)'), (r) => r.xpm),
+  BenchMetric(L('Добивания за 10 мин', 'Last hits per 10 min'), (r) => r.lh10, digits: 1),
+  BenchMetric(L('Убийства', 'Kills'), (r) => r.k, digits: 1),
+  BenchMetric(L('Смерти', 'Deaths'), (r) => r.d, higherBetter: false, digits: 1),
+  BenchMetric(L('Помощь', 'Assists'), (r) => r.a, digits: 1),
   BenchMetric('KDA', (r) => r.kda, digits: 2),
-  BenchMetric('Урон героям/мин', (r) => r.hdm),
-  BenchMetric('Урон по вышкам', (r) => r.td),
+  BenchMetric(L('Урон героям/мин', 'Hero damage/min'), (r) => r.hdm),
+  BenchMetric(L('Урон по вышкам', 'Tower damage'), (r) => r.td),
 ];
 
 class NeutralStat {
@@ -80,7 +81,7 @@ class BenchData {
   final Map<int, Map<int, BenchRow>> heroes; // heroId -> group (0..3) -> row
   final Map<int, List<NeutralStat>> neutral;
   final Map<int, NeutralItem> items;
-  final Map<int, List<(int, double)>> skills; // heroId -> порядок прокачки: (id умения, доля победителей)
+  final Map<int, List<List<(int, double)>>> skills; // heroId -> шаги прокачки -> варианты (id умения, доля победителей)
   final Map<int, Map<int, (double, double)>> talents; // heroId -> id таланта -> (игр, винрейт)
   const BenchData(this.updated, this.heroes, this.neutral, this.items, [this.skills = const {}, this.talents = const {}]);
 
@@ -131,15 +132,22 @@ class BenchData {
         }
       });
     }
-    final skills = <int, List<(int, double)>>{};
+    final skills = <int, List<List<(int, double)>>>{};
     final sk = j['skills'];
+    (int, double)? opt(dynamic r) => r is List && r.length >= 2 && r[0] is num
+        ? ((r[0] as num).toInt(), (r[1] as num?)?.toDouble() ?? 0)
+        : null;
     if (sk is Map) {
       sk.forEach((hid, rows) {
         final id = int.tryParse('$hid');
         if (id == null || rows is! List) return;
         skills[id] = [
           for (final r in rows.whereType<List>())
-            if (r.length >= 2 && r[0] is num) ((r[0] as num).toInt(), (r[1] as num?)?.toDouble() ?? 0),
+            // Старый формат: [id, доля]; новый: [[id, доля], ...].
+            if (r.isNotEmpty && r[0] is List)
+              [for (final o in r) if (opt(o) case final x?) x]
+            else
+              [if (opt(r) case final x?) x],
         ];
       });
     }

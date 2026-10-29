@@ -57,7 +57,7 @@ class _MatchesScreenState extends State<MatchesScreen> {
       appBar: AppBar(
         backgroundColor: C.bg,
         surfaceTintColor: Colors.transparent,
-        title: const Text('Последние матчи', style: T.h2),
+        title: Text(L('Последние матчи', 'Recent matches'), style: T.h2),
         actions: [
           IconButton(
             tooltip: L('Открыть матч по номеру', 'Open match by ID'),
@@ -72,7 +72,7 @@ class _MatchesScreenState extends State<MatchesScreen> {
           : matches == null
               ? const Center(child: CircularProgressIndicator(color: C.accent))
               : matches!.isEmpty
-                  ? const Center(child: Text('Матчей нет или они скрыты.', style: T.body))
+                  ? Center(child: Text(L('Матчей нет или они скрыты.', 'No matches or they are hidden.'), style: T.body))
                   : ListView.builder(
                       padding: const EdgeInsets.fromLTRB(14, 4, 14, 32),
                       itemCount: matches!.length,
@@ -91,12 +91,12 @@ class _MatchesScreenState extends State<MatchesScreen> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                  Text(h?.name ?? 'Герой ${m.heroId}', style: T.body.copyWith(fontWeight: FontWeight.w700)),
-                                  Text('${m.kills}/${m.deaths}/${m.assists} · ${m.duration ~/ 60} мин · ${_date(m.startTime)}',
+                                  Text(h?.name ?? L('Герой ${m.heroId}', 'Hero ${m.heroId}'), style: T.body.copyWith(fontWeight: FontWeight.w700)),
+                                  Text(L('${m.kills}/${m.deaths}/${m.assists} · ${m.duration ~/ 60} мин · ${_date(m.startTime)}', '${m.kills}/${m.deaths}/${m.assists} · ${m.duration ~/ 60} min · ${_date(m.startTime)}'),
                                       style: T.small),
                                 ]),
                               ),
-                              Text(m.win ? 'Победа' : 'Поражение',
+                              Text(m.win ? L('Победа', 'Win') : L('Поражение', 'Loss'),
                                   style: TextStyle(color: m.win ? C.ally : C.enemy, fontWeight: FontWeight.w700, fontSize: 12.5)),
                               const Icon(Icons.chevron_right, color: C.muted, size: 18),
                             ]),

@@ -102,7 +102,20 @@ class SkillBuildSection extends StatelessWidget {
     final tal = s.bench.talents[hero.id] ?? const {};
     if (info == null || (seq.isEmpty && tal.isEmpty)) return const SizedBox.shrink();
     final abil = {for (final a in info.abilities) a.id: a};
-    final steps = [for (final st in seq) if (abil[st.$1] != null) (abil[st.$1]!, st.$2)];
+    // На каждом шаге берём самый популярный вариант, который ещё можно прокачать.
+    final count = <int, int>{};
+    final steps = <(Ability, double)>[];
+    for (final st in seq) {
+      for (final o in st) {
+        final a = abil[o.$1];
+        if (a == null) continue;
+        final max = a.maxLevel > 0 ? a.maxLevel : (a.ult ? 3 : 4);
+        if ((count[a.id] ?? 0) >= max) continue;
+        count[a.id] = (count[a.id] ?? 0) + 1;
+        steps.add((a, o.$2));
+        break;
+      }
+    }
     final tiers = <int, List<Talent>>{};
     for (final t in info.talents) {
       tiers.putIfAbsent(t.tier, () => []).add(t);

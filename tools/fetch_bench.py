@@ -226,8 +226,9 @@ def main():
             if not opts:
                 break
             tot_w = sum(o[0] for o in opts) or 1
-            best = max(opts, key=lambda o: (o[0], o[1]))
-            seq.append([best[2], round(best[0] / tot_w, 2)])
+            opts.sort(key=lambda o: (-o[0], -o[1]))
+            # Несколько вариантов на шаг: приложение выберет с учётом максимального уровня умений.
+            seq.append([[o[2], round(o[0] / tot_w, 2)] for o in opts[:4]])
         if len(seq) >= 6:
             skills[hid] = seq
     talents = {}

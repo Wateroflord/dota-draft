@@ -1,3 +1,4 @@
+import '../i18n.dart';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -29,16 +30,16 @@ Color kindColor(String k) => switch (k) {
     };
 
 String kindTitle(String k) => switch (k) {
-      'obs' => 'Обсервер',
-      'sen' => 'Сентри',
-      'small' => 'Малый лагерь',
-      'medium' => 'Средний лагерь',
-      'large' => 'Большой лагерь',
-      'ancient' => 'Древние',
-      'rune' => 'Руна',
-      'roshan' => 'Рошан',
-      'tormentor' => 'Торментор',
-      _ => 'Заметка',
+      'obs' => L('Обсервер', 'Observer'),
+      'sen' => L('Сентри', 'Sentry'),
+      'small' => L('Малый лагерь', 'Small camp'),
+      'medium' => L('Средний лагерь', 'Medium camp'),
+      'large' => L('Большой лагерь', 'Large camp'),
+      'ancient' => L('Древние', 'Ancients'),
+      'rune' => L('Руна', 'Rune'),
+      'roshan' => L('Рошан', 'Roshan'),
+      'tormentor' => L('Торментор', 'Tormentor'),
+      _ => L('Заметка', 'Note'),
     };
 
 /// Карта: маршруты фарма (wards = false) или варды (wards = true).
@@ -115,7 +116,7 @@ class _MapScreenState extends State<MapScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setD) => AlertDialog(
           backgroundColor: C.surface,
-          title: Text(widget.wards ? 'Новый вард' : 'Новая точка', style: T.h2),
+          title: Text(widget.wards ? L('Новый вард', 'New ward') : L('Новая точка', 'New point'), style: T.h2),
           content: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
               Wrap(spacing: 6, runSpacing: 6, children: [
@@ -130,14 +131,14 @@ class _MapScreenState extends State<MapScreen> {
                 ]),
               ],
               const SizedBox(height: 10),
-              TextField(controller: title, decoration: fieldDeco('Название')),
+              TextField(controller: title, decoration: fieldDeco(L('Название', 'Name'))),
               const SizedBox(height: 8),
-              TextField(controller: note, decoration: fieldDeco('Заметка (необязательно)')),
+              TextField(controller: note, decoration: fieldDeco(L('Заметка (необязательно)', 'Note (optional)'))),
             ]),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Отмена')),
-            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Добавить')),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(L('Отмена', 'Cancel'))),
+            TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(L('Добавить', 'Add'))),
           ],
         ),
       ),
@@ -165,17 +166,17 @@ class _MapScreenState extends State<MapScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: C.surface,
-        title: const Text('Сохранить маршрут', style: T.h2),
-        content: TextField(controller: title, autofocus: true, decoration: fieldDeco('Название, например «Мой фарм на AM»')),
+        title: Text(L('Сохранить маршрут', 'Save route'), style: T.h2),
+        content: TextField(controller: title, autofocus: true, decoration: fieldDeco(L('Название, например «Мой фарм на AM»', 'Name, e.g. "My AM farm"'))),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Отмена')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Сохранить')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(L('Отмена', 'Cancel'))),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(L('Сохранить', 'Save'))),
         ],
       ),
     );
     if (ok == true) {
       final id = 'cr_${DateTime.now().microsecondsSinceEpoch}';
-      tools.addRoute(FarmRoute(id, title.text.trim().isEmpty ? 'Мой маршрут' : title.text.trim(), 'Свой маршрут',
+      tools.addRoute(FarmRoute(id, title.text.trim().isEmpty ? L('Мой маршрут', 'My route') : title.text.trim(), L('Свой маршрут', 'Custom route'),
           [for (final p in pts) _toView(p[0], p[1], !radiant)],
           custom: true));
       setState(() => routeId = id);
@@ -190,11 +191,11 @@ class _MapScreenState extends State<MapScreen> {
         context: context,
         builder: (ctx) => AlertDialog(
           backgroundColor: C.surface,
-          title: const Text('Фон карты', style: T.h2),
-          content: const Text('Сейчас стоит твоя картинка. Заменить её или вернуть схему?', style: T.body),
+          title: Text(L('Фон карты', 'Map background'), style: T.h2),
+          content: Text(L('Сейчас стоит твоя картинка. Заменить её или вернуть схему?', 'Your picture is set now. Replace it or go back to the scheme?'), style: T.body),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Вернуть схему')),
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Заменить')),
+            TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(L('Вернуть схему', 'Back to scheme'))),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(L('Заменить', 'Replace'))),
           ],
         ),
       );
@@ -210,13 +211,13 @@ class _MapScreenState extends State<MapScreen> {
     final path = '${dir.path}/map_${DateTime.now().millisecondsSinceEpoch}.jpg';
     await File(x.path).copy(path);
     tools.setMapImage(path);
-    if (mounted) showToast(context, 'Фон заменён. Если точки не совпадают — подвинь их в режиме правки.');
+    if (mounted) showToast(context, L('Фон заменён. Если точки не совпадают — подвинь их в режиме правки.', 'Background replaced. If points do not match, move them in edit mode.'));
   }
 
   Future<void> _loadMyWards() async {
     final s = StateScope.read(context);
     if (s.accountId == null) {
-      showToast(context, 'Сначала загрузи профиль Steam во вкладке «Мои герои»');
+      showToast(context, L('Сначала загрузи профиль Steam во вкладке «Мои герои»', 'Load your Steam profile on the My heroes tab first'));
       return;
     }
     setState(() => loadingWards = true);
@@ -227,7 +228,7 @@ class _MapScreenState extends State<MapScreen> {
         mySen = w.$2;
       });
       if ((myObs?.isEmpty ?? true) && (mySen?.isEmpty ?? true)) {
-        if (mounted) showToast(context, 'OpenDota пока не разобрал твои матчи подробно — вардов нет.');
+        if (mounted) showToast(context, L('OpenDota пока не разобрал твои матчи подробно — вардов нет.', 'OpenDota has not parsed your matches in detail yet — no wards.'));
       }
     } on OdException catch (e) {
       if (mounted) showToast(context, e.message);
@@ -248,15 +249,15 @@ class _MapScreenState extends State<MapScreen> {
       appBar: AppBar(
         backgroundColor: C.bg,
         surfaceTintColor: Colors.transparent,
-        title: Text(widget.wards ? 'Карта вардов' : 'Маршруты фарма', style: T.h2),
+        title: Text(widget.wards ? L('Карта вардов', 'Ward map') : L('Маршруты фарма', 'Farm routes'), style: T.h2),
         actions: [
           IconButton(
-            tooltip: 'Фон карты',
+            tooltip: L('Фон карты', 'Map background'),
             icon: const Icon(Icons.image_outlined),
             onPressed: () => _pickBackground(tools),
           ),
           IconButton(
-            tooltip: edit ? 'Готово' : 'Править точки',
+            tooltip: edit ? L('Готово', 'Done') : L('Править точки', 'Edit points'),
             icon: Icon(edit ? Icons.check : Icons.edit_location_alt_outlined, color: edit ? C.accent : null),
             onPressed: () => setState(() {
               edit = !edit;
@@ -269,9 +270,9 @@ class _MapScreenState extends State<MapScreen> {
         padding: const EdgeInsets.fromLTRB(12, 0, 12, 32),
         children: [
           Row(children: [
-            Pill('Свет', color: C.ally, filled: radiant, onTap: () => setState(() => radiant = true)),
+            Pill(L('Свет', 'Radiant'), color: C.ally, filled: radiant, onTap: () => setState(() => radiant = true)),
             const SizedBox(width: 6),
-            Pill('Тьма', color: C.enemy, filled: !radiant, onTap: () => setState(() => radiant = false)),
+            Pill(L('Тьма', 'Dire'), color: C.enemy, filled: !radiant, onTap: () => setState(() => radiant = false)),
             const Spacer(),
             if (widget.wards)
               TextButton.icon(
@@ -279,7 +280,7 @@ class _MapScreenState extends State<MapScreen> {
                 icon: loadingWards
                     ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.person, size: 16),
-                label: const Text('Мои варды'),
+                label: Text(L('Мои варды', 'My wards')),
               ),
           ]),
           if (widget.wards) ...[
@@ -287,7 +288,7 @@ class _MapScreenState extends State<MapScreen> {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(children: [
-                Pill('Все', color: C.accent, filled: phase == -1, onTap: () => setState(() => phase = -1)),
+                Pill(L('Все', 'All'), color: C.accent, filled: phase == -1, onTap: () => setState(() => phase = -1)),
                 for (var i = 0; i < wardPhases.length; i++) ...[
                   const SizedBox(width: 6),
                   Pill(wardPhases[i], color: C.accent, filled: phase == i, onTap: () => setState(() => phase = i)),
@@ -339,9 +340,10 @@ class _MapScreenState extends State<MapScreen> {
               padding: const EdgeInsets.only(top: 6),
               child: Text(
                 drawing != null
-                    ? 'Нажимай по карте по порядку — так рисуется маршрут. Потом «Сохранить маршрут».'
-                    : 'Режим правки: перетаскивай точки, нажми на пустое место — добавить свою, '
-                        'нажми на точку — удалить или подробнее.',
+                    ? L('Нажимай по карте по порядку — так рисуется маршрут. Потом «Сохранить маршрут».', 'Tap the map in order to draw the route. Then tap Save route.')
+                    : L('Режим правки: перетаскивай точки, нажми на пустое место — добавить свою, '
+                        'нажми на точку — удалить или подробнее.', 'Edit mode: drag points, tap an empty spot to add your own, '
+                        'tap a point to delete it or see details.'),
                 style: T.small,
               ),
             ),
@@ -357,21 +359,21 @@ class _MapScreenState extends State<MapScreen> {
                           routeId = null;
                         }),
                         icon: const Icon(Icons.gesture, size: 18),
-                        label: const Text('Нарисовать свой маршрут'),
+                        label: Text(L('Нарисовать свой маршрут', 'Draw your own route')),
                       )
                     : FilledButton.icon(
                         style: FilledButton.styleFrom(backgroundColor: C.accent),
                         onPressed: () => _saveRoute(tools),
                         icon: const Icon(Icons.check, size: 18),
-                        label: Text('Сохранить маршрут (${drawing!.length})'),
+                        label: Text(L('Сохранить маршрут (${drawing!.length})', 'Save route (${drawing!.length})')),
                       ),
               ),
               if (drawing != null) ...[
                 const SizedBox(width: 8),
-                TextButton(onPressed: () => setState(() => drawing = null), child: const Text('Отмена')),
+                TextButton(onPressed: () => setState(() => drawing = null), child: Text(L('Отмена', 'Cancel'))),
               ],
             ]),
-            const SectionLabel('Маршруты'),
+            SectionLabel(L('Маршруты', 'Routes')),
             for (final r in routes)
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
@@ -400,7 +402,7 @@ class _MapScreenState extends State<MapScreen> {
               ),
           ],
           if (widget.wards) ...[
-            const SectionLabel('Точки'),
+            SectionLabel(L('Точки', 'Points')),
             for (final p in points.where((p) => p.kind == 'obs' || p.kind == 'sen'))
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
@@ -422,14 +424,15 @@ class _MapScreenState extends State<MapScreen> {
               ),
           ],
           const SizedBox(height: 8),
-          const Text(
-            'Схема примерная: в больших патчах Valve двигает лагеря и объекты. Поправь точки под текущую карту '
-            '(иконка с карандашом) или поставь фоном скриншот миникарты (иконка с картинкой).',
+          Text(
+            L('Схема примерная: в больших патчах Valve двигает лагеря и объекты. Поправь точки под текущую карту '
+            '(иконка с карандашом) или поставь фоном скриншот миникарты (иконка с картинкой).', 'The scheme is approximate: big patches move camps and objects. Adjust points to the current map '
+            '(pencil icon) or set a minimap screenshot as the background (picture icon).'),
             style: T.small,
           ),
           if (edit) ...[
             const SizedBox(height: 8),
-            TextButton(onPressed: tools.resetMap, child: const Text('Вернуть стандартные точки')),
+            TextButton(onPressed: tools.resetMap, child: Text(L('Вернуть стандартные точки', 'Restore default points'))),
           ],
         ],
       ),
@@ -483,8 +486,9 @@ class _MapScreenState extends State<MapScreen> {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(p.title, style: T.body.copyWith(fontWeight: FontWeight.w700)),
               Text(
-                '${kindTitle(p.kind)}${(p.kind == 'obs' || p.kind == 'sen') ? ' · ${wardPhases[p.phase.clamp(0, 3)]}' : ''}'
-                '${p.custom ? ' · твоя точка' : ''}',
+                L('${kindTitle(p.kind)}${(p.kind == 'obs' || p.kind == 'sen') ? ' · ${wardPhases[p.phase.clamp(0, 3)]}' : ''}'
+                '${p.custom ? ' · твоя точка' : ''}', '${kindTitle(p.kind)}${(p.kind == 'obs' || p.kind == 'sen') ? ' · ${wardPhases[p.phase.clamp(0, 3)]}' : ''}'
+                '${p.custom ? ' · your point' : ''}'),
                 style: T.small,
               ),
               if (p.note.isNotEmpty) ...[const SizedBox(height: 4), Text(p.note, style: T.body.copyWith(fontSize: 13))],
@@ -560,8 +564,8 @@ class _MapPainter extends CustomPainter {
       canvas.drawCircle(o(t[0].toDouble(), t[1].toDouble()), 1.1 * s, tower);
       canvas.drawCircle(o(100 - t[0].toDouble(), 100 - t[1].toDouble()), 1.1 * s, tower);
     }
-    _label(canvas, 'Свет', o(10, 90), s, const Color(0xFFBFF0CF));
-    _label(canvas, 'Тьма', o(90, 10), s, const Color(0xFFF3C0C0));
+    _label(canvas, L('Свет', 'Radiant'), o(10, 90), s, const Color(0xFFBFF0CF));
+    _label(canvas, L('Тьма', 'Dire'), o(90, 10), s, const Color(0xFFF3C0C0));
   }
 
   void _label(Canvas c, String t, Offset at, double s, Color color) {

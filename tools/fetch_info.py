@@ -71,6 +71,31 @@ def clean(s, limit=260):
     return s
 
 
+def _fmt(v):
+    try:
+        f = float(v)
+        return str(int(f)) if f == int(f) else f"{f:g}"
+    except (TypeError, ValueError):
+        return str(v)
+
+
+def fill(s, vals):
+    """Подставляет значения вместо {s:имя} в тексте таланта."""
+    if not s:
+        return s
+
+    def rep(m):
+        name = m.group(1)
+        for key in (name, name[6:] if name.startswith("bonus_") else "bonus_" + name):
+            if key in vals and vals[key] is not None:
+                return _fmt(vals[key])
+        if len(vals) == 1:
+            return _fmt(next(iter(vals.values())))
+        return m.group(0)
+
+    return re.sub(r"\{s:([a-zA-Z_0-9]+)\}", rep, s)
+
+
 def nums(v):
     out = []
     for x in v or []:
@@ -94,7 +119,7 @@ def latest_patch():
 
 def hero_info(ids, patch, old):
     """Умения и таланты каждого героя на русском и английском."""
-    if old.get("patch") == patch and len(old.get("heroes", {})) >= len(ids) - 2:
+    if old.get("patch") == patch and old.get("v") == 2 and len(old.get("heroes", {})) >= len(ids) - 2:
         print("heroinfo up to date for", patch, flush=True)
         return old
     heroes = {}
@@ -139,13 +164,25 @@ def hero_info(ids, patch, old):
         talents = []
         src_t = ru.get("talents") or []
         en_t = {t.get("id"): t for t in (en.get("talents") or [])}
+        # Значения для подстановки в тексты талантов: свои special_values и бонусы к умениям.
+        bonus = {}
+        for a in ru.get("abilities", []):
+            for sv in a.get("special_values") or []:
+                for b in sv.get("bonuses") or []:
+                    if b.get("name"):
+                        bonus.setdefault(b["name"], {})[sv.get("name")] = b.get("value")
         for i, t in enumerate(src_t):
             e = en_t.get(t.get("id"), {})
+            vals = dict(bonus.get(t.get("name"), {}))
+            for sv in t.get("special_values") or []:
+                vf = sv.get("values_float") or []
+                if vf:
+                    vals[sv.get("name")] = vf[0]
             talents.append({
                 "id": t.get("id"),
                 "tier": i // 2,  # 0 — 10 уровень, 1 — 15, 2 — 20, 3 — 25
-                "ru": clean(t.get("name_loc"), 120),
-                "en": clean(e.get("name_loc"), 120),
+                "ru": clean(fill(t.get("name_loc"), vals), 120),
+                "en": clean(fill(e.get("name_loc"), vals), 120),
             })
         heroes[str(hid)] = {
             "hype_ru": clean(ru.get("hype_loc"), 400),
@@ -159,7 +196,7 @@ def hero_info(ids, patch, old):
             "talents": talents,
         }
     print("heroinfo heroes:", len(heroes), flush=True)
-    return {"patch": patch, "heroes": heroes}
+    return {"patch": patch, "v": 2, "heroes": heroes}
 
 
 # ---------- патч ----------

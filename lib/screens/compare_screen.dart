@@ -1,3 +1,4 @@
+import '../i18n.dart';
 import 'package:flutter/material.dart';
 
 import '../data.dart';
@@ -29,7 +30,7 @@ class _CompareScreenState extends State<CompareScreen> {
   Future<void> _pick(bool left) async {
     final s = StateScope.read(context);
     final other = left ? b : a;
-    final id = await pickHero(context, title: left ? 'Первый герой' : 'Второй герой', disabled: {if (other != null) other.id});
+    final id = await pickHero(context, title: left ? L('Первый герой', 'First hero') : L('Второй герой', 'Second hero'), disabled: {if (other != null) other.id});
     if (id == null) return;
     setState(() {
       if (left) {
@@ -49,7 +50,7 @@ class _CompareScreenState extends State<CompareScreen> {
       appBar: AppBar(
         backgroundColor: C.bg,
         surfaceTintColor: Colors.transparent,
-        title: const Text('Сравнение героев', style: T.h2),
+        title: Text(L('Сравнение героев', 'Hero comparison'), style: T.h2),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
@@ -60,12 +61,12 @@ class _CompareScreenState extends State<CompareScreen> {
             Expanded(child: _slot(b, () => _pick(false))),
           ]),
           const SizedBox(height: 6),
-          Text('Ранг: ${rankGroups[g]} (меняется на вкладке «Драфт»)', style: T.small),
+          Text(L('Ранг: ${rankGroups[g]} (меняется на вкладке «Драфт»)', 'Rank: ${rankGroups[g]} (change it on the Draft tab)'), style: T.small),
           if (a != null && b != null) ..._body(s, a!, b!),
           if (a == null || b == null)
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(top: 30),
-              child: Text('Выбери двух героев, нажав на пустые карточки.', textAlign: TextAlign.center, style: T.small),
+              child: Text(L('Выбери двух героев, нажав на пустые карточки.', 'Choose two heroes by tapping the empty cards.'), textAlign: TextAlign.center, style: T.small),
             ),
         ],
       ),
@@ -94,18 +95,18 @@ class _CompareScreenState extends State<CompareScreen> {
     final my = s.myRankGroup;
     final ba = s.bench.row(a.id, my), bb = s.bench.row(b.id, my);
     final rows = <(String, double, double, int, bool)>[
-      ('Винрейт', a.wrAt(g) * 100, b.wrAt(g) * 100, 1, true),
-      ('Популярность', a.prAt(g) * 100, b.prAt(g) * 100, 1, true),
-      if (a.trendAt(g) != null && b.trendAt(g) != null) ('Тренд за неделю', a.trendAt(g)! * 100, b.trendAt(g)! * 100, 1, true),
-      if (a.proPicks + b.proPicks > 0) ('Пики на про-сцене', a.proPicks.toDouble(), b.proPicks.toDouble(), 0, true),
-      if (a.proPicks > 0 && b.proPicks > 0) ('Винрейт в про', a.proWr * 100, b.proWr * 100, 1, true),
+      (L('Винрейт', 'Win rate'), a.wrAt(g) * 100, b.wrAt(g) * 100, 1, true),
+      (L('Популярность', 'Popularity'), a.prAt(g) * 100, b.prAt(g) * 100, 1, true),
+      if (a.trendAt(g) != null && b.trendAt(g) != null) (L('Тренд за неделю', 'Weekly trend'), a.trendAt(g)! * 100, b.trendAt(g)! * 100, 1, true),
+      if (a.proPicks + b.proPicks > 0) (L('Пики на про-сцене', 'Pro picks'), a.proPicks.toDouble(), b.proPicks.toDouble(), 0, true),
+      if (a.proPicks > 0 && b.proPicks > 0) (L('Винрейт в про', 'Pro win rate'), a.proWr * 100, b.proWr * 100, 1, true),
       if (ba != null && bb != null) ...[
-        ('Золото/мин*', ba.gpm, bb.gpm, 0, true),
-        ('Опыт/мин*', ba.xpm, bb.xpm, 0, true),
-        ('Добивания за 10 мин*', ba.lh10, bb.lh10, 1, true),
+        (L('Золото/мин*', 'GPM*'), ba.gpm, bb.gpm, 0, true),
+        (L('Опыт/мин*', 'XPM*'), ba.xpm, bb.xpm, 0, true),
+        (L('Добивания за 10 мин*', 'LH per 10 min*'), ba.lh10, bb.lh10, 1, true),
         ('KDA*', ba.kda, bb.kda, 2, true),
-        ('Урон героям/мин*', ba.hdm, bb.hdm, 0, true),
-        ('Урон по вышкам*', ba.td, bb.td, 0, true),
+        (L('Урон героям/мин*', 'Hero dmg/min*'), ba.hdm, bb.hdm, 0, true),
+        (L('Урон по вышкам*', 'Tower damage*'), ba.td, bb.td, 0, true),
       ],
     ];
     final adv = d.advantage(a, b);
@@ -115,23 +116,23 @@ class _CompareScreenState extends State<CompareScreen> {
     List<DHero> counters(DHero h) => e.matchups(h, best: false).take(4).map((r) => r.$1).toList();
 
     return [
-      const SectionLabel('Друг против друга'),
+      SectionLabel(L('Друг против друга', 'Head to head')),
       AppCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(
             adv.abs() < 0.005
-                ? 'Примерно на равных в прямом противостоянии.'
-                : '${adv > 0 ? a.name : b.name} сильнее в матчах друг против друга: ${signedPct(adv.abs())} к победе.',
+                ? L('Примерно на равных в прямом противостоянии.', 'About even head to head.')
+                : L('${adv > 0 ? a.name : b.name} сильнее в матчах друг против друга: ${signedPct(adv.abs())} к победе.', '${adv > 0 ? a.name : b.name} is stronger head to head: ${signedPct(adv.abs())} win chance.'),
             style: T.body,
           ),
           const SizedBox(height: 6),
           Text(
-            'В одной команде: ${syn >= 0.005 ? 'хорошо сочетаются (${signedPct(syn)})' : syn <= -0.005 ? 'сочетаются плохо (${signedPct(syn)})' : 'нейтрально'}.',
+            L('В одной команде: ${syn >= 0.005 ? 'хорошо сочетаются (${signedPct(syn)})' : syn <= -0.005 ? 'сочетаются плохо (${signedPct(syn)})' : 'нейтрально'}.', 'On the same team: ${syn >= 0.005 ? 'good together (${signedPct(syn)})' : syn <= -0.005 ? 'bad together (${signedPct(syn)})' : 'neutral'}.'),
             style: T.small,
           ),
         ]),
       ),
-      const SectionLabel('Цифры'),
+      SectionLabel(L('Цифры', 'Numbers')),
       AppCard(
         padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
         child: Column(children: [
@@ -152,7 +153,7 @@ class _CompareScreenState extends State<CompareScreen> {
               padding: const EdgeInsets.symmetric(vertical: 6),
               child: Row(children: [
                 SizedBox(width: 64, child: Text(pa == null ? '—' : '${pa[0]} / ${pct(pa[1] / pa[0], digits: 0)}', style: T.num(12))),
-                const Expanded(child: Text('Твои игры / винрейт', textAlign: TextAlign.center, style: T.small)),
+                Expanded(child: Text(L('Твои игры / винрейт', 'Your games / win rate'), textAlign: TextAlign.center, style: T.small)),
                 SizedBox(
                     width: 64,
                     child: Text(pb == null ? '—' : '${pb[0]} / ${pct(pb[1] / pb[0], digits: 0)}', textAlign: TextAlign.right, style: T.num(12))),
@@ -162,10 +163,10 @@ class _CompareScreenState extends State<CompareScreen> {
       ),
       if (ba != null) ...[
         const SizedBox(height: 4),
-        Text('* средние игроков группы «${rankGroupsShort[my]}»', style: T.small),
+        Text(L('* средние игроков группы «${rankGroupsShort[my]}»', '* averages of players in ${rankGroupsShort[my]}'), style: T.small),
       ],
       if (a.dur.length == 4 && b.dur.length == 4) ...[
-        const SectionLabel('Сила по времени игры'),
+        SectionLabel(L('Сила по времени игры', 'Strength by game time')),
         AppCard(
           child: Column(children: [
             for (var i = 0; i < 4; i++)
@@ -186,14 +187,14 @@ class _CompareScreenState extends State<CompareScreen> {
           ]),
         ),
       ],
-      const SectionLabel('Кто их контрит'),
+      SectionLabel(L('Кто их контрит', 'Who counters them')),
       Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Expanded(child: _heroList(counters(a))),
         const SizedBox(width: 8),
         Expanded(child: _heroList(counters(b))),
       ]),
       if ((s.bench.neutral[a.id] ?? const []).isNotEmpty || (s.bench.neutral[b.id] ?? const []).isNotEmpty) ...[
-        const SectionLabel('Нейтральные предметы'),
+        SectionLabel(L('Нейтральные предметы', 'Neutral items')),
         Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Expanded(child: NeutralRow(hero: a, compact: true)),
           const SizedBox(width: 8),
