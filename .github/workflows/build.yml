@@ -10,6 +10,9 @@ on:
       - '.github/workflows/info.yml'
       - '.github/workflows/bench.yml'
       - '.github/workflows/data.yml'
+      - '.github/workflows/screens.yml'
+      - 'integration_test/**'
+      - 'test_driver/**'
   workflow_dispatch:
 
 permissions:
