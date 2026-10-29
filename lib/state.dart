@@ -7,6 +7,34 @@ import 'package:path_provider/path_provider.dart';
 
 import 'data.dart';
 import 'engine.dart';
+import 'opendota.dart';
+
+/// Сохранённый драфт для истории и проверки точности.
+class SavedDraft {
+  final String id;
+  final int ts; // ms
+  final List<int> allies;
+  final List<int> enemies;
+  final int group;
+  final double chance;
+  final bool? win; // null — результат не отмечен
+  const SavedDraft(this.id, this.ts, this.allies, this.enemies, this.group, this.chance, this.win);
+
+  SavedDraft withResult(bool? w) => SavedDraft(id, ts, allies, enemies, group, chance, w);
+
+  Map<String, dynamic> toJson() =>
+      {'id': id, 'ts': ts, 'a': allies, 'e': enemies, 'g': group, 'c': chance, 'w': win};
+
+  static SavedDraft fromJson(Map j) => SavedDraft(
+        j['id']?.toString() ?? '',
+        (j['ts'] as num?)?.toInt() ?? 0,
+        ((j['a'] as List?) ?? const []).whereType<num>().map((e) => e.toInt()).toList(),
+        ((j['e'] as List?) ?? const []).whereType<num>().map((e) => e.toInt()).toList(),
+        (j['g'] as num?)?.toInt() ?? 0,
+        (j['c'] as num?)?.toDouble() ?? 0.5,
+        j['w'] is bool ? j['w'] as bool : null,
+      );
+}
 
 /// Состояние приложения: данные, драфт, настройки. Драфт сохраняется между запусками.
 class AppState extends ChangeNotifier {
@@ -22,7 +50,23 @@ class AppState extends ChangeNotifier {
   int? stageOverride; // null — автоматически по числу союзников
   bool roleFilter = true;
 
-  Engine get engine => Engine(data!, group);
+  // Мои герои
+  final Set<int> pool = {};
+  int comfortMode = 1; // 0 — не учитывать, 1 — приоритет, 2 — только мои
+  int? accountId;
+  String playerName = '';
+  String playerAvatar = '';
+  int? rankTier;
+  final Map<int, List<int>> played = {};
+  bool playerLoading = false;
+  String? playerError;
+
+  // История драфтов
+  final List<SavedDraft> history = [];
+
+  Comfort get comfort => Comfort(pool: pool, played: played, mode: comfortMode);
+
+  Engine get engine => Engine(data!, group, comfort);
 
   List<DHero> heroesOf(List<int?> ids) => [
         for (final id in ids)
@@ -141,6 +185,105 @@ class AppState extends ChangeNotifier {
     _changed();
   }
 
+  // ---------- мои герои ----------
+
+  bool inPool(int id) => pool.contains(id);
+
+  void togglePool(int id) {
+    if (!pool.remove(id)) pool.add(id);
+    _changed();
+  }
+
+  void setComfortMode(int m) {
+    comfortMode = m;
+    _changed();
+  }
+
+  /// Самые игранные герои из профиля (сортировка по числу игр).
+  List<MapEntry<int, List<int>>> get playedSorted =>
+      played.entries.toList()..sort((a, b) => b.value[0].compareTo(a.value[0]));
+
+  void addTopToPool(int n) {
+    for (final e in playedSorted.take(n)) {
+      pool.add(e.key);
+    }
+    _changed();
+  }
+
+  /// Загрузить профиль и статистику героев. Возвращает текст ошибки или null.
+  Future<String?> loadPlayer(String input) async {
+    final id = OpenDota.parseAccountId(input);
+    if (id == null) {
+      return 'Нужен числовой ID: Friend ID из Dota 2 или ссылка вида steamcommunity.com/profiles/7656…';
+    }
+    playerLoading = true;
+    playerError = null;
+    notifyListeners();
+    try {
+      final p = await OpenDota.profile(id);
+      final h = await OpenDota.heroes(id);
+      accountId = id;
+      playerName = p.name;
+      playerAvatar = p.avatar;
+      rankTier = p.rankTier;
+      played
+        ..clear()
+        ..addAll(h);
+      if (h.isEmpty) {
+        playerError = 'Матчи не найдены. Включи в Dota 2: Настройки → Общение → «Открыть общий доступ к данным матчей».';
+      }
+    } on OdException catch (e) {
+      playerError = e.message;
+    } finally {
+      playerLoading = false;
+      _changed();
+    }
+    return playerError;
+  }
+
+  void forgetPlayer() {
+    accountId = null;
+    playerName = '';
+    playerAvatar = '';
+    rankTier = null;
+    played.clear();
+    _changed();
+  }
+
+  // ---------- история драфтов ----------
+
+  void saveDraft() {
+    if (data == null) return;
+    final a = allies.whereType<int>().toList(), e = enemies.whereType<int>().toList();
+    if (a.isEmpty && e.isEmpty) return;
+    history.insert(
+        0,
+        SavedDraft('${DateTime.now().microsecondsSinceEpoch}', DateTime.now().millisecondsSinceEpoch, a, e, group,
+            engine.winChance(allyHeroes, enemyHeroes), null));
+    _changed();
+  }
+
+  void setResult(String id, bool? win) {
+    final i = history.indexWhere((d) => d.id == id);
+    if (i < 0) return;
+    history[i] = history[i].withResult(win);
+    _changed();
+  }
+
+  void deleteDraft(String id) {
+    history.removeWhere((d) => d.id == id);
+    _changed();
+  }
+
+  void loadDraft(SavedDraft d) {
+    for (var i = 0; i < 5; i++) {
+      allies[i] = i < d.allies.length ? d.allies[i] : null;
+      enemies[i] = i < d.enemies.length ? d.enemies[i] : null;
+    }
+    group = d.group.clamp(0, rankGroups.length - 1);
+    _changed();
+  }
+
   void setRoleFilter(bool v) {
     roleFilter = v;
     _changed();
@@ -173,6 +316,14 @@ class AppState extends ChangeNotifier {
         'bans': bans.toList(),
         'group': group,
         'roleFilter': roleFilter,
+        'pool': pool.toList(),
+        'comfortMode': comfortMode,
+        'accountId': accountId,
+        'playerName': playerName,
+        'playerAvatar': playerAvatar,
+        'rankTier': rankTier,
+        'played': played.map((k, v) => MapEntry('$k', v)),
+        'history': history.map((d) => d.toJson()).toList(),
       }));
     } catch (_) {}
   }
@@ -191,6 +342,22 @@ class AppState extends ChangeNotifier {
       bans.addAll(((j['bans'] as List?) ?? const []).whereType<num>().map((e) => e.toInt()));
       group = ((j['group'] as num?)?.toInt() ?? 0).clamp(0, rankGroups.length - 1);
       roleFilter = j['roleFilter'] != false;
+      pool.addAll(((j['pool'] as List?) ?? const []).whereType<num>().map((e) => e.toInt()));
+      comfortMode = ((j['comfortMode'] as num?)?.toInt() ?? 1).clamp(0, 2);
+      accountId = (j['accountId'] as num?)?.toInt();
+      playerName = j['playerName']?.toString() ?? '';
+      playerAvatar = j['playerAvatar']?.toString() ?? '';
+      rankTier = (j['rankTier'] as num?)?.toInt();
+      final pl = j['played'];
+      if (pl is Map) {
+        pl.forEach((k, v) {
+          final id = int.tryParse('$k');
+          if (id != null && v is List && v.length >= 2) {
+            played[id] = [(v[0] as num).toInt(), (v[1] as num).toInt()];
+          }
+        });
+      }
+      history.addAll(((j['history'] as List?) ?? const []).whereType<Map>().map(SavedDraft.fromJson));
     } catch (_) {}
   }
 }

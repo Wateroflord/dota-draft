@@ -8,7 +8,6 @@ import '../widgets.dart';
 import 'hero_picker.dart';
 import 'hero_screen.dart';
 import 'info_screen.dart';
-import 'meta_screen.dart';
 
 const stageTitles = {1: '1 пик', 2: '2 пик', 3: '3 пик'};
 const stageHints = {
@@ -57,9 +56,16 @@ class DraftScreen extends StatelessWidget {
         title: const Text('Dota Draft', style: T.h2),
         actions: [
           IconButton(
-            tooltip: 'Лучшие пики',
-            icon: const Icon(Icons.leaderboard_outlined),
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MetaScreen())),
+            tooltip: 'Сохранить драфт в историю',
+            icon: const Icon(Icons.bookmark_add_outlined),
+            onPressed: () {
+              if (allies.isEmpty && enemies.isEmpty) {
+                showToast(context, 'Сначала выбери героев');
+                return;
+              }
+              s.saveDraft();
+              showToast(context, 'Драфт сохранён. Отметь результат в «Мои герои» → История драфтов');
+            },
           ),
           IconButton(
             tooltip: 'Поменять команды местами',
@@ -125,6 +131,14 @@ class DraftScreen extends StatelessWidget {
           ]),
           const SizedBox(height: 6),
           Text(stageHints[s.stage]!, style: T.small),
+          const SizedBox(height: 8),
+          Wrap(spacing: 4, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
+            const Icon(Icons.star_border, size: 16, color: C.gold),
+            const Text('Мои герои:', style: T.small),
+            for (final m in const [0, 1, 2])
+              Pill(const ['не учитывать', 'приоритет', 'только мои'][m],
+                  color: C.gold, filled: s.comfortMode == m, onTap: () => s.setComfortMode(m)),
+          ]),
           if (missing.isNotEmpty && allies.isNotEmpty) ...[
             const SizedBox(height: 6),
             Row(children: [
@@ -432,6 +446,10 @@ class _PickCard extends StatelessWidget {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
+                if (p.mine) ...[
+                  const Icon(Icons.star, size: 14, color: C.gold),
+                  const SizedBox(width: 4),
+                ],
                 Expanded(
                   child: Text(h.name, maxLines: 1, overflow: TextOverflow.ellipsis,
                       style: T.body.copyWith(fontWeight: FontWeight.w700)),
@@ -440,7 +458,7 @@ class _PickCard extends StatelessWidget {
               ]),
               const SizedBox(height: 2),
               Text(
-                '${p.position == null ? '' : '${positionNames[p.position]} · '}винрейт ${pct(h.wr[g])}',
+                '${p.position == null ? '' : '${positionNames[p.position]} · '}винрейт ${pct(h.wrAt(g))}',
                 style: T.small.copyWith(fontSize: 11.5),
               ),
               const SizedBox(height: 3),

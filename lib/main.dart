@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'screens/draft_screen.dart';
+import 'screens/home_shell.dart';
 import 'state.dart';
 import 'theme.dart';
 
@@ -32,7 +33,19 @@ class DotaDraftApp extends StatelessWidget {
         color: C.bg,
         child: SafeArea(top: false, left: false, right: false, child: child ?? const SizedBox()),
       ),
-      home: const DraftScreen(),
+      home: const _Gate(),
     );
+  }
+}
+
+/// Пока данные грузятся — экран загрузки, потом приложение.
+class _Gate extends StatelessWidget {
+  const _Gate();
+
+  @override
+  Widget build(BuildContext context) {
+    final s = StateScope.of(context);
+    if (s.loading || s.data == null) return const DraftScreen();
+    return const HomeShell();
   }
 }

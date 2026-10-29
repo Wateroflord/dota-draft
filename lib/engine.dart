@@ -30,8 +30,36 @@ class Pick {
   final List<DHero> counters; // кто его контрит из доступных
   final bool fitsRole;
   final int? position; // какую позицию закроет
+  final bool mine; // герой из «Моих героев»
   const Pick(this.hero, this.score, this.winDelta, this.vulnerability, this.reasons, this.counters, this.fitsRole,
-      this.position);
+      this.position, {this.mine = false});
+}
+
+/// Как учитывать «Мои героев»: 0 — не учитывать, 1 — приоритет, 2 — только мои.
+class Comfort {
+  final Set<int> pool; // выбранные вручную
+  final Map<int, List<int>> played; // hero.id -> [игр, побед] из профиля
+  final int mode;
+  const Comfort({this.pool = const {}, this.played = const {}, this.mode = 0});
+
+  static const none = Comfort();
+
+  bool isMine(DHero h) => pool.contains(h.id) || (played[h.id]?[0] ?? 0) >= 10;
+
+  /// Бонус в логитах: свои герои и уверенная игра на них.
+  double bonus(DHero h) {
+    if (mode == 0) return 0;
+    var b = pool.contains(h.id) ? 0.25 : 0.0;
+    final p = played[h.id];
+    if (p != null && p[0] > 0) {
+      final games = p[0], wr = p[1] / p[0];
+      b += 0.05 * _ln(1 + games / 5);
+      b += ((wr - 0.5) * games / (games + 20)).clamp(-0.1, 0.1) * 1.5;
+    }
+    return b;
+  }
+
+  static double _ln(double x) => math.log(x);
 }
 
 class TeamResult {
@@ -44,10 +72,11 @@ class TeamResult {
 class Engine {
   final StatsData d;
   final int group;
-  Engine(this.d, this.group);
+  final Comfort comfort;
+  Engine(this.d, this.group, [this.comfort = Comfort.none]);
 
-  double wr(DHero h) => h.wr.length > group ? h.wr[group] : 0.5;
-  double pr(DHero h) => h.pr.length > group ? h.pr[group] : 0;
+  double wr(DHero h) => h.wrAt(group);
+  double pr(DHero h) => h.prAt(group);
 
   /// Вклад героя «сам по себе» (логит его винрейта).
   double base(DHero h) {
@@ -164,8 +193,15 @@ class Engine {
     required int stage,
     bool roleFilter = true,
     int limit = 20,
+    bool useComfort = true,
   }) {
-    final pool = d.heroes.where((h) => !unavailable.contains(h.id)).toList();
+    final cf = useComfort ? comfort : Comfort.none;
+    var pool = d.heroes.where((h) => !unavailable.contains(h.id)).toList();
+    final everyone = pool;
+    if (cf.mode == 2) {
+      final mine = pool.where(cf.isMine).toList();
+      if (mine.isNotEmpty) pool = mine;
+    }
     final missing = allies.length >= 5 ? <int>[] : missingPositions(allies);
     final now = teamLogit(allies, enemies);
     final p0 = sigmoid(now);
@@ -185,7 +221,7 @@ class Engine {
       }
       // Кто из ещё доступных героев сильнее всего его контрит.
       final threats = <(DHero, double)>[];
-      for (final x in pool) {
+      for (final x in everyone) {
         if (x.id == h.id) continue;
         final v = d.advantage(x, h);
         if (v > 0) threats.add((x, v));
@@ -201,7 +237,7 @@ class Engine {
         2 => delta - 0.45 * kPair * vuln,
         _ => base(h) + kPair * (1.4 * adv + syn),
       };
-      final score = raw - (roleFilter && !fits ? 0.25 : 0.0);
+      final score = raw - (roleFilter && !fits ? 0.25 : 0.0) + cf.bonus(h);
       final pDelta = sigmoid(now + delta) - p0;
       reasons.sort((a, b) => b.value.abs().compareTo(a.value.abs()));
       int? pos;
@@ -212,7 +248,8 @@ class Engine {
         }
       }
       out.add(Pick(h, score, pDelta, vuln, reasons.take(4).toList(), [for (final t in top) t.$1], fits,
-          pos ?? (h.positions.isEmpty ? null : h.positions.first)));
+          pos ?? (h.positions.isEmpty ? null : h.positions.first),
+          mine: cf.mode > 0 && cf.isMine(h)));
     }
     out.sort((a, b) => b.score.compareTo(a.score));
     if (roleFilter && missing.isNotEmpty) {
@@ -236,6 +273,7 @@ class Engine {
       stage: allies.isEmpty ? 1 : 3,
       roleFilter: enemies.isNotEmpty,
       limit: limit,
+      useComfort: false,
     );
     return view;
   }

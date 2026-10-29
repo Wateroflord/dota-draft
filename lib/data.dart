@@ -5,13 +5,26 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
-/// Группы рангов (как в данных): 0 — все, 1 — Рекрут–Страж, 2 — Рыцарь–Легенда, 3 — Властелин–Титан.
-const rankGroups = ['Все ранги', 'Рекрут – Страж', 'Рыцарь – Легенда', 'Властелин – Титан'];
-const rankGroupsShort = ['Все', 'Рекрут–Страж', 'Рыцарь–Легенда', 'Властелин–Титан'];
+/// Группы рангов (как в данных): 0 — все, 1 — Рекрут–Страж, 2 — Рыцарь–Легенда, 3 — Властелин–Титан, 4 — Турбо.
+const rankGroups = ['Все ранги', 'Рекрут – Страж', 'Рыцарь – Легенда', 'Властелин – Титан', 'Турбо'];
+const rankGroupsShort = ['Все', 'Рекрут–Страж', 'Рыцарь–Легенда', 'Властелин–Титан', 'Турбо'];
 
 const positionNames = {1: 'Керри', 2: 'Мид', 3: 'Хард', 4: 'Полусаппорт', 5: 'Саппорт'};
 
 const attrNames = {'str': 'Сила', 'agi': 'Ловкость', 'int': 'Интеллект', 'all': 'Универсал'};
+
+/// Отрезки длительности матча для «силы по времени».
+const durationLabels = ['до 25 мин', '25–35', '35–45', '45+ мин'];
+
+class DItem {
+  final int id;
+  final String key;
+  final String name;
+  final int cost;
+  const DItem(this.id, this.key, this.name, this.cost);
+
+  String get image => 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/items/$key.png';
+}
 
 class DHero {
   final int index; // позиция в матрицах
@@ -23,6 +36,10 @@ class DHero {
   final List<int> positions;
   final List<double> wr; // по группам рангов
   final List<double> pr; // доля матчей с героем
+  final List<double> wrd; // изменение винрейта за неделю по группам (может быть пустым)
+  final List<int> pro; // пики, победы, баны на про-сцене
+  final List<double> dur; // винрейт по длительности матча
+  final Map<String, List<int>> items; // s, e, m, l — популярные предметы по стадиям
 
   const DHero({
     required this.index,
@@ -34,7 +51,22 @@ class DHero {
     required this.positions,
     required this.wr,
     required this.pr,
+    this.wrd = const [],
+    this.pro = const [],
+    this.dur = const [],
+    this.items = const {},
   });
+
+  double wrAt(int g) => g < wr.length ? wr[g] : (wr.isEmpty ? 0.5 : wr[0]);
+  double prAt(int g) => g < pr.length ? pr[g] : (pr.isEmpty ? 0 : pr[0]);
+  double? trendAt(int g) => g < wrd.length ? wrd[g] : null;
+
+  int get proPicks => pro.isNotEmpty ? pro[0] : 0;
+  int get proWins => pro.length > 1 ? pro[1] : 0;
+  int get proBans => pro.length > 2 ? pro[2] : 0;
+  double get proWr => proPicks > 0 ? proWins / proPicks : 0;
+
+  bool has(String role) => roles.contains(role);
 
   String get image => 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/$key.png';
   String get icon => 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/$key.png';
@@ -45,11 +77,13 @@ double _d(dynamic v, [double def = 0]) => v is num ? v.toDouble() : def;
 class StatsData {
   final String updated;
   final int matches;
+  final String? trendFrom;
   final List<DHero> heroes;
+  final Map<int, DItem> items;
   final List<List<int>> adv; // ×10000, преимущество строки против столбца
   final List<List<int>> syn; // ×10000, синергия пары
 
-  StatsData(this.updated, this.matches, this.heroes, this.adv, this.syn);
+  StatsData(this.updated, this.matches, this.trendFrom, this.heroes, this.items, this.adv, this.syn);
 
   late final Map<int, DHero> byId = {for (final h in heroes) h.id: h};
 
@@ -58,12 +92,23 @@ class StatsData {
 
   double synergy(DHero a, DHero b) => syn[a.index][b.index] / 10000;
 
+  bool get hasDurations => heroes.any((h) => h.dur.length == 4);
+  bool get hasTrends => heroes.any((h) => h.wrd.isNotEmpty);
+  bool get hasPro => heroes.any((h) => h.proPicks > 0);
+
   static StatsData parse(String txt) {
     final j = jsonDecode(txt) as Map<String, dynamic>;
     final list = (j['heroes'] as List).cast<Map>();
+    List<double> dl(dynamic v, [double def = 0]) => ((v as List?) ?? const []).map((e) => _d(e, def)).toList();
+    List<int> il(dynamic v) => ((v as List?) ?? const []).whereType<num>().map((e) => e.toInt()).toList();
     final heroes = <DHero>[];
     for (var i = 0; i < list.length; i++) {
       final h = list[i];
+      final items = <String, List<int>>{};
+      final rawItems = h['items'];
+      if (rawItems is Map) {
+        rawItems.forEach((k, v) => items[k.toString()] = il(v));
+      }
       heroes.add(DHero(
         index: i,
         id: (h['id'] as num).toInt(),
@@ -71,10 +116,24 @@ class StatsData {
         key: h['k']?.toString() ?? '',
         attr: h['a']?.toString() ?? 'all',
         roles: ((h['r'] as List?) ?? const []).map((e) => e.toString()).toList(),
-        positions: ((h['p'] as List?) ?? const []).map((e) => (e as num).toInt()).toList(),
-        wr: ((h['wr'] as List?) ?? const []).map((e) => _d(e, 0.5)).toList(),
-        pr: ((h['pr'] as List?) ?? const []).map((e) => _d(e)).toList(),
+        positions: il(h['p']),
+        wr: dl(h['wr'], 0.5),
+        pr: dl(h['pr']),
+        wrd: dl(h['wrd']),
+        pro: il(h['pro']),
+        dur: dl(h['dur'], 0.5),
+        items: items,
       ));
+    }
+    final items = <int, DItem>{};
+    final rawItems = j['items'];
+    if (rawItems is Map) {
+      rawItems.forEach((k, v) {
+        final id = int.tryParse(k.toString());
+        if (id != null && v is List && v.length >= 3) {
+          items[id] = DItem(id, v[0].toString(), v[1].toString(), (v[2] as num?)?.toInt() ?? 0);
+        }
+      });
     }
     List<List<int>> mat(dynamic m) => ((m as List?) ?? const [])
         .map((row) => (row as List).map((e) => (e as num).toInt()).toList())
@@ -87,7 +146,9 @@ class StatsData {
     return StatsData(
       j['updated']?.toString() ?? '',
       (j['matches'] as num?)?.toInt() ?? 0,
+      j['trend_from']?.toString(),
       heroes,
+      items,
       fix(adv),
       fix(syn),
     );

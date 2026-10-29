@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data.dart';
+import '../knowledge.dart';
 import '../state.dart';
 import '../theme.dart';
 import '../widgets.dart';
@@ -33,7 +34,7 @@ class _PickerState extends State<_Picker> {
     final s = StateScope.of(context);
     final q = search.text.trim().toLowerCase();
     final list = s.data!.heroes
-        .where((h) => (attr.isEmpty || h.attr == attr) && (q.isEmpty || h.name.toLowerCase().contains(q) || h.key.contains(q)))
+        .where((h) => (attr.isEmpty || h.attr == attr) && (q.isEmpty || heroMatches(h, q)))
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
     return SizedBox(
@@ -51,7 +52,7 @@ class _PickerState extends State<_Picker> {
               autofocus: false,
               onChanged: (_) => setState(() {}),
               style: T.body,
-              decoration: fieldDeco('Поиск героя (по-английски)', icon: Icons.search),
+              decoration: fieldDeco('Поиск: Pudge, Пудж, АМ, Войд…', icon: Icons.search),
             ),
             const SizedBox(height: 8),
             SingleChildScrollView(
@@ -106,4 +107,17 @@ class _PickerState extends State<_Picker> {
       ),
     );
   }
+}
+
+/// Поиск по английскому имени, внутреннему ключу, русскому названию и сленгу.
+bool heroMatches(DHero h, String q) {
+  if (h.name.toLowerCase().contains(q) || h.key.replaceAll('_', ' ').contains(q)) return true;
+  for (final n in ruNames[h.key] ?? const <String>[]) {
+    final l = n.toLowerCase();
+    // Короткий сленг («ам», «сф») — только точное совпадение, иначе «ам» найдёт и Шамана.
+    if (l.length <= 3 ? l == q : l.contains(q)) return true;
+  }
+  // Первые буквы слов: «pa» → Phantom Assassin.
+  final initials = h.name.split(RegExp(r'[\s-]+')).where((w) => w.isNotEmpty).map((w) => w[0].toLowerCase()).join();
+  return q.length >= 2 && initials == q;
 }

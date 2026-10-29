@@ -170,3 +170,63 @@ class SheetHandle extends StatelessWidget {
         ),
       );
 }
+
+/// Иконка предмета (88×64 в оригинале).
+class ItemImg extends StatelessWidget {
+  final String itemKey;
+  final double width;
+  const ItemImg(this.itemKey, {super.key, this.width = 40});
+
+  @override
+  Widget build(BuildContext context) {
+    final h = width * 64 / 88;
+    Widget fb() => Container(width: width, height: h, color: C.surface2);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: CachedNetworkImage(
+        imageUrl: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/items/$itemKey.png',
+        width: width,
+        height: h,
+        fit: BoxFit.cover,
+        placeholder: (_, __) => fb(),
+        errorWidget: (_, __, ___) => fb(),
+      ),
+    );
+  }
+}
+
+/// Столбики шанса победы по отрезкам времени: выше 50% — зелёный, ниже — красный.
+class ChanceBars extends StatelessWidget {
+  final List<double> values;
+  final List<String> labels;
+  const ChanceBars({super.key, required this.values, required this.labels});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 130,
+      child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+        for (var i = 0; i < values.length; i++)
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+                Text(pct(values[i], digits: 0),
+                    style: T.num(13, color: values[i] >= 0.5 ? C.ally : C.enemy)),
+                const SizedBox(height: 4),
+                Container(
+                  height: 8 + 80 * ((values[i] - 0.3) / 0.4).clamp(0.0, 1.0),
+                  decoration: BoxDecoration(
+                    color: (values[i] >= 0.5 ? C.ally : C.enemy).withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(i < labels.length ? labels[i] : '', style: const TextStyle(fontSize: 10.5, color: C.muted)),
+              ]),
+            ),
+          ),
+      ]),
+    );
+  }
+}

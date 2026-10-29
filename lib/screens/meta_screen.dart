@@ -8,7 +8,7 @@ import '../theme.dart';
 import '../widgets.dart';
 import 'hero_screen.dart';
 
-/// «Лучшие пики»: тир-лист героев по выбранному рангу.
+/// «Мета»: тир-лист по рангу, про-сцена, тренды за неделю.
 class MetaScreen extends StatefulWidget {
   const MetaScreen({super.key});
 
@@ -17,15 +17,14 @@ class MetaScreen extends StatefulWidget {
 }
 
 class _MetaScreenState extends State<MetaScreen> {
-  int sort = 0; // 0 — мета (винрейт с учётом популярности), 1 — винрейт, 2 — популярность
+  int mode = 0; // 0 — тир-лист, 1 — про-сцена, 2 — тренды
+  int sort = 0; // 0 — мета, 1 — винрейт, 2 — популярность
   int pos = 0; // 0 — все позиции
 
-  /// Оценка «силы в мете»: винрейт, слегка поднятый за популярность (популярных сложнее «разыграть случайно»).
-  static double metaScore(DHero h, int g) => (h.wr[g] - 0.5) * 100 + 1.2 * math.log(1 + h.pr[g] * 100);
+  static double metaScore(DHero h, int g) => (h.wrAt(g) - 0.5) * 100 + 1.2 * math.log(1 + h.prAt(g) * 100);
 
-  static String tier(double score, List<double> all) {
-    if (all.isEmpty) return 'C';
-    final sorted = [...all]..sort((a, b) => b.compareTo(a));
+  static String tier(double score, List<double> sorted) {
+    if (sorted.isEmpty) return 'C';
     final rank = sorted.indexOf(score) / sorted.length;
     if (rank < 0.08) return 'S';
     if (rank < 0.25) return 'A';
@@ -46,42 +45,84 @@ class _MetaScreenState extends State<MetaScreen> {
   Widget build(BuildContext context) {
     final s = StateScope.of(context);
     final g = s.group;
-    final heroes = s.data!.heroes.where((h) => pos == 0 || h.positions.contains(pos)).toList();
-    final scores = {for (final h in s.data!.heroes) h.id: metaScore(h, g)};
-    final allScores = scores.values.toList();
-    heroes.sort((a, b) => switch (sort) {
-          1 => b.wr[g].compareTo(a.wr[g]),
-          2 => b.pr[g].compareTo(a.pr[g]),
-          _ => scores[b.id]!.compareTo(scores[a.id]!),
-        });
+    final d = s.data!;
+    final all = d.heroes.where((h) => pos == 0 || h.positions.contains(pos)).toList();
+    final scores = {for (final h in d.heroes) h.id: metaScore(h, g)};
+    final sortedScores = scores.values.toList()..sort((a, b) => b.compareTo(a));
+
+    List<DHero> list;
+    String hint;
+    switch (mode) {
+      case 1:
+        list = all.where((h) => h.proPicks + h.proBans > 0).toList()
+          ..sort((a, b) => (b.proPicks + b.proBans).compareTo(a.proPicks + a.proBans));
+        hint = d.hasPro
+            ? 'Самые популярные герои профессиональных матчей: пики + баны, винрейт на про-сцене.'
+            : 'Данные про-сцены появятся после ближайшего обновления статистики.';
+      case 2:
+        list = all.where((h) => h.trendAt(g) != null).toList()
+          ..sort((a, b) => b.trendAt(g)!.compareTo(a.trendAt(g)!));
+        hint = d.hasTrends
+            ? 'Изменение винрейта с ${d.trendFrom ?? 'прошлой недели'}. Вверху — кто растёт, внизу — кто падает.'
+            : 'Тренды появятся через несколько дней: нужна статистика минимум за два дня.';
+      default:
+        list = [...all]..sort((a, b) => switch (sort) {
+              1 => b.wrAt(g).compareTo(a.wrAt(g)),
+              2 => b.prAt(g).compareTo(a.prAt(g)),
+              _ => scores[b.id]!.compareTo(scores[a.id]!),
+            });
+        hint = 'Тир — винрейт с поправкой на популярность. S — лучшие 8% героев, D — слабейшие.';
+    }
 
     return Scaffold(
       backgroundColor: C.bg,
-      appBar: AppBar(backgroundColor: C.bg, surfaceTintColor: Colors.transparent, title: const Text('Лучшие пики', style: T.h2)),
+      appBar: AppBar(backgroundColor: C.bg, surfaceTintColor: Colors.transparent, title: const Text('Мета', style: T.h2)),
       body: ListView.builder(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-        itemCount: heroes.length + 1,
+        itemCount: list.length + 1,
         itemBuilder: (_, i) {
           if (i == 0) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _chips(['Все', ...rankGroupsShort.skip(1)], g, s.setGroup),
+            return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              _chips(const ['Тир-лист', 'Про-сцена', 'Тренды'], mode, (v) => setState(() => mode = v)),
+              const SizedBox(height: 8),
+              if (mode != 1) ...[
+                _chips(rankGroupsShort, g, s.setGroup),
                 const SizedBox(height: 8),
-                _chips(const ['Любая', 'Керри', 'Мид', 'Хард', 'Поз. 4', 'Поз. 5'], pos, (v) => setState(() => pos = v)),
+              ],
+              _chips(const ['Любая', 'Керри', 'Мид', 'Хард', 'Поз. 4', 'Поз. 5'], pos, (v) => setState(() => pos = v)),
+              if (mode == 0) ...[
                 const SizedBox(height: 8),
                 _chips(const ['Мета', 'Винрейт', 'Популярность'], sort, (v) => setState(() => sort = v)),
-                const SizedBox(height: 10),
-                Text(
-                  'Тир — винрейт с поправкой на популярность. S — лучшие 8% героев, D — слабейшие.',
-                  style: T.small,
-                ),
-                const SizedBox(height: 10),
               ],
-            );
+              const SizedBox(height: 10),
+              Text(hint, style: T.small),
+              const SizedBox(height: 10),
+            ]);
           }
-          final h = heroes[i - 1];
-          final t = tier(scores[h.id]!, allScores);
+          final h = list[i - 1];
+          final t = tier(scores[h.id]!, sortedScores);
+          final trend = h.trendAt(g);
+          Widget right;
+          if (mode == 1) {
+            right = Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              Text(h.proPicks > 0 ? pct(h.proWr) : '—', style: T.num(14, color: h.proWr >= 0.5 ? C.ally : C.enemy)),
+              Text('П ${h.proPicks} · Б ${h.proBans}', style: T.small.copyWith(fontSize: 11)),
+            ]);
+          } else if (mode == 2) {
+            right = Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              Text(signedPct(trend ?? 0), style: T.num(14, color: (trend ?? 0) >= 0 ? C.ally : C.enemy)),
+              Text('сейчас ${pct(h.wrAt(g))}', style: T.small.copyWith(fontSize: 11)),
+            ]);
+          } else {
+            right = Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                if (trend != null && trend.abs() >= 0.005)
+                  Icon(trend > 0 ? Icons.arrow_upward : Icons.arrow_downward, size: 12, color: trend > 0 ? C.ally : C.enemy),
+                Text(pct(h.wrAt(g)), style: T.num(14, color: h.wrAt(g) >= 0.5 ? C.ally : C.enemy)),
+              ]),
+              Text('в ${pct(h.prAt(g))} игр', style: T.small.copyWith(fontSize: 11)),
+            ]);
+          }
           return Padding(
             padding: const EdgeInsets.only(bottom: 6),
             child: AppCard(
@@ -90,21 +131,26 @@ class _MetaScreenState extends State<MetaScreen> {
               child: Row(children: [
                 SizedBox(
                   width: 26,
-                  child: Text(t, textAlign: TextAlign.center, style: T.num(18, color: tierColor(t), weight: FontWeight.w800)),
+                  child: mode == 0
+                      ? Text(t, textAlign: TextAlign.center, style: T.num(18, color: tierColor(t), weight: FontWeight.w800))
+                      : Text('$i', textAlign: TextAlign.center, style: T.num(13, color: C.muted)),
                 ),
                 const SizedBox(width: 6),
                 HeroImg(h, width: 64),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(h.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: T.body.copyWith(fontWeight: FontWeight.w700)),
+                    Row(children: [
+                      if (s.inPool(h.id)) ...[const Icon(Icons.star, size: 13, color: C.gold), const SizedBox(width: 3)],
+                      Expanded(
+                        child: Text(h.name,
+                            maxLines: 1, overflow: TextOverflow.ellipsis, style: T.body.copyWith(fontWeight: FontWeight.w700)),
+                      ),
+                    ]),
                     Text(positionsText(h), maxLines: 1, overflow: TextOverflow.ellipsis, style: T.small),
                   ]),
                 ),
-                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Text(pct(h.wr[g]), style: T.num(14, color: h.wr[g] >= 0.5 ? C.ally : C.enemy)),
-                  Text('в ${pct(h.pr[g])} игр', style: T.small.copyWith(fontSize: 11)),
-                ]),
+                right,
               ]),
             ),
           );
