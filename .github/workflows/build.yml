@@ -114,6 +114,7 @@ jobs:
         run: |
           flutter create --project-name dota_draft --org com.dotadraft --platforms windows .
           rm -rf test
+          python tools/patch_windows.py
           flutter pub get
           dart run flutter_launcher_icons || true
           sed -i 's/"dota_draft"/"Dota Draft"/' windows/runner/main.cpp || true
