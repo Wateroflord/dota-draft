@@ -184,7 +184,7 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
 
     FlutterError.onError = old;
-    binding.reportData = {'errors': errors};
+    binding.reportData = {...?binding.reportData, 'errors': errors};
     // ignore: avoid_print
     print('ERRORS: ${errors.length}\n${errors.join('\n')}');
   });
