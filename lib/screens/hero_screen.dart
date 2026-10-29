@@ -6,6 +6,8 @@ import '../theme.dart';
 import '../widgets.dart';
 import 'bench_widgets.dart';
 import 'compare_screen.dart';
+import 'hero_info_widgets.dart';
+import '../i18n.dart';
 
 void openHero(BuildContext context, DHero h) =>
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => HeroScreen(hero: h)));
@@ -68,6 +70,14 @@ class HeroScreen extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(child: _Btn(banned ? 'Снять бан' : 'Бан', Icons.block, C.muted, () => s.toggleBan(h.id))),
           ]),
+          if (s.info.heroes[h.id] != null) ...[
+            if (s.info.heroes[h.id]!.npe.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Text(s.info.heroes[h.id]!.npe, style: T.body.copyWith(color: C.accent2)),
+            ],
+            SectionLabel(L('Умения', 'Abilities')),
+            AbilitiesSection(info: s.info.heroes[h.id]!),
+          ],
           const SectionLabel('Винрейт и популярность по рангам'),
           AppCard(
             padding: const EdgeInsets.symmetric(vertical: 4),
@@ -109,7 +119,9 @@ class HeroScreen extends StatelessWidget {
               ]),
             ),
           ],
+          PatchSection(hero: h),
           BenchSection(hero: h),
+          SkillBuildSection(hero: h),
           if ((s.bench.neutral[h.id] ?? const []).isNotEmpty) ...[
             const SectionLabel('Нейтральные предметы'),
             AppCard(
@@ -163,6 +175,7 @@ class HeroScreen extends StatelessWidget {
               ]),
             ),
           ],
+          VersusSection(hero: h),
           _list(context, 'Силён против', e.matchups(h, best: true), C.ally),
           _list(context, 'Его контрят', e.matchups(h, best: false), C.enemy, invert: true),
           _list(context, 'Лучшие союзники', e.partners(h), C.gold),

@@ -9,6 +9,9 @@ import 'hero_picker.dart';
 import 'hero_screen.dart';
 import 'info_screen.dart';
 import 'share_screen.dart';
+import 'cm_screen.dart';
+import 'scan_draft_screen.dart';
+import '../i18n.dart';
 
 const stageTitles = {1: '1 пик', 2: '2 пик', 3: '3 пик'};
 const stageHints = {
@@ -47,6 +50,7 @@ class DraftScreen extends StatelessWidget {
             stage: s.stage,
             roleFilter: s.roleFilter,
             limit: 12,
+            myPos: s.myPos,
           );
 
     return Scaffold(
@@ -57,41 +61,52 @@ class DraftScreen extends StatelessWidget {
         title: const Text('Dota Draft', style: T.h2),
         actions: [
           IconButton(
-            tooltip: 'Поделиться драфтом / открыть по QR',
+            tooltip: L('Драфт по скриншоту', 'Draft from screenshot'),
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.photo_camera_outlined),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ScanDraftScreen())),
+          ),
+          IconButton(
+            tooltip: L('Поделиться драфтом / открыть по QR', 'Share draft / open QR'),
             visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.qr_code_2),
             onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ShareScreen())),
           ),
           IconButton(
             visualDensity: VisualDensity.compact,
-            tooltip: 'Сохранить драфт в историю',
+            tooltip: L('Сохранить драфт в историю', 'Save draft to history'),
             icon: const Icon(Icons.bookmark_add_outlined),
             onPressed: () {
               if (allies.isEmpty && enemies.isEmpty) {
-                showToast(context, 'Сначала выбери героев');
+                showToast(context, L('Сначала выбери героев', 'Pick some heroes first'));
                 return;
               }
               s.saveDraft();
-              showToast(context, 'Драфт сохранён. Отметь результат в «Мои герои» → История драфтов');
+              showToast(context, L('Драфт сохранён. Отметь результат в «Мои герои» → История драфтов',
+                  'Draft saved. Mark the result in My heroes → Draft history'));
             },
           ),
-          IconButton(
-            tooltip: 'Поменять команды местами',
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.swap_vert),
-            onPressed: s.swapSides,
-          ),
-          IconButton(
-            tooltip: 'Очистить драфт',
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.delete_sweep_outlined),
-            onPressed: s.clear,
-          ),
-          IconButton(
-            tooltip: 'О данных',
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.info_outline),
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const InfoScreen())),
+          PopupMenuButton<int>(
+            icon: const Icon(Icons.more_vert),
+            color: C.surface2,
+            onSelected: (v) {
+              switch (v) {
+                case 0:
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CmScreen()));
+                case 1:
+                  s.swapSides();
+                case 2:
+                  s.clear();
+                case 3:
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const InfoScreen()));
+              }
+            },
+            itemBuilder: (_) => [
+              PopupMenuItem(value: 0, child: Text(L('Captains Mode (пики и баны по очереди)', 'Captains Mode (step by step)'))),
+              PopupMenuItem(value: 1, child: Text(L('Поменять команды местами', 'Swap teams'))),
+              PopupMenuItem(value: 2, child: Text(L('Очистить драфт', 'Clear draft'))),
+              PopupMenuItem(value: 3, child: Text(L('О данных', 'About the data'))),
+            ],
           ),
         ],
       ),
@@ -150,6 +165,23 @@ class DraftScreen extends StatelessWidget {
               Pill(const ['не учитывать', 'приоритет', 'только мои'][m],
                   color: C.gold, filled: s.comfortMode == m, onTap: () => s.setComfortMode(m)),
           ]),
+          const SizedBox(height: 6),
+          Wrap(spacing: 4, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
+            const Icon(Icons.person_pin_circle_outlined, size: 16, color: C.accent2),
+            Text(L('Я играю:', 'I play:'), style: T.small),
+            for (final p in const [0, 1, 2, 3, 4, 5])
+              Pill(p == 0 ? L('любую', 'any') : '$p', color: C.accent2, filled: s.myPos == p, onTap: () => s.setMyPos(p)),
+          ]),
+          if (s.friends.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Wrap(spacing: 4, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
+              const Icon(Icons.groups_outlined, size: 16, color: C.intel),
+              Pill(L('Пати: ${s.friends.length + 1} чел.', 'Party: ${s.friends.length + 1}'),
+                  color: C.intel, filled: s.partyMode, onTap: () => s.setPartyMode(!s.partyMode)),
+              Text(s.partyMode ? L('учитываю героев друзей', 'using friends\' heroes') : L('выключено', 'off'),
+                  style: T.small),
+            ]),
+          ],
           if (missing.isNotEmpty && allies.isNotEmpty) ...[
             const SizedBox(height: 6),
             Row(children: [
@@ -431,8 +463,9 @@ class _PickCard extends StatelessWidget {
     final lines = <Widget>[];
     for (final r in p.reasons.take(3)) {
       final text = switch (r.kind) {
-        0 => r.value > 0 ? 'Силён против ${r.hero.name}' : 'Слаб против ${r.hero.name}',
-        _ => 'Хорошо с ${r.hero.name}',
+        0 => r.value > 0 ? L('Силён против ${r.hero.name}', 'Strong vs ${r.hero.name}') : L('Слаб против ${r.hero.name}', 'Weak vs ${r.hero.name}'),
+        3 => L('Связка с ${r.hero.name}', 'Combo with ${r.hero.name}'),
+        _ => L('Хорошо с ${r.hero.name}', 'Good with ${r.hero.name}'),
       };
       lines.add(Text('$text ${signedPct(r.value)}',
           maxLines: 1,
@@ -442,6 +475,10 @@ class _PickCard extends StatelessWidget {
     if (stage < 3 && p.counters.isNotEmpty) {
       lines.add(Text('Контрят: ${p.counters.take(3).map((x) => x.name).join(', ')}',
           maxLines: 1, overflow: TextOverflow.ellipsis, style: T.small.copyWith(fontSize: 11.5)));
+    }
+    if (p.friends.isNotEmpty) {
+      lines.add(Text(L('Играет: ${p.friends.join(', ')}', 'Played by: ${p.friends.join(', ')}'),
+          maxLines: 1, overflow: TextOverflow.ellipsis, style: T.small.copyWith(fontSize: 11.5, color: C.intel)));
     }
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),

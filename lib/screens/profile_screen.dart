@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../data.dart';
+import '../i18n.dart';
 import '../opendota.dart';
 import '../state.dart';
 import '../theme.dart';
@@ -40,6 +41,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
       idCtrl.clear();
       showToast(context, 'Загружено героев: ${s.played.length}');
     }
+  }
+
+  Future<void> _addFriend(AppState s) async {
+    final c = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: C.surface,
+        title: Text(L('Добавить друга', 'Add a friend'), style: T.h2),
+        content: TextField(controller: c, decoration: fieldDeco(L('Friend ID или ссылка Steam', 'Friend ID or Steam link'))),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(L('Отмена', 'Cancel'))),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(L('Добавить', 'Add'))),
+        ],
+      ),
+    );
+    final text = c.text;
+    WidgetsBinding.instance.addPostFrameCallback((_) => c.dispose());
+    if (ok != true) return;
+    if (mounted) showToast(context, L('Загружаю профиль друга…', 'Loading friend profile…'));
+    final err = await s.addFriend(text);
+    if (!mounted) return;
+    showToast(context, err ?? L('Друг добавлен', 'Friend added'));
   }
 
   @override
@@ -223,6 +247,96 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ]),
             ),
           ],
+          SectionLabel(L('Друзья для пати · ${s.friends.length}', 'Party friends · ${s.friends.length}'),
+              trailing: GestureDetector(
+                onTap: () => _addFriend(s),
+                child: Text(L('+ Добавить', '+ Add'),
+                    style: const TextStyle(color: C.accent, fontWeight: FontWeight.w700, fontSize: 13)),
+              )),
+          if (s.friends.isEmpty)
+            AppCard(
+              child: Text(
+                L('Добавь друзей, с которыми играешь в пати. На вкладке «Драфт» включи «Пати» — советы учтут и их героев.',
+                    'Add friends you party with. Turn on "Party" on the Draft tab — advice will include their heroes too.'),
+                style: T.small,
+              ),
+            )
+          else
+            AppCard(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Column(children: [
+                for (final f in s.friends)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    child: Row(children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: f.avatar.isEmpty
+                            ? Container(width: 32, height: 32, color: C.surface2)
+                            : CachedNetworkImage(
+                                imageUrl: f.avatar,
+                                width: 32,
+                                height: 32,
+                                errorWidget: (_, __, ___) => Container(width: 32, height: 32, color: C.surface2)),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(f.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: T.body.copyWith(fontSize: 13.5)),
+                          Text(
+                            '${rankName(f.rankTier)} · ${f.comfort.map((id) => s.data!.byId[id]?.name).whereType<String>().take(3).join(', ')}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: T.small.copyWith(fontSize: 11),
+                          ),
+                        ]),
+                      ),
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(Icons.close, size: 18, color: C.muted),
+                        onPressed: () => s.removeFriend(f.id),
+                      ),
+                    ]),
+                  ),
+              ]),
+            ),
+          SectionLabel(L('Настройки', 'Settings')),
+          AppCard(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Expanded(child: Text(L('Язык', 'Language'), style: T.body)),
+                Pill('Русский', color: C.accent, filled: s.lang == 'ru', onTap: () => s.setLang('ru')),
+                const SizedBox(width: 6),
+                Pill('English', color: C.accent, filled: s.lang == 'en', onTap: () => s.setLang('en')),
+              ]),
+              const SizedBox(height: 6),
+              Row(children: [
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(L('Уведомления', 'Notifications'), style: T.body),
+                    Text(L('Новый патч и изменения твоих героев в мете', 'New patch and changes of your heroes in the meta'),
+                        style: T.small),
+                  ]),
+                ),
+                Switch(
+                  value: s.notify,
+                  activeTrackColor: C.accent,
+                  onChanged: (v) async {
+                    final ok = await s.setNotify(v);
+                    if (!ok && context.mounted) {
+                      showToast(context, L('Разреши уведомления для Dota Draft в настройках телефона', 'Allow notifications for Dota Draft in phone settings'));
+                    }
+                  },
+                ),
+              ]),
+              const SizedBox(height: 6),
+              Text(
+                L('Виджет: зажми пустое место на главном экране → «Виджеты» → Dota Draft.',
+                    'Widget: long-press the home screen → Widgets → Dota Draft.'),
+                style: T.small,
+              ),
+            ]),
+          ),
           const SectionLabel('Ещё'),
           AppCard(
             onTap: s.accountId == null

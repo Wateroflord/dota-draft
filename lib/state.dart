@@ -1,13 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'background.dart';
 import 'bench.dart';
 import 'data.dart';
 import 'engine.dart';
+import 'i18n.dart';
+import 'info.dart';
 import 'opendota.dart';
 
 /// Сохранённый драфт для истории и проверки точности.
@@ -35,6 +39,51 @@ class SavedDraft {
         (j['c'] as num?)?.toDouble() ?? 0.5,
         j['w'] is bool ? j['w'] as bool : null,
       );
+}
+
+/// Друг для драфта в пати.
+class Friend {
+  final int id;
+  final String name, avatar;
+  final int? rankTier;
+  final Map<int, List<int>> played; // hero.id -> [игр, побед]
+  const Friend(this.id, this.name, this.avatar, this.rankTier, this.played);
+
+  /// Герои, на которых друг уверенно играет.
+  Set<int> get comfort {
+    final top = played.entries.toList()..sort((a, b) => b.value[0].compareTo(a.value[0]));
+    return {for (final e in top.take(15)) if (e.value[0] >= 5) e.key};
+  }
+
+  Map<String, dynamic> toJson() =>
+      {'id': id, 'n': name, 'a': avatar, 'r': rankTier, 'p': played.map((k, v) => MapEntry('$k', v))};
+
+  static Friend fromJson(Map j) {
+    final pl = <int, List<int>>{};
+    final p = j['p'];
+    if (p is Map) {
+      p.forEach((k, v) {
+        final id = int.tryParse('$k');
+        if (id != null && v is List && v.length >= 2) pl[id] = [(v[0] as num).toInt(), (v[1] as num).toInt()];
+      });
+    }
+    return Friend((j['id'] as num?)?.toInt() ?? 0, j['n']?.toString() ?? '', j['a']?.toString() ?? '',
+        (j['r'] as num?)?.toInt(), pl);
+  }
+}
+
+/// Цель игрока: показатель, значение, (необязательно) герой.
+class Goal {
+  final String id;
+  final String metric; // lh10, gpm, xpm, deaths, kda, wr, hdm
+  final double target;
+  final int? heroId;
+  final int created; // ms
+  const Goal(this.id, this.metric, this.target, this.heroId, this.created);
+
+  Map<String, dynamic> toJson() => {'id': id, 'm': metric, 't': target, 'h': heroId, 'c': created};
+  static Goal fromJson(Map j) => Goal(j['id']?.toString() ?? '', j['m']?.toString() ?? 'gpm',
+      (j['t'] as num?)?.toDouble() ?? 0, (j['h'] as num?)?.toInt(), (j['c'] as num?)?.toInt() ?? 0);
 }
 
 /// Состояние приложения: данные, драфт, настройки. Драфт сохраняется между запусками.
@@ -65,6 +114,132 @@ class AppState extends ChangeNotifier {
   // История драфтов
   final List<SavedDraft> history = [];
 
+  // Моя позиция в драфте (0 — любая), друзья для пати, цели, история ранга, язык
+  int myPos = 0;
+  final List<Friend> friends = [];
+  bool partyMode = false;
+  final List<Goal> goals = [];
+  final List<List<int>> rankHistory = []; // [время (сек), rank_tier]
+  String lang = 'ru';
+  bool notify = false;
+
+  // Справочные данные
+  HeroInfoData info = HeroInfoData.empty;
+  List<PatchNotes> patches = const [];
+  List<ProDraft> proDrafts = const [];
+  Portraits portraits = Portraits.empty;
+
+  Map<int, List<String>> get friendHeroes {
+    final out = <int, List<String>>{};
+    if (!partyMode) return out;
+    for (final f in friends) {
+      for (final id in f.comfort) {
+        out.putIfAbsent(id, () => []).add(f.name);
+      }
+    }
+    return out;
+  }
+
+  void setMyPos(int p) {
+    myPos = p;
+    _changed();
+  }
+
+  void setPartyMode(bool v) {
+    partyMode = v;
+    _changed();
+  }
+
+  Future<String?> addFriend(String input) async {
+    final id = OpenDota.parseAccountId(input);
+    if (id == null) return L('Нужен Friend ID или ссылка на профиль Steam', 'Need a Friend ID or Steam profile link');
+    if (friends.any((f) => f.id == id) || id == accountId) return L('Этот игрок уже добавлен', 'Already added');
+    try {
+      final p = await OpenDota.profile(id);
+      final h = await OpenDota.heroes(id);
+      friends.add(Friend(id, p.name, p.avatar, p.rankTier, h));
+      partyMode = true;
+      _changed();
+      return null;
+    } on OdException catch (e) {
+      return e.message;
+    }
+  }
+
+  void removeFriend(int id) {
+    friends.removeWhere((f) => f.id == id);
+    if (friends.isEmpty) partyMode = false;
+    _changed();
+  }
+
+  void addGoal(Goal g) {
+    goals.add(g);
+    _changed();
+  }
+
+  void removeGoal(String id) {
+    goals.removeWhere((g) => g.id == id);
+    _changed();
+  }
+
+  /// Уведомления о патчах и изменениях меты (фоновая проверка раз в ~12 часов).
+  Future<bool> setNotify(bool v) async {
+    if (v) {
+      final ok = await requestNotificationPermission();
+      if (!ok) return false;
+    }
+    notify = v;
+    _changed();
+    await _savePrefs();
+    await scheduleBackground(v);
+    return true;
+  }
+
+  /// Обновить виджет на главном экране по свежим данным.
+  Future<void> refreshWidget() async {
+    final d = data;
+    if (d == null) return;
+    final g = group;
+    double score(DHero h) => (h.wrAt(g) - 0.5) * 100 + 1.2 * math.log(1 + h.prAt(g) * 100);
+    final top = [...d.heroes]..sort((a, b) => score(b).compareTo(score(a)));
+    final line1 = L('Топ меты: ${top.take(3).map((h) => h.name).join(', ')}', 'Top meta: ${top.take(3).map((h) => h.name).join(', ')}');
+    var line2 = '';
+    final ms = myMatches;
+    if (ms != null) {
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final week = ms.where((m) => now - m.startTime < 7 * 86400).toList();
+      line2 = week.isEmpty
+          ? L('За неделю игр нет', 'No games this week')
+          : L('Неделя: ${week.length} игр, винрейт ${(week.where((m) => m.win).length / week.length * 100).round()}%',
+              'Week: ${week.length} games, win rate ${(week.where((m) => m.win).length / week.length * 100).round()}%');
+    }
+    await updateWidget(line1, line2);
+  }
+
+  void setLang(String l) {
+    lang = l;
+    isEn = l == 'en';
+    _changed();
+  }
+
+  Future<void> _loadInfo() async {
+    info = HeroInfoData.parse(await JsonRepo.load('heroinfo.json'));
+    patches = PatchNotes.parse(await JsonRepo.load('patch.json'));
+    proDrafts = ProDraft.parse(await JsonRepo.load('pro_drafts.json'));
+    portraits = Portraits.parse(await JsonRepo.load('portraits.json'));
+  }
+
+  Future<void> _fetchInfo({bool force = false}) async {
+    final i = await JsonRepo.fetch('heroinfo.json', force: force);
+    if (i != null) info = HeroInfoData.parse(i);
+    final p = await JsonRepo.fetch('patch.json', force: force);
+    if (p != null) patches = PatchNotes.parse(p);
+    final d = await JsonRepo.fetch('pro_drafts.json', force: force);
+    if (d != null) proDrafts = ProDraft.parse(d);
+    final po = await JsonRepo.fetch('portraits.json', force: force);
+    if (po != null) portraits = Portraits.parse(po);
+  }
+
   // Средние показатели игроков по рангам + мои подробные матчи (загружаются по запросу)
   BenchData bench = BenchData.empty;
   List<PlayerMatch>? myMatches;
@@ -91,7 +266,7 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  Comfort get comfort => Comfort(pool: pool, played: played, mode: comfortMode);
+  Comfort get comfort => Comfort(pool: pool, played: played, mode: comfortMode, friends: friendHeroes);
 
   Engine get engine => Engine(data!, group, comfort);
 
@@ -125,6 +300,7 @@ class AppState extends ChangeNotifier {
       error = 'Не удалось загрузить данные: $e';
     }
     bench = await BenchRepo.loadLocal();
+    await _loadInfo();
     loading = false;
     notifyListeners();
     refresh();
@@ -138,6 +314,8 @@ class AppState extends ChangeNotifier {
     if (fresh != null) data = fresh;
     final b = await BenchRepo.fetch(force ? '' : bench.updated);
     if (b != null) bench = b;
+    await _fetchInfo(force: force);
+    refreshWidget();
     updating = false;
     notifyListeners();
     return fresh != null;
@@ -257,6 +435,10 @@ class AppState extends ChangeNotifier {
       playerName = p.name;
       playerAvatar = p.avatar;
       rankTier = p.rankTier;
+      if (p.rankTier != null &&
+          (rankHistory.isEmpty || rankHistory.last[1] != p.rankTier)) {
+        rankHistory.add([DateTime.now().millisecondsSinceEpoch ~/ 1000, p.rankTier!]);
+      }
       played
         ..clear()
         ..addAll(h);
@@ -397,6 +579,13 @@ class AppState extends ChangeNotifier {
         'rankTier': rankTier,
         'played': played.map((k, v) => MapEntry('$k', v)),
         'history': history.map((d) => d.toJson()).toList(),
+        'myPos': myPos,
+        'friends': friends.map((f) => f.toJson()).toList(),
+        'partyMode': partyMode,
+        'goals': goals.map((g) => g.toJson()).toList(),
+        'rankHistory': rankHistory,
+        'lang': lang,
+        'notify': notify,
       }));
     } catch (_) {}
   }
@@ -431,6 +620,16 @@ class AppState extends ChangeNotifier {
         });
       }
       history.addAll(((j['history'] as List?) ?? const []).whereType<Map>().map(SavedDraft.fromJson));
+      myPos = ((j['myPos'] as num?)?.toInt() ?? 0).clamp(0, 5);
+      friends.addAll(((j['friends'] as List?) ?? const []).whereType<Map>().map(Friend.fromJson));
+      partyMode = j['partyMode'] == true && friends.isNotEmpty;
+      goals.addAll(((j['goals'] as List?) ?? const []).whereType<Map>().map(Goal.fromJson));
+      for (final r in ((j['rankHistory'] as List?) ?? const []).whereType<List>()) {
+        if (r.length >= 2 && r[0] is num && r[1] is num) rankHistory.add([(r[0] as num).toInt(), (r[1] as num).toInt()]);
+      }
+      lang = j['lang'] == 'en' ? 'en' : 'ru';
+      notify = j['notify'] == true;
+      isEn = lang == 'en';
     } catch (_) {}
   }
 }

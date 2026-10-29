@@ -7,6 +7,7 @@ import '../state.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'bench_widgets.dart';
+import '../i18n.dart';
 import 'hero_screen.dart';
 
 /// Вкладка «Анализ»: состав, сила по времени, линии, предметы.
@@ -50,6 +51,7 @@ class AnalysisScreen extends StatelessWidget {
                   const SectionLabel('Состав противников'),
                   _CompositionCard(team: enemies, color: C.enemy),
                 ],
+                _CombosCard(allies: allies, enemies: enemies),
                 const SectionLabel('Сила по времени игры'),
                 _TimeCard(curve: timeCurve(e, allies, enemies)),
                 const SectionLabel('Линии'),
@@ -293,5 +295,72 @@ class _BuildRow extends StatelessWidget {
         ]),
       ),
     );
+  }
+}
+
+
+/// Известные связки у нас и у врагов, плюс кого можно добавить для связки.
+class _CombosCard extends StatelessWidget {
+  final List<DHero> allies, enemies;
+  const _CombosCard({required this.allies, required this.enemies});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = StateScope.of(context);
+    final ours = combosIn(allies.map((h) => h.key));
+    final theirs = combosIn(enemies.map((h) => h.key));
+    final byKey = {for (final h in s.data!.heroes) h.key: h};
+    final taken = s.unavailable;
+    final possible = <(DHero, DHero, Combo)>[];
+    if (allies.length < 5) {
+      for (final c in combos) {
+        for (final pair in [(c.a, c.b), (c.b, c.a)]) {
+          final have = allies.where((h) => h.key == pair.$1).firstOrNull;
+          final add = byKey[pair.$2];
+          if (have != null && add != null && !taken.contains(add.id)) possible.add((have, add, c));
+        }
+      }
+    }
+    if (ours.isEmpty && theirs.isEmpty && possible.isEmpty) return const SizedBox.shrink();
+    Widget row(Combo c, Color color, String prefix) {
+      final a = byKey[c.a], b = byKey[c.b];
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          if (a != null) HeroImg(a, width: 40),
+          const SizedBox(width: 3),
+          if (b != null) HeroImg(b, width: 40),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text('$prefix${c.why}', style: T.body.copyWith(fontSize: 12.5, color: color)),
+          ),
+        ]),
+      );
+    }
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      SectionLabel(L('Связки героев', 'Hero combos')),
+      AppCard(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          for (final c in theirs) row(c, C.enemy, L('Осторожно: ', 'Watch out: ')),
+          for (final c in ours) row(c, C.ally, ''),
+          for (final p in possible.take(4))
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5),
+              child: Row(children: [
+                HeroImg(p.$2, width: 40),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    L('Можно взять ${p.$2.name} — связка с ${p.$1.name}: ${p.$3.why}',
+                        'Consider ${p.$2.name} — combo with ${p.$1.name}: ${p.$3.why}'),
+                    style: T.body.copyWith(fontSize: 12.5, color: C.gold),
+                  ),
+                ),
+              ]),
+            ),
+        ]),
+      ),
+    ]);
   }
 }

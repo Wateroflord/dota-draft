@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:workmanager/workmanager.dart';
+
+import 'background.dart';
 
 import 'screens/draft_screen.dart';
 import 'screens/home_shell.dart';
@@ -19,7 +22,12 @@ Future<void> main() async {
   final tools = ToolsState();
   runApp(StateScope(state: state, child: ToolsScope(state: tools, child: const DotaDraftApp())));
   tools.load();
-  state.init();
+  await state.init();
+  try {
+    await Workmanager().initialize(callbackDispatcher);
+    await initNotifications();
+    if (state.notify) await scheduleBackground(true);
+  } catch (_) {}
 }
 
 class DotaDraftApp extends StatelessWidget {
@@ -27,7 +35,9 @@ class DotaDraftApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = StateScope.of(context);
     return MaterialApp(
+      key: ValueKey(s.lang),
       title: 'Dota Draft',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'data.dart';
+import 'knowledge.dart';
 
 double logit(double p) {
   final q = p.clamp(0.02, 0.98);
@@ -17,7 +18,7 @@ const kPair = 2.4;
 class Reason {
   final DHero hero;
   final double value; // доля вероятности (+0.021 = +2,1%)
-  final int kind; // 0 — против врага, 1 — с союзником, 2 — опасный контрпик
+  final int kind; // 0 — против врага, 1 — с союзником, 2 — опасный контрпик, 3 — известная связка
   const Reason(this.hero, this.value, this.kind);
 }
 
@@ -31,8 +32,9 @@ class Pick {
   final bool fitsRole;
   final int? position; // какую позицию закроет
   final bool mine; // герой из «Моих героев»
+  final List<String> friends; // кто из друзей по пати играет на герое
   const Pick(this.hero, this.score, this.winDelta, this.vulnerability, this.reasons, this.counters, this.fitsRole,
-      this.position, {this.mine = false});
+      this.position, {this.mine = false, this.friends = const []});
 }
 
 /// Как учитывать «Мои героев»: 0 — не учитывать, 1 — приоритет, 2 — только мои.
@@ -40,7 +42,8 @@ class Comfort {
   final Set<int> pool; // выбранные вручную
   final Map<int, List<int>> played; // hero.id -> [игр, побед] из профиля
   final int mode;
-  const Comfort({this.pool = const {}, this.played = const {}, this.mode = 0});
+  final Map<int, List<String>> friends; // hero.id -> имена друзей, которые на нём играют (режим пати)
+  const Comfort({this.pool = const {}, this.played = const {}, this.mode = 0, this.friends = const {}});
 
   static const none = Comfort();
 
@@ -50,6 +53,7 @@ class Comfort {
   double bonus(DHero h) {
     if (mode == 0) return 0;
     var b = pool.contains(h.id) ? 0.25 : 0.0;
+    if (friends[h.id] != null) b += 0.2;
     final p = played[h.id];
     if (p != null && p[0] > 0) {
       final games = p[0], wr = p[1] / p[0];
@@ -194,13 +198,18 @@ class Engine {
     bool roleFilter = true,
     int limit = 20,
     bool useComfort = true,
+    int myPos = 0,
   }) {
     final cf = useComfort ? comfort : Comfort.none;
     var pool = d.heroes.where((h) => !unavailable.contains(h.id)).toList();
     final everyone = pool;
     if (cf.mode == 2) {
-      final mine = pool.where(cf.isMine).toList();
+      final mine = pool.where((h) => cf.isMine(h) || cf.friends[h.id] != null).toList();
       if (mine.isNotEmpty) pool = mine;
+    }
+    if (myPos > 0 && allies.length < 5) {
+      final forPos = pool.where((h) => h.positions.contains(myPos)).toList();
+      if (forPos.length >= 5) pool = forPos;
     }
     final missing = allies.length >= 5 ? <int>[] : missingPositions(allies);
     final now = teamLogit(allies, enemies);
@@ -214,10 +223,16 @@ class Engine {
         adv += v;
         if (v.abs() >= 0.008) reasons.add(Reason(e, v, 0));
       }
+      var combo = 0.0;
       for (final a in allies) {
         final v = d.synergy(h, a);
         syn += v;
-        if (v >= 0.006) reasons.add(Reason(a, v, 1));
+        if (combos.any((c) => (c.a == h.key && c.b == a.key) || (c.b == h.key && c.a == a.key))) {
+          combo += 0.06;
+          reasons.add(Reason(a, v.abs() < 0.012 ? 0.012 : v.abs(), 3));
+        } else if (v >= 0.006) {
+          reasons.add(Reason(a, v, 1));
+        }
       }
       // Кто из ещё доступных героев сильнее всего его контрит.
       final threats = <(DHero, double)>[];
@@ -237,11 +252,11 @@ class Engine {
         2 => delta - 0.45 * kPair * vuln,
         _ => base(h) + kPair * (1.4 * adv + syn),
       };
-      final score = raw - (roleFilter && !fits ? 0.25 : 0.0) + cf.bonus(h);
+      final score = raw - (roleFilter && !fits ? 0.25 : 0.0) + cf.bonus(h) + combo;
       final pDelta = sigmoid(now + delta) - p0;
       reasons.sort((a, b) => b.value.abs().compareTo(a.value.abs()));
-      int? pos;
-      for (final p in h.positions) {
+      int? pos = myPos > 0 && h.positions.contains(myPos) ? myPos : null;
+      for (final p in pos != null ? const <int>[] : h.positions) {
         if (missing.contains(p)) {
           pos = p;
           break;
@@ -249,7 +264,7 @@ class Engine {
       }
       out.add(Pick(h, score, pDelta, vuln, reasons.take(4).toList(), [for (final t in top) t.$1], fits,
           pos ?? (h.positions.isEmpty ? null : h.positions.first),
-          mine: cf.mode > 0 && cf.isMine(h)));
+          mine: cf.mode > 0 && cf.isMine(h), friends: cf.mode > 0 ? (cf.friends[h.id] ?? const []) : const []));
     }
     out.sort((a, b) => b.score.compareTo(a.score));
     if (roleFilter && missing.isNotEmpty) {

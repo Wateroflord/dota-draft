@@ -7,6 +7,7 @@ import '../state.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'hero_screen.dart';
+import '../i18n.dart';
 
 /// «Мета»: тир-лист по рангу, про-сцена, тренды за неделю.
 class MetaScreen extends StatefulWidget {
@@ -59,6 +60,18 @@ class _MetaScreenState extends State<MetaScreen> {
         hint = d.hasPro
             ? 'Самые популярные герои профессиональных матчей: пики + баны, винрейт на про-сцене.'
             : 'Данные про-сцены появятся после ближайшего обновления статистики.';
+      case 3:
+        final patch = s.patches.isEmpty ? null : s.patches.first;
+        list = all.where((h) => patch != null && patch.forHero(h.id).isNotEmpty).toList()
+          ..sort((a, b) {
+            final pa = s.inPool(a.id) ? 1 : 0, pb = s.inPool(b.id) ? 1 : 0;
+            if (pa != pb) return pb.compareTo(pa);
+            return patch!.forHero(b.id).length.compareTo(patch.forHero(a.id).length);
+          });
+        hint = patch == null
+            ? L('Изменения патча появятся после обновления данных.', 'Patch changes will appear after a data update.')
+            : L('Патч ${patch.version}: герои с изменениями. Твои герои (★) — вверху. Нажми, чтобы увидеть все правки.',
+                'Patch ${patch.version}: changed heroes. Your heroes (★) are on top. Tap to see all changes.');
       case 2:
         list = all.where((h) => h.trendAt(g) != null).toList()
           ..sort((a, b) => b.trendAt(g)!.compareTo(a.trendAt(g)!));
@@ -83,7 +96,7 @@ class _MetaScreenState extends State<MetaScreen> {
         itemBuilder: (_, i) {
           if (i == 0) {
             return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              _chips(const ['Тир-лист', 'Про-сцена', 'Тренды'], mode, (v) => setState(() => mode = v)),
+              _chips(['Тир-лист', 'Про-сцена', 'Тренды', L('Патч', 'Patch')], mode, (v) => setState(() => mode = v)),
               const SizedBox(height: 8),
               if (mode != 1) ...[
                 _chips(rankGroupsShort, g, s.setGroup),
@@ -103,7 +116,12 @@ class _MetaScreenState extends State<MetaScreen> {
           final t = tier(scores[h.id]!, sortedScores);
           final trend = h.trendAt(g);
           Widget right;
-          if (mode == 1) {
+          if (mode == 3) {
+            right = Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              Text(signedPct(trend ?? 0), style: T.num(13, color: (trend ?? 0) >= 0 ? C.ally : C.enemy)),
+              Text(L('за неделю', 'this week'), style: T.small.copyWith(fontSize: 10.5)),
+            ]);
+          } else if (mode == 1) {
             right = Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
               Text(h.proPicks > 0 ? pct(h.proWr) : '—', style: T.num(14, color: h.proWr >= 0.5 ? C.ally : C.enemy)),
               Text('П ${h.proPicks} · Б ${h.proBans}', style: T.small.copyWith(fontSize: 11)),
@@ -147,7 +165,12 @@ class _MetaScreenState extends State<MetaScreen> {
                             maxLines: 1, overflow: TextOverflow.ellipsis, style: T.body.copyWith(fontWeight: FontWeight.w700)),
                       ),
                     ]),
-                    Text(positionsText(h), maxLines: 1, overflow: TextOverflow.ellipsis, style: T.small),
+                    Text(
+                      mode == 3 && s.patches.isNotEmpty ? s.patches.first.forHero(h.id).first : positionsText(h),
+                      maxLines: mode == 3 ? 2 : 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: T.small,
+                    ),
                   ]),
                 ),
                 right,

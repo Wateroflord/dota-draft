@@ -80,7 +80,9 @@ class BenchData {
   final Map<int, Map<int, BenchRow>> heroes; // heroId -> group (0..3) -> row
   final Map<int, List<NeutralStat>> neutral;
   final Map<int, NeutralItem> items;
-  const BenchData(this.updated, this.heroes, this.neutral, this.items);
+  final Map<int, List<(int, double)>> skills; // heroId -> порядок прокачки: (id умения, доля победителей)
+  final Map<int, Map<int, (double, double)>> talents; // heroId -> id таланта -> (игр, винрейт)
+  const BenchData(this.updated, this.heroes, this.neutral, this.items, [this.skills = const {}, this.talents = const {}]);
 
   static const empty = BenchData('', {}, {}, {});
 
@@ -129,7 +131,35 @@ class BenchData {
         }
       });
     }
-    return BenchData(j['updated']?.toString() ?? '', heroes, neutral, items);
+    final skills = <int, List<(int, double)>>{};
+    final sk = j['skills'];
+    if (sk is Map) {
+      sk.forEach((hid, rows) {
+        final id = int.tryParse('$hid');
+        if (id == null || rows is! List) return;
+        skills[id] = [
+          for (final r in rows.whereType<List>())
+            if (r.length >= 2 && r[0] is num) ((r[0] as num).toInt(), (r[1] as num?)?.toDouble() ?? 0),
+        ];
+      });
+    }
+    final talents = <int, Map<int, (double, double)>>{};
+    final tl = j['talents'];
+    if (tl is Map) {
+      tl.forEach((hid, m) {
+        final id = int.tryParse('$hid');
+        if (id == null || m is! Map) return;
+        final out = <int, (double, double)>{};
+        m.forEach((aid, v) {
+          final a = int.tryParse('$aid');
+          if (a != null && v is List && v.length >= 2) {
+            out[a] = ((v[0] as num?)?.toDouble() ?? 0, (v[1] as num?)?.toDouble() ?? 0);
+          }
+        });
+        talents[id] = out;
+      });
+    }
+    return BenchData(j['updated']?.toString() ?? '', heroes, neutral, items, skills, talents);
   }
 }
 

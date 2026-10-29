@@ -30,13 +30,65 @@ class RecentMatch {
       this.duration, this.startTime);
 }
 
+/// Игрок в подробном матче.
+class MatchPlayer {
+  final int accountId; // 0 — скрытый профиль
+  final String name;
+  final int heroId;
+  final bool radiant;
+  final int kills, deaths, assists, lastHits, denies, gpm, xpm, heroDamage, towerDamage, heroHealing, netWorth, level;
+  final int leaverStatus;
+  final int rankTier;
+  final int partyId;
+  final List<int> items; // 6 слотов + нейтралка
+  final Map<String, double> pct; // перцентили OpenDota на этом герое (0..1)
+  final List<int> abilityUps;
+  const MatchPlayer({
+    required this.accountId,
+    required this.name,
+    required this.heroId,
+    required this.radiant,
+    required this.kills,
+    required this.deaths,
+    required this.assists,
+    required this.lastHits,
+    required this.denies,
+    required this.gpm,
+    required this.xpm,
+    required this.heroDamage,
+    required this.towerDamage,
+    required this.heroHealing,
+    required this.netWorth,
+    required this.level,
+    required this.leaverStatus,
+    required this.rankTier,
+    required this.partyId,
+    required this.items,
+    required this.pct,
+    required this.abilityUps,
+  });
+
+  bool get left => leaverStatus >= 2;
+}
+
 class MatchInfo {
   final int matchId;
   final bool radiantWin;
   final List<int> radiant;
   final List<int> dire;
   final int duration;
-  const MatchInfo(this.matchId, this.radiantWin, this.radiant, this.dire, this.duration);
+  final int startTime;
+  final int radiantScore, direScore;
+  final List<MatchPlayer> players;
+  final List<int>? goldAdv; // преимущество Света по золоту поминутно (только для разобранных матчей)
+  final List<int>? xpAdv;
+  const MatchInfo(this.matchId, this.radiantWin, this.radiant, this.dire, this.duration,
+      {this.startTime = 0,
+      this.radiantScore = 0,
+      this.direScore = 0,
+      this.players = const [],
+      this.goldAdv,
+      this.xpAdv});
 }
 
 /// Подробная строка матча игрока (для личной статистики и сравнения со средними).
@@ -46,8 +98,13 @@ class PlayerMatch {
   final int kills, deaths, assists, gpm, xpm, lastHits, heroDamage, towerDamage;
   final int laneRole; // 1 лёгкая, 2 мид, 3 сложная, 4 лес; 0 — нет данных
   final int partySize;
+  final int lobbyType; // 7 — рейтинговый
+  final int gameMode; // 23 — турбо
   const PlayerMatch(this.matchId, this.heroId, this.startTime, this.duration, this.win, this.kills, this.deaths,
-      this.assists, this.gpm, this.xpm, this.lastHits, this.heroDamage, this.towerDamage, this.laneRole, this.partySize);
+      this.assists, this.gpm, this.xpm, this.lastHits, this.heroDamage, this.towerDamage, this.laneRole, this.partySize,
+      [this.lobbyType = 0, this.gameMode = 0]);
+
+  bool get ranked => lobbyType == 7;
 
   double get minutes => duration <= 0 ? 1 : duration / 60;
   double get lh10 => lastHits / minutes * 10;
@@ -139,14 +196,16 @@ class OpenDota {
   }
 
   /// Последние матчи с подробными цифрами. [limit] до 500.
-  static Future<List<PlayerMatch>> matches(int id, {int limit = 200, int? heroId}) async {
+  static Future<List<PlayerMatch>> matches(int id, {int limit = 200, int? heroId, bool all = false}) async {
     const fields = [
       'hero_id', 'start_time', 'duration', 'kills', 'deaths', 'assists', 'gold_per_min', 'xp_per_min',
       'last_hits', 'hero_damage', 'tower_damage', 'lane_role', 'party_size', 'radiant_win', 'player_slot',
+      'lobby_type', 'game_mode',
     ];
     final q = [
       'limit=$limit',
       if (heroId != null) 'hero_id=$heroId',
+      if (all) 'significant=0',
       for (final f in fields) 'project=$f',
     ].join('&');
     final j = await _get('/players/$id/matches?$q');
@@ -170,6 +229,8 @@ class OpenDota {
           _i(r['tower_damage']),
           _i(r['lane_role']),
           _i(r['party_size']),
+          _i(r['lobby_type']),
+          _i(r['game_mode']),
         ));
       }
     }
@@ -210,14 +271,65 @@ class OpenDota {
     final j = await _get('/matches/$matchId');
     if (j is! Map || j['players'] is! List) throw OdException('Матч не найден.');
     final r = <int>[], d = <int>[];
+    final players = <MatchPlayer>[];
     for (final p in (j['players'] as List).whereType<Map>()) {
       final hid = _i(p['hero_id']);
       final isRad = p['isRadiant'] is bool ? p['isRadiant'] as bool : _i(p['player_slot']) < 128;
       (isRad ? r : d).add(hid);
+      final pct = <String, double>{};
+      final b = p['benchmarks'];
+      if (b is Map) {
+        b.forEach((k, v) {
+          if (v is Map && v['pct'] is num) pct['$k'] = (v['pct'] as num).toDouble();
+        });
+      }
+      players.add(MatchPlayer(
+        accountId: _i(p['account_id']),
+        name: (p['personaname'] ?? p['name'])?.toString() ?? '',
+        heroId: hid,
+        radiant: isRad,
+        kills: _i(p['kills']),
+        deaths: _i(p['deaths']),
+        assists: _i(p['assists']),
+        lastHits: _i(p['last_hits']),
+        denies: _i(p['denies']),
+        gpm: _i(p['gold_per_min']),
+        xpm: _i(p['xp_per_min']),
+        heroDamage: _i(p['hero_damage']),
+        towerDamage: _i(p['tower_damage']),
+        heroHealing: _i(p['hero_healing']),
+        netWorth: _i(p['net_worth'] ?? p['total_gold']),
+        level: _i(p['level']),
+        leaverStatus: _i(p['leaver_status']),
+        rankTier: _i(p['rank_tier']),
+        partyId: _i(p['party_id']),
+        items: [for (final k in ['item_0', 'item_1', 'item_2', 'item_3', 'item_4', 'item_5', 'item_neutral']) _i(p[k])],
+        pct: pct,
+        abilityUps: ((p['ability_upgrades_arr'] as List?) ?? const []).whereType<num>().map((e) => e.toInt()).toList(),
+      ));
     }
-    return MatchInfo(matchId, j['radiant_win'] == true, r, d, _i(j['duration']));
+    List<int>? ints(dynamic v) => v is List ? v.whereType<num>().map((e) => e.toInt()).toList() : null;
+    return MatchInfo(
+      matchId,
+      j['radiant_win'] == true,
+      r,
+      d,
+      _i(j['duration']),
+      startTime: _i(j['start_time']),
+      radiantScore: _i(j['radiant_score']),
+      direScore: _i(j['dire_score']),
+      players: players,
+      goldAdv: ints(j['radiant_gold_adv']),
+      xpAdv: ints(j['radiant_xp_adv']),
+    );
   }
-}
+
+  /// Попросить OpenDota разобрать запись матча (графики золота появятся через несколько минут).
+  static Future<void> requestParse(int matchId) async {
+    try {
+      await http.post(Uri.parse('$_base/request/$matchId')).timeout(const Duration(seconds: 20));
+    } catch (_) {}
+  }
 
 /// Название ранга по rank_tier (например, 54 → Легенда 4).
 String rankName(int? tier) {
