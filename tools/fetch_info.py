@@ -199,6 +199,68 @@ def hero_info(ids, patch, old):
     return {"patch": patch, "v": 2, "heroes": heroes}
 
 
+# ---------- предметы ----------
+
+def item_info(patch, old):
+    """Справочник предметов: названия и описания RU/EN, цена, рецепт, характеристики."""
+    if old.get("patch") == patch and old.get("items"):
+        print("items up to date", flush=True)
+        return old
+    consts = od_get("/constants/items") or {}
+    lst = fetch(f"{FEED}/itemlist?language=russian")
+    try:
+        feed = lst["result"]["data"]["itemabilities"]
+    except (TypeError, KeyError):
+        print("no item list", flush=True)
+        return old
+    by_name = {}
+    for it in feed:
+        name = (it.get("name") or "").replace("item_", "", 1)
+        if not name or name.startswith("recipe_") or it.get("is_innate"):
+            continue
+        by_name[name] = it
+    items = {}
+    for key, c in consts.items():
+        if not isinstance(c, dict) or key.startswith("recipe_"):
+            continue
+        f = by_name.get(key)
+        if f is None:
+            continue
+        cost = c.get("cost") or 0
+        tier = f.get("neutral_item_tier", -1)
+        if (not cost and (tier is None or tier < 0)) or not c.get("dname"):
+            continue
+        ru_desc = ""
+        d = fetch(f"{FEED}/itemdata?language=russian&item_id={f['id']}")
+        time.sleep(0.2)
+        try:
+            ru_desc = clean(d["result"]["data"]["items"][0].get("desc_loc"), 600)
+        except (TypeError, KeyError, IndexError):
+            pass
+        en_desc = " ".join(
+            f"{a.get('title', '')}: {a.get('description', '')}".strip(": ") for a in (c.get("abilities") or []) if isinstance(a, dict))
+        attrs = []
+        for a in c.get("attrib") or []:
+            if isinstance(a, dict) and a.get("display"):
+                attrs.append(a["display"].replace("{value}", str(a.get("value", ""))).strip())
+        items[key] = {
+            "id": c.get("id"),
+            "ru": f.get("name_loc") or c["dname"],
+            "en": f.get("name_english_loc") or c["dname"],
+            "dru": ru_desc,
+            "den": clean(en_desc, 600),
+            "cost": cost,
+            "comps": c.get("components") or [],
+            "tier": tier if tier is not None and tier >= 0 else -1,
+            "cd": c.get("cd") or 0,
+            "mc": c.get("mc") or 0,
+            "attrs": attrs[:8],
+            "qual": c.get("qual") or "",
+        }
+    print("items:", len(items), flush=True)
+    return {"patch": patch, "items": items}
+
+
 # ---------- патч ----------
 
 def patch_notes(patches, info, old):
@@ -319,6 +381,7 @@ def main():
         info = hero_info(sorted(keys), patch, info)
         save("heroinfo.json", info)
         save("patch.json", patch_notes(patches, info, load("patch.json", {})))
+        save("items.json", item_info(patch, load("items.json", {})))
     save("pro_drafts.json", pro_drafts(load("pro_drafts.json", {})))
     save("portraits.json", portraits(keys, load("portraits.json", {})))
 

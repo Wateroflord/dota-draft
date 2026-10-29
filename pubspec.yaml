@@ -41,6 +41,7 @@ flutter:
     - assets/patch.json
     - assets/pro_drafts.json
     - assets/portraits.json
+    - assets/items.json
 
 flutter_launcher_icons:
   android: true

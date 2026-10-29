@@ -16,7 +16,7 @@ jobs:
         run: |
           mkdir -p assets
           cp data/draft.json assets/draft.json
-          for f in bench heroinfo patch pro_drafts portraits; do
+          for f in bench heroinfo patch pro_drafts portraits items; do
             if [ -f data/$f.json ]; then cp data/$f.json assets/$f.json; else echo "{}" > assets/$f.json; fi
           done
       - uses: actions/setup-java@v4
