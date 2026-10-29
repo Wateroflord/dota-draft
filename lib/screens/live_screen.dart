@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../advice.dart';
-import '../data.dart';
 import '../gsi.dart';
 import '../i18n.dart';
 import '../platform.dart';

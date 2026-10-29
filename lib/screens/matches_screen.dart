@@ -155,7 +155,7 @@ class _MatchesScreenState extends State<MatchesScreen> {
                 if (heroFilter != null && s.data!.byId[heroFilter] != null) ...[
                   HeroImg(s.data!.byId[heroFilter]!, width: 40, radius: 4),
                   const SizedBox(width: 4),
-                  const Icon(Icons.close, size: 16, color: C.muted),
+                  Icon(Icons.close, size: 16, color: C.muted),
                 ] else ...[
                   const Icon(Icons.filter_alt_outlined, size: 18, color: C.accent),
                   Text(L(' Герой', ' Hero'), style: T.small.copyWith(color: C.accent)),
