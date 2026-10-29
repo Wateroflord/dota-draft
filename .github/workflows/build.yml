@@ -20,6 +20,7 @@ jobs:
           if [ ! -f data/draft.json ]; then python3 tools/fetch_data.py --calls 400 --minutes 8; fi
           mkdir -p assets
           cp data/draft.json assets/draft.json
+          if [ -f data/bench.json ]; then cp data/bench.json assets/bench.json; else echo "{}" > assets/bench.json; fi
           ls -la data assets
 
       - name: Save stats to repo (first time)

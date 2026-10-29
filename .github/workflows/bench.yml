@@ -1,0 +1,32 @@
+name: Update player benchmarks
+
+on:
+  schedule:
+    - cron: '41 13 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bench
+  cancel-in-progress: false
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch match details from OpenDota
+        run: python3 tools/fetch_bench.py --minutes 30
+        env:
+          OPENDOTA_KEY: ${{ secrets.OPENDOTA_KEY }}
+      - name: Commit data
+        run: |
+          git config user.name "dota-draft-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data
+          git diff --cached --quiet && exit 0
+          git commit -m "Update player benchmarks $(date -u +%F)"
+          for i in 1 2 3; do git pull --rebase origin main && git push && break; sleep 5; done

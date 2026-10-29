@@ -9,3 +9,4 @@
 pubspec.lock
 *.iml
 /assets/draft.json
+/assets/bench.json
