@@ -1,10 +1,10 @@
+import 'storage.dart';
 import 'i18n.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/widgets.dart';
-import 'package:path_provider/path_provider.dart';
 
 /// Событие таймера матча. Время — в секундах игрового времени.
 class TimerEvent {
@@ -219,7 +219,7 @@ class ToolsState extends ChangeNotifier {
 
   Future<File?> _file() async {
     try {
-      final d = await getApplicationDocumentsDirectory();
+      final d = await appDir();
       return File('${d.path}/tools_state.json');
     } catch (_) {
       return null;

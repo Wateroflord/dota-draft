@@ -1,3 +1,4 @@
+import 'storage.dart';
 import 'i18n.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -5,7 +6,6 @@ import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 
-import 'package:path_provider/path_provider.dart';
 
 import 'opendota.dart';
 
@@ -185,7 +185,7 @@ class BenchRepo {
 
   static Future<File?> _file() async {
     try {
-      final d = await getApplicationDocumentsDirectory();
+      final d = await appDir();
       return File('${d.path}/bench.json');
     } catch (_) {
       return null;

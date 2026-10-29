@@ -1,3 +1,4 @@
+import 'storage.dart';
 import 'i18n.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -7,7 +8,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 
 const _raw = 'https://raw.githubusercontent.com/Wateroflord/dota-draft/main/data/';
@@ -73,7 +73,7 @@ Future<void> backgroundEntry() async {
 
 Future<Map<String, dynamic>> _readJson(String name) async {
   try {
-    final d = await getApplicationDocumentsDirectory();
+    final d = await appDir();
     final f = File('${d.path}/$name');
     if (await f.exists()) return jsonDecode(await f.readAsString()) as Map<String, dynamic>;
   } catch (_) {}
@@ -82,7 +82,7 @@ Future<Map<String, dynamic>> _readJson(String name) async {
 
 Future<void> _writeJson(String name, Map<String, dynamic> j) async {
   try {
-    final d = await getApplicationDocumentsDirectory();
+    final d = await appDir();
     await File('${d.path}/$name').writeAsString(jsonEncode(j));
   } catch (_) {}
 }

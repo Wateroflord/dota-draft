@@ -1,10 +1,10 @@
+import 'storage.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 
 import 'i18n.dart';
 
@@ -14,7 +14,7 @@ class JsonRepo {
 
   static Future<File?> _file(String name) async {
     try {
-      final d = await getApplicationDocumentsDirectory();
+      final d = await appDir();
       return File('${d.path}/$name');
     } catch (_) {
       return null;

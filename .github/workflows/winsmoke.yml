@@ -31,6 +31,13 @@ jobs:
           $g = [System.Drawing.Graphics]::FromImage($bmp)
           $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
           $bmp.Save("out\screen.png")
+          # Оверлей: Ctrl+Shift+O
+          $ws = New-Object -ComObject WScript.Shell
+          $ws.SendKeys("^+o")
+          Start-Sleep -Seconds 6
+          $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
+          $bmp.Save("out\overlay.png")
+          Get-ChildItem -Recurse "$env:APPDATA" -Filter "*.json" -ErrorAction SilentlyContinue | Select-Object -First 20 FullName | Out-File out\appdata.txt
           Get-ChildItem -Recurse "$env:USERPROFILE\Documents" -Filter "*.json" -ErrorAction SilentlyContinue | Select-Object -First 20 FullName | Out-File out\files.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

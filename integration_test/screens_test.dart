@@ -1,4 +1,5 @@
 // Прогон всех экранов на эмуляторе: скриншоты и список ошибок (для проверки перед выпуском).
+import 'package:dota_draft/storage.dart';
 import 'package:dota_draft/main.dart' as app;
 import 'package:dota_draft/screens/cm_screen.dart';
 import 'package:dota_draft/screens/compare_screen.dart';
@@ -26,7 +27,6 @@ import 'package:dota_draft/state.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -35,7 +35,7 @@ void main() {
   final errors = <String>[];
 
   testWidgets('all screens', (tester) async {
-    final dir = Directory('${(await getApplicationDocumentsDirectory()).path}/shots');
+    final dir = Directory('${(await appDir()).path}/shots');
     if (dir.existsSync()) dir.deleteSync(recursive: true);
     dir.createSync(recursive: true);
     final log = File('${dir.path}/errors.txt');

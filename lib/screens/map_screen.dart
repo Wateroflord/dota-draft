@@ -1,10 +1,10 @@
+import '../storage.dart';
 import '../i18n.dart';
 import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../map_data.dart';
 import '../opendota.dart';
@@ -207,7 +207,7 @@ class _MapScreenState extends State<MapScreen> {
     }
     final x = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1600);
     if (x == null) return;
-    final dir = await getApplicationDocumentsDirectory();
+    final dir = await appDir();
     final path = '${dir.path}/map_${DateTime.now().millisecondsSinceEpoch}.jpg';
     await File(x.path).copy(path);
     tools.setMapImage(path);

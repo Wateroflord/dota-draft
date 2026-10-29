@@ -1,10 +1,10 @@
+import 'storage.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
-import 'package:path_provider/path_provider.dart';
 
 import 'background.dart';
 import 'bench.dart';
@@ -593,7 +593,7 @@ class AppState extends ChangeNotifier {
 
   Future<File?> _prefsFile() async {
     try {
-      final d = await getApplicationDocumentsDirectory();
+      final d = await appDir();
       return File('${d.path}/draft_state.json');
     } catch (_) {
       return null;

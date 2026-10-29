@@ -1,10 +1,10 @@
+import 'storage.dart';
 import 'i18n.dart';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 
 /// Группы рангов (как в данных): 0 — все, 1 — Рекрут–Страж, 2 — Рыцарь–Легенда, 3 — Властелин–Титан, 4 — Турбо.
 List<String> get rankGroups => [L('Все ранги', 'All ranks'), L('Рекрут – Страж', 'Herald – Guardian'), L('Рыцарь – Легенда', 'Crusader – Legend'), L('Властелин – Титан', 'Ancient – Immortal'), L('Турбо', 'Turbo')];
@@ -162,7 +162,7 @@ class DataRepo {
 
   static Future<File?> _file() async {
     try {
-      final d = await getApplicationDocumentsDirectory();
+      final d = await appDir();
       return File('${d.path}/draft.json');
     } catch (_) {
       return null;
