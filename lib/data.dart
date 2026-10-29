@@ -13,7 +13,7 @@ const positionNames = {1: 'Керри', 2: 'Мид', 3: 'Хард', 4: 'Полу
 
 const attrNames = {'str': 'Сила', 'agi': 'Ловкость', 'int': 'Интеллект', 'all': 'Универсал'};
 
-class Hero {
+class DHero {
   final int index; // позиция в матрицах
   final int id;
   final String name;
@@ -24,7 +24,7 @@ class Hero {
   final List<double> wr; // по группам рангов
   final List<double> pr; // доля матчей с героем
 
-  const Hero({
+  const DHero({
     required this.index,
     required this.id,
     required this.name,
@@ -45,26 +45,26 @@ double _d(dynamic v, [double def = 0]) => v is num ? v.toDouble() : def;
 class StatsData {
   final String updated;
   final int matches;
-  final List<Hero> heroes;
+  final List<DHero> heroes;
   final List<List<int>> adv; // ×10000, преимущество строки против столбца
   final List<List<int>> syn; // ×10000, синергия пары
 
   StatsData(this.updated, this.matches, this.heroes, this.adv, this.syn);
 
-  late final Map<int, Hero> byId = {for (final h in heroes) h.id: h};
+  late final Map<int, DHero> byId = {for (final h in heroes) h.id: h};
 
   /// Преимущество a против b (в долях вероятности, напр. 0.021 = +2,1%).
-  double advantage(Hero a, Hero b) => adv[a.index][b.index] / 10000;
+  double advantage(DHero a, DHero b) => adv[a.index][b.index] / 10000;
 
-  double synergy(Hero a, Hero b) => syn[a.index][b.index] / 10000;
+  double synergy(DHero a, DHero b) => syn[a.index][b.index] / 10000;
 
   static StatsData parse(String txt) {
     final j = jsonDecode(txt) as Map<String, dynamic>;
     final list = (j['heroes'] as List).cast<Map>();
-    final heroes = <Hero>[];
+    final heroes = <DHero>[];
     for (var i = 0; i < list.length; i++) {
       final h = list[i];
-      heroes.add(Hero(
+      heroes.add(DHero(
         index: i,
         id: (h['id'] as num).toInt(),
         name: h['n']?.toString() ?? '',

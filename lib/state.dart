@@ -24,13 +24,13 @@ class AppState extends ChangeNotifier {
 
   Engine get engine => Engine(data!, group);
 
-  List<Hero> heroesOf(List<int?> ids) => [
+  List<DHero> heroesOf(List<int?> ids) => [
         for (final id in ids)
           if (id != null && data!.byId[id] != null) data!.byId[id]!,
       ];
 
-  List<Hero> get allyHeroes => heroesOf(allies);
-  List<Hero> get enemyHeroes => heroesOf(enemies);
+  List<DHero> get allyHeroes => heroesOf(allies);
+  List<DHero> get enemyHeroes => heroesOf(enemies);
 
   Set<int> get unavailable => {...bans, ...allies.whereType<int>(), ...enemies.whereType<int>()};
 
@@ -105,7 +105,7 @@ class AppState extends ChangeNotifier {
     bans.remove(id);
   }
 
-  void applyTeam(List<Hero> team) {
+  void applyTeam(List<DHero> team) {
     final ids = team.map((h) => h.id).toList();
     for (final id in ids) {
       if (!allies.contains(id)) add(true, id);

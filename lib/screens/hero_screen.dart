@@ -5,11 +5,11 @@ import '../state.dart';
 import '../theme.dart';
 import '../widgets.dart';
 
-void openHero(BuildContext context, Hero h) =>
+void openHero(BuildContext context, DHero h) =>
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => HeroScreen(hero: h)));
 
 class HeroScreen extends StatelessWidget {
-  final Hero hero;
+  final DHero hero;
   const HeroScreen({super.key, required this.hero});
 
   @override
@@ -80,7 +80,7 @@ class HeroScreen extends StatelessWidget {
     );
   }
 
-  Widget _list(BuildContext context, String title, List<(Hero, double)> rows, Color color, {bool invert = false}) =>
+  Widget _list(BuildContext context, String title, List<(DHero, double)> rows, Color color, {bool invert = false}) =>
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

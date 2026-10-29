@@ -15,19 +15,19 @@ const kPair = 2.4;
 
 /// Причина рекомендации: «сильный против X», «хорошо с Y», «боится Z».
 class Reason {
-  final Hero hero;
+  final DHero hero;
   final double value; // доля вероятности (+0.021 = +2,1%)
   final int kind; // 0 — против врага, 1 — с союзником, 2 — опасный контрпик
   const Reason(this.hero, this.value, this.kind);
 }
 
 class Pick {
-  final Hero hero;
+  final DHero hero;
   final double score; // для сортировки
   final double winDelta; // изменение шанса победы, доли
   final double vulnerability; // насколько легко законтрить (доли)
   final List<Reason> reasons;
-  final List<Hero> counters; // кто его контрит из доступных
+  final List<DHero> counters; // кто его контрит из доступных
   final bool fitsRole;
   final int? position; // какую позицию закроет
   const Pick(this.hero, this.score, this.winDelta, this.vulnerability, this.reasons, this.counters, this.fitsRole,
@@ -35,7 +35,7 @@ class Pick {
 }
 
 class TeamResult {
-  final List<Hero> heroes;
+  final List<DHero> heroes;
   final Map<int, int> positions; // hero.id -> позиция
   final double winChance;
   const TeamResult(this.heroes, this.positions, this.winChance);
@@ -46,18 +46,18 @@ class Engine {
   final int group;
   Engine(this.d, this.group);
 
-  double wr(Hero h) => h.wr.length > group ? h.wr[group] : 0.5;
-  double pr(Hero h) => h.pr.length > group ? h.pr[group] : 0;
+  double wr(DHero h) => h.wr.length > group ? h.wr[group] : 0.5;
+  double pr(DHero h) => h.pr.length > group ? h.pr[group] : 0;
 
   /// Вклад героя «сам по себе» (логит его винрейта).
-  double base(Hero h) {
+  double base(DHero h) {
     // Очень редких героев не переоцениваем: тянем винрейт к 50%.
     final p = pr(h);
     final trust = (p / (p + 0.01)).clamp(0.0, 1.0);
     return logit(0.5 + (wr(h) - 0.5) * trust);
   }
 
-  double teamLogit(List<Hero> a, List<Hero> e) {
+  double teamLogit(List<DHero> a, List<DHero> e) {
     var s = 0.0;
     for (final h in a) {
       s += base(h);
@@ -84,10 +84,10 @@ class Engine {
     return s + kPair * pair;
   }
 
-  double winChance(List<Hero> a, List<Hero> e) => sigmoid(teamLogit(a, e)).clamp(0.05, 0.95);
+  double winChance(List<DHero> a, List<DHero> e) => sigmoid(teamLogit(a, e)).clamp(0.05, 0.95);
 
   /// Сила команды без учёта соперника: 0–100, 50 — средняя.
-  double strength(List<Hero> team) {
+  double strength(List<DHero> team) {
     if (team.isEmpty) return 0;
     var s = 0.0;
     for (final h in team) {
@@ -110,7 +110,7 @@ class Engine {
 
   // ---------------- позиции ----------------
 
-  static double _posWeight(Hero h, int pos) {
+  static double _posWeight(DHero h, int pos) {
     final i = h.positions.indexOf(pos);
     if (i < 0) return -0.6;
     return const [1.0, 0.75, 0.55, 0.45][math.min(i, 3)];
@@ -131,7 +131,7 @@ class Engine {
   }
 
   /// Лучшая расстановка героев по позициям: (оценка, hero.id -> позиция).
-  static (double, Map<int, int>) assign(List<Hero> team) {
+  static (double, Map<int, int>) assign(List<DHero> team) {
     if (team.isEmpty) return (0, {});
     var best = -1e9;
     List<int>? bestPerm;
@@ -149,7 +149,7 @@ class Engine {
   }
 
   /// Свободные позиции в команде.
-  static List<int> missingPositions(List<Hero> team) {
+  static List<int> missingPositions(List<DHero> team) {
     final used = assign(team).$2.values.toSet();
     return [for (var p = 1; p <= 5; p++) if (!used.contains(p)) p];
   }
@@ -158,8 +158,8 @@ class Engine {
 
   /// Кого взять. [stage]: 1 — первые пики (надёжно, сложно законтрить), 2 — середина, 3 — последний пик (контрпик).
   List<Pick> recommend({
-    required List<Hero> allies,
-    required List<Hero> enemies,
+    required List<DHero> allies,
+    required List<DHero> enemies,
     required Set<int> unavailable,
     required int stage,
     bool roleFilter = true,
@@ -184,7 +184,7 @@ class Engine {
         if (v >= 0.006) reasons.add(Reason(a, v, 1));
       }
       // Кто из ещё доступных героев сильнее всего его контрит.
-      final threats = <(Hero, double)>[];
+      final threats = <(DHero, double)>[];
       for (final x in pool) {
         if (x.id == h.id) continue;
         final v = d.advantage(x, h);
@@ -224,8 +224,8 @@ class Engine {
 
   /// Самые опасные герои, которых могут взять противники (кандидаты в бан).
   List<Pick> threats({
-    required List<Hero> allies,
-    required List<Hero> enemies,
+    required List<DHero> allies,
+    required List<DHero> enemies,
     required Set<int> unavailable,
     int limit = 8,
   }) {
@@ -243,17 +243,17 @@ class Engine {
   /// Лучший состав: дополняет свободные слоты так, чтобы шанс победы был максимальным
   /// и позиции 1–5 были закрыты.
   TeamResult bestTeam({
-    required List<Hero> allies,
-    required List<Hero> enemies,
+    required List<DHero> allies,
+    required List<DHero> enemies,
     required Set<int> unavailable,
   }) {
     final free = 5 - allies.length;
     if (free <= 0) {
       return TeamResult(allies, assign(allies).$2, winChance(allies, enemies));
     }
-    var beam = <List<Hero>>[allies];
+    var beam = <List<DHero>>[allies];
     for (var step = 0; step < free; step++) {
-      final next = <(List<Hero>, double)>[];
+      final next = <(List<DHero>, double)>[];
       for (final team in beam) {
         final taken = {...unavailable, ...team.map((h) => h.id)};
         final picks = recommend(
@@ -286,7 +286,7 @@ class Engine {
   }
 
   /// Лучшие и худшие противостояния героя.
-  List<(Hero, double)> matchups(Hero h, {bool best = true, int limit = 8}) {
+  List<(DHero, double)> matchups(DHero h, {bool best = true, int limit = 8}) {
     final list = [
       for (final x in d.heroes)
         if (x.id != h.id) (x, d.advantage(h, x)),
@@ -295,7 +295,7 @@ class Engine {
     return list.take(limit).toList();
   }
 
-  List<(Hero, double)> partners(Hero h, {int limit = 8}) {
+  List<(DHero, double)> partners(DHero h, {int limit = 8}) {
     final list = [
       for (final x in d.heroes)
         if (x.id != h.id) (x, d.synergy(h, x)),

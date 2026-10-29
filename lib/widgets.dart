@@ -84,7 +84,7 @@ class Pill extends StatelessWidget {
 
 /// Картинка героя (горизонтальная, 16:9) с запасным вариантом, если нет интернета.
 class HeroImg extends StatelessWidget {
-  final Hero hero;
+  final DHero hero;
   final double width;
   final double? height;
   final double radius;
@@ -133,7 +133,7 @@ String signedPct(double v, {int digits = 1}) => '${v >= 0 ? '+' : '−'}${pct(v.
 
 String posShort(int p) => 'поз. $p';
 
-String positionsText(Hero h) => h.positions.map((p) => positionNames[p] ?? '$p').join(' / ');
+String positionsText(DHero h) => h.positions.map((p) => positionNames[p] ?? '$p').join(' / ');
 
 void showToast(BuildContext context, String msg) {
   ScaffoldMessenger.maybeOf(context)

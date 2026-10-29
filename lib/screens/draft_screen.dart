@@ -320,7 +320,7 @@ class _Bans extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = StateScope.of(context);
-    final banned = s.bans.map((id) => s.data!.byId[id]).whereType<Hero>().toList();
+    final banned = s.bans.map((id) => s.data!.byId[id]).whereType<DHero>().toList();
     return AppCard(
       padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
       child: Row(children: [
@@ -358,7 +358,7 @@ class _Bans extends StatelessWidget {
   }
 }
 
-Future<void> heroActions(BuildContext context, Hero h) {
+Future<void> heroActions(BuildContext context, DHero h) {
   final s = StateScope.read(context);
   return showSheet<void>(
     context,

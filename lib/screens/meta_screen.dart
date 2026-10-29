@@ -21,7 +21,7 @@ class _MetaScreenState extends State<MetaScreen> {
   int pos = 0; // 0 — все позиции
 
   /// Оценка «силы в мете»: винрейт, слегка поднятый за популярность (популярных сложнее «разыграть случайно»).
-  static double metaScore(Hero h, int g) => (h.wr[g] - 0.5) * 100 + 1.2 * math.log(1 + h.pr[g] * 100);
+  static double metaScore(DHero h, int g) => (h.wr[g] - 0.5) * 100 + 1.2 * math.log(1 + h.pr[g] * 100);
 
   static String tier(double score, List<double> all) {
     if (all.isEmpty) return 'C';
