@@ -9,7 +9,7 @@ permissions:
 jobs:
   screens:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
       - name: Data assets
@@ -47,12 +47,15 @@ jobs:
           profile: pixel_6
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: flutter drive --driver=test_driver/integration_test.dart --target=integration_test/screens_test.dart > drive.txt 2>&1 || true
+          script: |
+            timeout 1800 flutter drive --driver=test_driver/integration_test.dart --target=integration_test/screens_test.dart > drive.txt 2>&1 || true
+            adb exec-out run-as com.dotadraft.dota_draft tar c app_flutter/shots > shots.tar || true
       - name: Save screenshots to branch
         if: always()
         run: |
           mkdir -p screenshots
           cp drive.txt screenshots/ || true
+          tar xf shots.tar -C screenshots || true
           git config user.name "dota-draft-bot"
           git config user.email "actions@users.noreply.github.com"
           git checkout --orphan screens-out
