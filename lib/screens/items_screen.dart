@@ -32,6 +32,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
     final s = StateScope.of(context);
     final q = search.text.trim().toLowerCase();
     final all = s.itemRef.values.where((it) {
+      if (it.key.contains('courier') || it.key.contains('river_painter') || it.key == 'tango_single' || it.key == 'cheese') return false;
+      if (!it.neutral && it.cost < 30) return false;
       if (q.isNotEmpty && !it.ru.toLowerCase().contains(q) && !it.en.toLowerCase().contains(q)) return false;
       return switch (cat) {
         1 => !it.neutral && it.cost < 1000,

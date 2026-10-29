@@ -387,7 +387,7 @@ class _MatchScreenState extends State<MatchScreen> {
                       ? L('Твоя игра: ${verdictTitle(myRating.verdict).toLowerCase()} — $place-е место из 10 по цифрам.',
                           'Your game: ${verdictTitle(myRating.verdict).toLowerCase()} — #$place of 10 by the numbers.')
                       : L('Игра ${mePlayer!.name}: ${verdictTitle(myRating.verdict).toLowerCase()} — $place-е место из 10.',
-                          '${mePlayer!.name}\'s game: ${verdictTitle(myRating.verdict).toLowerCase()} — #$place of 10.'),
+                          '${mePlayer.name}\'s game: ${verdictTitle(myRating.verdict).toLowerCase()} — #$place of 10.'),
                   style: T.body,
                 ),
               ),

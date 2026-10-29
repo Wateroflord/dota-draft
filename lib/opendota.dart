@@ -191,11 +191,12 @@ class OpenDota {
 
   /// Время первой покупки предметов в последних матчах: [(hero_id, {предмет: секунды})].
   static Future<List<(int, Map<String, int>)>> purchaseTimes(int id, {int limit = 60}) async {
-    final j = await _get('/players/$id/matches?limit=$limit&project=hero_id&project=first_purchase_time');
+    final j = await _get('/players/$id/matches?limit=$limit&significant=0&project=hero_id&project=purchase_time');
     final out = <(int, Map<String, int>)>[];
     if (j is List) {
       for (final r in j.whereType<Map>()) {
-        final fp = r['first_purchase_time'];
+        // Для дорогих предметов, которые покупают один раз, это и есть время покупки.
+        final fp = r['purchase_time'];
         if (fp is! Map || fp.isEmpty) continue;
         out.add((_i(r['hero_id']), {for (final e in fp.entries) '${e.key}': _i(e.value)}));
       }
