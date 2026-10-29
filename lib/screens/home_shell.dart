@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import '../theme.dart';
 import 'analysis_screen.dart';
 import 'draft_screen.dart';
+import 'game_screen.dart';
 import 'meta_screen.dart';
 import 'profile_screen.dart';
 
-/// Нижнее меню: Драфт, Анализ, Мета, Мои герои.
+/// Нижнее меню: Драфт, Анализ, Мета, Игра, Мои герои.
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
 
@@ -21,6 +22,7 @@ class _HomeShellState extends State<HomeShell> {
     (Icons.grid_view_outlined, Icons.grid_view_rounded, 'Драфт'),
     (Icons.insights_outlined, Icons.insights, 'Анализ'),
     (Icons.leaderboard_outlined, Icons.leaderboard, 'Мета'),
+    (Icons.sports_esports_outlined, Icons.sports_esports, 'Игра'),
     (Icons.person_outline, Icons.person, 'Мои герои'),
   ];
 
@@ -34,6 +36,7 @@ class _HomeShellState extends State<HomeShell> {
           const DraftScreen(),
           AnalysisScreen(onOpenDraft: () => setState(() => index = 0)),
           const MetaScreen(),
+          const GameScreen(),
           const ProfileScreen(),
         ],
       ),

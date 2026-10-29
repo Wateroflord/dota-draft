@@ -6,6 +6,7 @@ import '../knowledge.dart';
 import '../state.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import 'bench_widgets.dart';
 import 'hero_screen.dart';
 
 /// Вкладка «Анализ»: состав, сила по времени, линии, предметы.
@@ -58,6 +59,26 @@ class AnalysisScreen extends StatelessWidget {
                 if (allies.isNotEmpty) ...[
                   const SectionLabel('Популярные сборки твоих героев'),
                   for (final h in allies) _BuildRow(hero: h, items: s.data!.items),
+                ],
+                if (allies.any((h) => (s.bench.neutral[h.id] ?? const []).isNotEmpty)) ...[
+                  const SectionLabel('Нейтральные предметы'),
+                  AppCard(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      for (final h in allies)
+                        if ((s.bench.neutral[h.id] ?? const []).isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              HeroImg(h, width: 54),
+                              const SizedBox(width: 10),
+                              Expanded(child: NeutralRow(hero: h, compact: true)),
+                            ]),
+                          ),
+                      const SizedBox(height: 4),
+                      const Text('Самые частые нейтралки у героев твоей команды (T — уровень). Подробнее — в карточке героя.',
+                          style: T.small),
+                    ]),
+                  ),
                 ],
               ],
             ),

@@ -39,6 +39,28 @@ class MatchInfo {
   const MatchInfo(this.matchId, this.radiantWin, this.radiant, this.dire, this.duration);
 }
 
+/// Подробная строка матча игрока (для личной статистики и сравнения со средними).
+class PlayerMatch {
+  final int matchId, heroId, startTime, duration;
+  final bool win;
+  final int kills, deaths, assists, gpm, xpm, lastHits, heroDamage, towerDamage;
+  final int laneRole; // 1 лёгкая, 2 мид, 3 сложная, 4 лес; 0 — нет данных
+  final int partySize;
+  const PlayerMatch(this.matchId, this.heroId, this.startTime, this.duration, this.win, this.kills, this.deaths,
+      this.assists, this.gpm, this.xpm, this.lastHits, this.heroDamage, this.towerDamage, this.laneRole, this.partySize);
+
+  double get minutes => duration <= 0 ? 1 : duration / 60;
+  double get lh10 => lastHits / minutes * 10;
+  double get hdm => heroDamage / minutes;
+}
+
+class Peer {
+  final int accountId;
+  final String name, avatar;
+  final int withGames, withWins, againstGames, againstWins;
+  const Peer(this.accountId, this.name, this.avatar, this.withGames, this.withWins, this.againstGames, this.againstWins);
+}
+
 /// Данные игрока с OpenDota (бесплатно, без ключа). Профиль Dota 2 должен открывать данные матчей.
 class OpenDota {
   static const _base = 'https://api.opendota.com/api';
@@ -114,6 +136,74 @@ class OpenDota {
       }
     }
     return out;
+  }
+
+  /// Последние матчи с подробными цифрами. [limit] до 500.
+  static Future<List<PlayerMatch>> matches(int id, {int limit = 200, int? heroId}) async {
+    const fields = [
+      'hero_id', 'start_time', 'duration', 'kills', 'deaths', 'assists', 'gold_per_min', 'xp_per_min',
+      'last_hits', 'hero_damage', 'tower_damage', 'lane_role', 'party_size', 'radiant_win', 'player_slot',
+    ];
+    final q = [
+      'limit=$limit',
+      if (heroId != null) 'hero_id=$heroId',
+      for (final f in fields) 'project=$f',
+    ].join('&');
+    final j = await _get('/players/$id/matches?$q');
+    final out = <PlayerMatch>[];
+    if (j is List) {
+      for (final r in j.whereType<Map>()) {
+        final radiant = _i(r['player_slot']) < 128;
+        out.add(PlayerMatch(
+          _i(r['match_id']),
+          _i(r['hero_id']),
+          _i(r['start_time']),
+          _i(r['duration']),
+          radiant == (r['radiant_win'] == true),
+          _i(r['kills']),
+          _i(r['deaths']),
+          _i(r['assists']),
+          _i(r['gold_per_min']),
+          _i(r['xp_per_min']),
+          _i(r['last_hits']),
+          _i(r['hero_damage']),
+          _i(r['tower_damage']),
+          _i(r['lane_role']),
+          _i(r['party_size']),
+        ));
+      }
+    }
+    return out;
+  }
+
+  /// С кем игрок чаще всего играет.
+  static Future<List<Peer>> peers(int id) async {
+    final j = await _get('/players/$id/peers?limit=100');
+    final out = <Peer>[];
+    if (j is List) {
+      for (final r in j.whereType<Map>()) {
+        out.add(Peer(_i(r['account_id']), r['personaname']?.toString() ?? 'Игрок', r['avatar']?.toString() ?? '',
+            _i(r['with_games']), _i(r['with_win']), _i(r['against_games']), _i(r['against_win'])));
+      }
+    }
+    return out;
+  }
+
+  /// Где игрок ставит варды: (обсы, сентри) в виде {x: {y: count}}.
+  static Future<(Map<String, Map<String, int>>, Map<String, Map<String, int>>)> wardmap(int id) async {
+    final j = await _get('/players/$id/wardmap');
+    Map<String, Map<String, int>> conv(dynamic m) {
+      final out = <String, Map<String, int>>{};
+      if (m is Map) {
+        m.forEach((x, ys) {
+          if (ys is Map) out['$x'] = {for (final e in ys.entries) '${e.key}': _i(e.value)};
+        });
+      }
+      return out;
+    }
+
+    if (j is! Map) return (<String, Map<String, int>>{}, <String, Map<String, int>>{});
+    return (conv(j['obs']), conv(j['sen']));
   }
 
   static Future<MatchInfo> match(int matchId) async {

@@ -1,0 +1,188 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:http/http.dart' as http;
+
+import 'package:path_provider/path_provider.dart';
+
+import 'opendota.dart';
+
+/// Средние показатели на герое в группе рангов.
+class BenchRow {
+  final double n, wr, gpm, xpm, k, d, a, lh10, hdm, td;
+  const BenchRow(this.n, this.wr, this.gpm, this.xpm, this.k, this.d, this.a, this.lh10, this.hdm, this.td);
+
+  double get kda => (k + a) / (d < 1 ? 1 : d);
+
+  static BenchRow? fromList(List v) {
+    if (v.length < 10) return null;
+    double f(int i) => (v[i] as num?)?.toDouble() ?? 0;
+    return BenchRow(f(0), f(1), f(2), f(3), f(4), f(5), f(6), f(7), f(8), f(9));
+  }
+
+  /// Средние по своим матчам (n — число игр).
+  static BenchRow? ofMatches(List<PlayerMatch> ms) {
+    if (ms.isEmpty) return null;
+    double avg(double Function(PlayerMatch m) f) => ms.map(f).reduce((a, b) => a + b) / ms.length;
+    return BenchRow(
+      ms.length.toDouble(),
+      ms.where((m) => m.win).length / ms.length,
+      avg((m) => m.gpm.toDouble()),
+      avg((m) => m.xpm.toDouble()),
+      avg((m) => m.kills.toDouble()),
+      avg((m) => m.deaths.toDouble()),
+      avg((m) => m.assists.toDouble()),
+      avg((m) => m.lh10),
+      avg((m) => m.hdm),
+      avg((m) => m.towerDamage.toDouble()),
+    );
+  }
+}
+
+/// Показатели для сравнения: подпись, как достать значение, больше — лучше?
+class BenchMetric {
+  final String label;
+  final double Function(BenchRow r) get;
+  final bool higherBetter;
+  final int digits;
+  const BenchMetric(this.label, this.get, {this.higherBetter = true, this.digits = 0});
+}
+
+final benchMetrics = <BenchMetric>[
+  BenchMetric('Винрейт', (r) => r.wr * 100, digits: 1),
+  BenchMetric('Золото/мин (GPM)', (r) => r.gpm),
+  BenchMetric('Опыт/мин (XPM)', (r) => r.xpm),
+  BenchMetric('Добивания за 10 мин', (r) => r.lh10, digits: 1),
+  BenchMetric('Убийства', (r) => r.k, digits: 1),
+  BenchMetric('Смерти', (r) => r.d, higherBetter: false, digits: 1),
+  BenchMetric('Помощь', (r) => r.a, digits: 1),
+  BenchMetric('KDA', (r) => r.kda, digits: 2),
+  BenchMetric('Урон героям/мин', (r) => r.hdm),
+  BenchMetric('Урон по вышкам', (r) => r.td),
+];
+
+class NeutralStat {
+  final int itemId;
+  final double n, wr;
+  const NeutralStat(this.itemId, this.n, this.wr);
+}
+
+class NeutralItem {
+  final String key, name;
+  final int tier;
+  const NeutralItem(this.key, this.name, this.tier);
+  String get image => 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/items/$key.png';
+}
+
+class BenchData {
+  final String updated;
+  final Map<int, Map<int, BenchRow>> heroes; // heroId -> group (0..3) -> row
+  final Map<int, List<NeutralStat>> neutral;
+  final Map<int, NeutralItem> items;
+  const BenchData(this.updated, this.heroes, this.neutral, this.items);
+
+  static const empty = BenchData('', {}, {}, {});
+
+  bool get isEmpty => heroes.isEmpty;
+
+  BenchRow? row(int heroId, int group) => heroes[heroId]?[group];
+
+  static BenchData parse(String txt) {
+    final j = jsonDecode(txt);
+    if (j is! Map) return empty;
+    final heroes = <int, Map<int, BenchRow>>{};
+    final hs = j['heroes'];
+    if (hs is Map) {
+      hs.forEach((hid, groups) {
+        final id = int.tryParse('$hid');
+        if (id == null || groups is! Map) return;
+        final m = <int, BenchRow>{};
+        groups.forEach((g, v) {
+          final gi = int.tryParse('$g');
+          final r = v is List ? BenchRow.fromList(v) : null;
+          if (gi != null && r != null) m[gi] = r;
+        });
+        heroes[id] = m;
+      });
+    }
+    final neutral = <int, List<NeutralStat>>{};
+    final ns = j['neutral'];
+    if (ns is Map) {
+      ns.forEach((hid, rows) {
+        final id = int.tryParse('$hid');
+        if (id == null || rows is! List) return;
+        neutral[id] = [
+          for (final r in rows.whereType<List>())
+            if (r.length >= 3)
+              NeutralStat((r[0] as num).toInt(), (r[1] as num).toDouble(), (r[2] as num).toDouble()),
+        ];
+      });
+    }
+    final items = <int, NeutralItem>{};
+    final its = j['items'];
+    if (its is Map) {
+      its.forEach((k, v) {
+        final id = int.tryParse('$k');
+        if (id != null && v is List && v.length >= 3) {
+          items[id] = NeutralItem('${v[0]}', '${v[1]}', (v[2] as num?)?.toInt() ?? 0);
+        }
+      });
+    }
+    return BenchData(j['updated']?.toString() ?? '', heroes, neutral, items);
+  }
+}
+
+/// Группа рангов (1–3) по rank_tier игрока. null — ранг скрыт.
+int? rankGroupOf(int? rankTier) {
+  if (rankTier == null || rankTier <= 0) return null;
+  final t = rankTier ~/ 10;
+  if (t <= 2) return 1;
+  if (t <= 5) return 2;
+  return 3;
+}
+
+class BenchRepo {
+  static const url = 'https://raw.githubusercontent.com/Wateroflord/dota-draft/main/data/bench.json';
+
+  static Future<File?> _file() async {
+    try {
+      final d = await getApplicationDocumentsDirectory();
+      return File('${d.path}/bench.json');
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<BenchData> loadLocal() async {
+    try {
+      final f = await _file();
+      if (f != null && await f.exists()) {
+        final b = BenchData.parse(await f.readAsString());
+        if (!b.isEmpty) return b;
+      }
+    } catch (_) {}
+    try {
+      return BenchData.parse(await rootBundle.loadString('assets/bench.json'));
+    } catch (_) {
+      return BenchData.empty;
+    }
+  }
+
+  static Future<BenchData?> fetch(String current) async {
+    try {
+      final res = await http
+          .get(Uri.parse('$url?t=${DateTime.now().millisecondsSinceEpoch ~/ 600000}'))
+          .timeout(const Duration(seconds: 25));
+      if (res.statusCode != 200) return null;
+      final txt = utf8.decode(res.bodyBytes);
+      final b = BenchData.parse(txt);
+      if (b.isEmpty || b.updated.compareTo(current) <= 0) return null;
+      final f = await _file();
+      await f?.writeAsString(txt, flush: true);
+      return b;
+    } catch (_) {
+      return null;
+    }
+  }
+}

@@ -5,6 +5,7 @@ import 'screens/draft_screen.dart';
 import 'screens/home_shell.dart';
 import 'state.dart';
 import 'theme.dart';
+import 'tools_state.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,7 +16,9 @@ Future<void> main() async {
     systemNavigationBarIconBrightness: Brightness.light,
   ));
   final state = AppState();
-  runApp(StateScope(state: state, child: const DotaDraftApp()));
+  final tools = ToolsState();
+  runApp(StateScope(state: state, child: ToolsScope(state: tools, child: const DotaDraftApp())));
+  tools.load();
   state.init();
 }
 

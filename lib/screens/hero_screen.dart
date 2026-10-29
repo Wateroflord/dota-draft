@@ -4,6 +4,8 @@ import '../data.dart';
 import '../state.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import 'bench_widgets.dart';
+import 'compare_screen.dart';
 
 void openHero(BuildContext context, DHero h) =>
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => HeroScreen(hero: h)));
@@ -25,6 +27,11 @@ class HeroScreen extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         title: Text(h.name, style: T.h2),
         actions: [
+          IconButton(
+            tooltip: 'Сравнить с другим героем',
+            icon: const Icon(Icons.compare_arrows),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CompareScreen(first: h))),
+          ),
           IconButton(
             tooltip: s.inPool(h.id) ? 'Убрать из моих героев' : 'В мои герои',
             icon: Icon(s.inPool(h.id) ? Icons.star : Icons.star_border, color: C.gold),
@@ -99,6 +106,17 @@ class HeroScreen extends StatelessWidget {
                 Expanded(child: Text('${s.played[h.id]![0]} игр', style: T.body)),
                 Text('винрейт ${pct(s.played[h.id]![1] / s.played[h.id]![0])}',
                     style: T.num(14, color: s.played[h.id]![1] * 2 >= s.played[h.id]![0] ? C.ally : C.enemy)),
+              ]),
+            ),
+          ],
+          BenchSection(hero: h),
+          if ((s.bench.neutral[h.id] ?? const []).isNotEmpty) ...[
+            const SectionLabel('Нейтральные предметы'),
+            AppCard(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                NeutralRow(hero: h),
+                const SizedBox(height: 6),
+                const Text('Что чаще всего берут из нейтральных: доля и винрейт с предметом. T — уровень.', style: T.small),
               ]),
             ),
           ],

@@ -11,6 +11,7 @@ import 'hero_screen.dart';
 import 'history_screen.dart';
 import 'info_screen.dart';
 import 'matches_screen.dart';
+import 'stats_screen.dart';
 
 /// «Мои герои»: приоритетные герои (вручную и из Steam), профиль, матчи, история драфтов.
 class ProfileScreen extends StatefulWidget {
@@ -223,6 +224,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ],
           const SectionLabel('Ещё'),
+          AppCard(
+            onTap: s.accountId == null
+                ? () => showToast(context, 'Сначала загрузи профиль Steam')
+                : () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const StatsScreen())),
+            child: const Row(children: [
+              Icon(Icons.query_stats, color: C.accent),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('Моя статистика', style: T.body),
+                  Text('Ты против игроков своего, выше и ниже ранга; позиции, время, тильт, друзья', style: T.small),
+                ]),
+              ),
+              Icon(Icons.chevron_right, color: C.muted),
+            ]),
+          ),
+          const SizedBox(height: 8),
           AppCard(
             onTap: s.accountId == null
                 ? () => showToast(context, 'Сначала загрузи профиль Steam')

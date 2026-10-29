@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'bench.dart';
 import 'data.dart';
 import 'engine.dart';
 import 'opendota.dart';
@@ -64,6 +65,32 @@ class AppState extends ChangeNotifier {
   // История драфтов
   final List<SavedDraft> history = [];
 
+  // Средние показатели игроков по рангам + мои подробные матчи (загружаются по запросу)
+  BenchData bench = BenchData.empty;
+  List<PlayerMatch>? myMatches;
+  bool myMatchesLoading = false;
+  String? myMatchesError;
+
+  /// Моя группа рангов для сравнения (1–3), по рангу из профиля; если ранг скрыт — выбранная в драфте.
+  int get myRankGroup => rankGroupOf(rankTier) ?? (group >= 1 && group <= 3 ? group : 2);
+
+  Future<void> loadMyMatches({bool force = false}) async {
+    if (accountId == null || myMatchesLoading) return;
+    if (myMatches != null && !force) return;
+    myMatchesLoading = true;
+    myMatchesError = null;
+    notifyListeners();
+    try {
+      myMatches = await OpenDota.matches(accountId!, limit: 300);
+      if (myMatches!.isEmpty) myMatchesError = 'Матчи не найдены — проверь, открыт ли доступ к данным матчей.';
+    } on OdException catch (e) {
+      myMatchesError = e.message;
+    } finally {
+      myMatchesLoading = false;
+      notifyListeners();
+    }
+  }
+
   Comfort get comfort => Comfort(pool: pool, played: played, mode: comfortMode);
 
   Engine get engine => Engine(data!, group, comfort);
@@ -97,6 +124,7 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       error = 'Не удалось загрузить данные: $e';
     }
+    bench = await BenchRepo.loadLocal();
     loading = false;
     notifyListeners();
     refresh();
@@ -108,6 +136,8 @@ class AppState extends ChangeNotifier {
     notifyListeners();
     final fresh = await DataRepo.fetch(currentUpdated: force ? null : data?.updated, force: force);
     if (fresh != null) data = fresh;
+    final b = await BenchRepo.fetch(force ? '' : bench.updated);
+    if (b != null) bench = b;
     updating = false;
     notifyListeners();
     return fresh != null;
@@ -222,6 +252,7 @@ class AppState extends ChangeNotifier {
     try {
       final p = await OpenDota.profile(id);
       final h = await OpenDota.heroes(id);
+      if (accountId != id) myMatches = null;
       accountId = id;
       playerName = p.name;
       playerAvatar = p.avatar;
@@ -247,6 +278,7 @@ class AppState extends ChangeNotifier {
     playerAvatar = '';
     rankTier = null;
     played.clear();
+    myMatches = null;
     _changed();
   }
 
@@ -282,6 +314,47 @@ class AppState extends ChangeNotifier {
     }
     group = d.group.clamp(0, rankGroups.length - 1);
     _changed();
+  }
+
+  // ---------- поделиться драфтом ----------
+
+  /// Код драфта, например: DD1;a=1,14,8;e=2,74;b=19;g=2
+  String get shareCode {
+    String ids(Iterable<int> xs) => xs.join(',');
+    return 'DD1;a=${ids(allies.whereType<int>())};e=${ids(enemies.whereType<int>())};b=${ids(bans)};g=$group';
+  }
+
+  /// Применить код. false — код не распознан.
+  bool applyCode(String code) {
+    final t = code.trim();
+    final start = t.indexOf('DD1;');
+    if (start < 0 || data == null) return false;
+    final parts = t.substring(start).split(RegExp(r'\s')).first.split(';');
+    List<int> ids(String? v) => (v ?? '')
+        .split(',')
+        .map((e) => int.tryParse(e.trim()))
+        .whereType<int>()
+        .where((id) => data!.byId.containsKey(id))
+        .toList();
+    final m = <String, String>{};
+    for (final p in parts.skip(1)) {
+      final i = p.indexOf('=');
+      if (i > 0) m[p.substring(0, i)] = p.substring(i + 1);
+    }
+    final a = ids(m['a']), e = ids(m['e']), b = ids(m['b']);
+    if (a.isEmpty && e.isEmpty && b.isEmpty) return false;
+    for (var i = 0; i < 5; i++) {
+      allies[i] = i < a.length ? a[i] : null;
+      enemies[i] = i < e.length ? e[i] : null;
+    }
+    bans
+      ..clear()
+      ..addAll(b.where((id) => !a.contains(id) && !e.contains(id)));
+    final g = int.tryParse(m['g'] ?? '');
+    if (g != null) group = g.clamp(0, rankGroups.length - 1);
+    stageOverride = null;
+    _changed();
+    return true;
   }
 
   void setRoleFilter(bool v) {

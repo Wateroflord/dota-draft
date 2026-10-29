@@ -8,6 +8,7 @@ import '../widgets.dart';
 import 'hero_picker.dart';
 import 'hero_screen.dart';
 import 'info_screen.dart';
+import 'share_screen.dart';
 
 const stageTitles = {1: '1 пик', 2: '2 пик', 3: '3 пик'};
 const stageHints = {
@@ -56,6 +57,13 @@ class DraftScreen extends StatelessWidget {
         title: const Text('Dota Draft', style: T.h2),
         actions: [
           IconButton(
+            tooltip: 'Поделиться драфтом / открыть по QR',
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.qr_code_2),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ShareScreen())),
+          ),
+          IconButton(
+            visualDensity: VisualDensity.compact,
             tooltip: 'Сохранить драфт в историю',
             icon: const Icon(Icons.bookmark_add_outlined),
             onPressed: () {
@@ -69,16 +77,19 @@ class DraftScreen extends StatelessWidget {
           ),
           IconButton(
             tooltip: 'Поменять команды местами',
+            visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.swap_vert),
             onPressed: s.swapSides,
           ),
           IconButton(
             tooltip: 'Очистить драфт',
+            visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.delete_sweep_outlined),
             onPressed: s.clear,
           ),
           IconButton(
             tooltip: 'О данных',
+            visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.info_outline),
             onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const InfoScreen())),
           ),
