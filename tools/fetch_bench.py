@@ -111,16 +111,21 @@ def main():
             break
         less_than = min(ids)
         time.sleep(1.1 if not KEY else 0.15)
-    # Высокие ранги можно добрать отдельным запросом.
-    for _ in range(5):
-        page = get("/publicMatches?min_rank=60")
-        if page:
+    # Добираем каждую группу рангов отдельными запросами (низких рангов в общей ленте мало).
+    for g, q in ((1, "max_rank=25"), (2, "min_rank=30&max_rank=55"), (3, "min_rank=60")):
+        lt = None
+        for _ in range(6):
+            page = get(f"/publicMatches?{q}" + (f"&less_than_match_id={lt}" if lt else ""))
+            if not page:
+                break
             for m in page:
                 mid = int(m.get("match_id", 0))
-                if mid not in seen and (m.get("duration") or 0) >= MIN_DURATION:
-                    buckets[3].append(mid)
-        time.sleep(1.1 if not KEY else 0.15)
-        break
+                if mid not in seen and (m.get("duration") or 0) >= MIN_DURATION and m.get("lobby_type") in (7, None):
+                    buckets[g].append(mid)
+            lt = min(int(m.get("match_id", 0)) for m in page)
+            time.sleep(1.1 if not KEY else 0.15)
+    for g in buckets:
+        buckets[g] = list(dict.fromkeys(buckets[g]))
     for b in buckets.values():
         random.shuffle(b)
     print("candidates:", {k: len(v) for k, v in buckets.items()}, flush=True)
