@@ -69,7 +69,7 @@ void main() {
       }
     }
 
-    BuildContext ctx() => tester.element(find.byType(HomeShell));
+    BuildContext ctx() => tester.element(find.byType(HomeShell, skipOffstage: false));
     AppState st() => StateScope.read(ctx());
     NavigatorState nav() => Navigator.of(ctx());
 

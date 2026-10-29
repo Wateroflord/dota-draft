@@ -118,8 +118,9 @@ class _MetaScreenState extends State<MetaScreen> {
           Widget right;
           if (mode == 3) {
             right = Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              Text(signedPct(trend ?? 0), style: T.num(13, color: (trend ?? 0) >= 0 ? C.ally : C.enemy)),
-              Text(L('за неделю', 'this week'), style: T.small.copyWith(fontSize: 10.5)),
+              Text(trend == null ? pct(h.wrAt(g)) : signedPct(trend),
+                  style: T.num(13, color: trend == null ? (h.wrAt(g) >= 0.5 ? C.ally : C.enemy) : (trend >= 0 ? C.ally : C.enemy))),
+              Text(trend == null ? L('винрейт', 'win rate') : L('за неделю', 'this week'), style: T.small.copyWith(fontSize: 10.5)),
             ]);
           } else if (mode == 1) {
             right = Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
