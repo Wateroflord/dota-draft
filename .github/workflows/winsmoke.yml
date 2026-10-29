@@ -1,0 +1,47 @@
+name: Windows smoke test
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (build-N)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  smoke:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download and run
+        shell: pwsh
+        run: |
+          gh release download "${{ github.event.inputs.tag }}" -p "Dota-Draft-Windows.zip"
+          Expand-Archive Dota-Draft-Windows.zip -DestinationPath app
+          $p = Start-Process -FilePath "app\dota_draft.exe" -PassThru
+          Start-Sleep -Seconds 25
+          New-Item -ItemType Directory -Force -Path out | Out-Null
+          "running=$(-not $p.HasExited) exit=$($p.ExitCode)" | Out-File out\status.txt
+          Add-Type -AssemblyName System.Windows.Forms,System.Drawing
+          $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+          $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
+          $g = [System.Drawing.Graphics]::FromImage($bmp)
+          $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
+          $bmp.Save("out\screen.png")
+          Get-ChildItem -Recurse "$env:USERPROFILE\Documents" -Filter "*.json" -ErrorAction SilentlyContinue | Select-Object -First 20 FullName | Out-File out\files.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Save
+        if: always()
+        shell: bash
+        run: |
+          git config user.name "dota-draft-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git checkout --orphan winsmoke-out
+          git rm -rf --cached . > /dev/null
+          git add -f out
+          git commit -m "smoke" > /dev/null
+          git push -f origin winsmoke-out

@@ -11,6 +11,7 @@ on:
       - '.github/workflows/bench.yml'
       - '.github/workflows/data.yml'
       - '.github/workflows/screens.yml'
+      - '.github/workflows/winsmoke.yml'
       - 'integration_test/**'
       - 'test_driver/**'
   workflow_dispatch:
