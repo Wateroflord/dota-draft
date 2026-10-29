@@ -87,7 +87,7 @@ class _RankScreenState extends State<RankScreen> {
           : ListView(
               padding: const EdgeInsets.fromLTRB(14, 0, 14, 32),
               children: [
-                if (s.myMatchesLoading) const LinearProgressIndicator(color: C.accent, backgroundColor: C.surface2),
+                if (s.myMatchesLoading) LinearProgressIndicator(color: C.accent, backgroundColor: C.surface2),
                 AppCard(
                   child: Row(children: [
                     Expanded(
@@ -162,7 +162,7 @@ class _RankScreenState extends State<RankScreen> {
     return '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
   }
 
-  Widget _stat(String v, String l, {Color color = C.text}) => Expanded(
+  Widget _stat(String v, String l, {Color? color}) => Expanded(
         child: Column(children: [
           Text(v, style: T.num(18, color: color)),
           const SizedBox(height: 2),
@@ -192,7 +192,7 @@ class _CurvePainter extends CustomPainter {
           ..strokeWidth = 2);
     for (final t in [lo + 50, hi - 50]) {
       final tp = TextPainter(
-        text: TextSpan(text: '$t', style: const TextStyle(color: C.muted, fontSize: 9)),
+        text: TextSpan(text: '$t', style: TextStyle(color: C.muted, fontSize: 9)),
         textDirection: TextDirection.ltr,
       )..layout();
       tp.paint(canvas, Offset(2, y(t) - tp.height / 2));

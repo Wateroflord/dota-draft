@@ -167,17 +167,52 @@ class OpenDota {
     );
   }
 
-  /// hero_id -> [игр, побед]
+  /// hero_id -> [игр, побед, игр с героем в команде, побед с ним, игр против героя, побед против него]
   static Future<Map<int, List<int>>> heroes(int id) async {
     final j = await _get('/players/$id/heroes');
     final out = <int, List<int>>{};
     if (j is List) {
       for (final r in j.whereType<Map>()) {
         final hid = _i(r['hero_id']);
-        final g = _i(r['games']);
-        if (hid > 0 && g > 0) out[hid] = [g, _i(r['win'])];
+        if (hid <= 0) continue;
+        final row = [
+          _i(r['games']),
+          _i(r['win']),
+          _i(r['with_games']),
+          _i(r['with_win']),
+          _i(r['against_games']),
+          _i(r['against_win']),
+        ];
+        if (row[0] > 0 || row[2] > 0 || row[4] > 0) out[hid] = row;
       }
     }
+    return out;
+  }
+
+  /// Время первой покупки предметов в последних матчах: [(hero_id, {предмет: секунды})].
+  static Future<List<(int, Map<String, int>)>> purchaseTimes(int id, {int limit = 60}) async {
+    final j = await _get('/players/$id/matches?limit=$limit&project=hero_id&project=first_purchase_time');
+    final out = <(int, Map<String, int>)>[];
+    if (j is List) {
+      for (final r in j.whereType<Map>()) {
+        final fp = r['first_purchase_time'];
+        if (fp is! Map || fp.isEmpty) continue;
+        out.add((_i(r['hero_id']), {for (final e in fp.entries) '${e.key}': _i(e.value)}));
+      }
+    }
+    return out;
+  }
+
+  /// Статистика покупки предмета по времени у всех игроков: [(время, игр, побед)].
+  static Future<List<(int, int, int)>> itemTimings(int heroId, String item) async {
+    final j = await _get('/scenarios/itemTimings?hero_id=$heroId&item=$item');
+    final out = <(int, int, int)>[];
+    if (j is List) {
+      for (final r in j.whereType<Map>()) {
+        out.add((_i(r['time']), _i(r['games']), _i(r['wins'])));
+      }
+    }
+    out.sort((a, b) => a.$1.compareTo(b.$1));
     return out;
   }
 

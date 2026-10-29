@@ -353,7 +353,7 @@ class _MapScreenState extends State<MapScreen> {
               Expanded(
                 child: drawing == null
                     ? OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(side: const BorderSide(color: C.border)),
+                        style: OutlinedButton.styleFrom(side: BorderSide(color: C.border)),
                         onPressed: () => setState(() {
                           drawing = [];
                           routeId = null;
@@ -394,7 +394,7 @@ class _MapScreenState extends State<MapScreen> {
                     if (r.custom)
                       IconButton(
                         visualDensity: VisualDensity.compact,
-                        icon: const Icon(Icons.delete_outline, size: 18, color: C.muted),
+                        icon: Icon(Icons.delete_outline, size: 18, color: C.muted),
                         onPressed: () => tools.removeRoute(r.id),
                       ),
                   ]),
@@ -496,7 +496,7 @@ class _MapScreenState extends State<MapScreen> {
           ),
           if (edit)
             IconButton(
-              icon: const Icon(Icons.delete_outline, color: C.muted),
+              icon: Icon(Icons.delete_outline, color: C.muted),
               onPressed: () {
                 final orig = p.custom ? tools.customPoints.firstWhere((c) => c.id == p.id) : MapPoint(_baseId(p.id), p.kind, 0, 0, '');
                 tools.removePoint(orig);

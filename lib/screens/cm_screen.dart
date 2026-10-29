@@ -146,7 +146,7 @@ class _CmScreenState extends State<CmScreen> {
       appBar: AppBar(
         backgroundColor: C.bg,
         surfaceTintColor: Colors.transparent,
-        title: const Text('Captains Mode', style: T.h2),
+        title: Text('Captains Mode', style: T.h2),
         actions: [
           if (started && done.isNotEmpty)
             IconButton(tooltip: L('Отменить ход', 'Undo'), icon: const Icon(Icons.undo), onPressed: _undo),
@@ -254,7 +254,7 @@ class _CmScreenState extends State<CmScreen> {
                   ),
                   IconButton(
                     tooltip: L('Поменять, чей ход', 'Switch whose turn'),
-                    icon: const Icon(Icons.swap_horiz, color: C.muted),
+                    icon: Icon(Icons.swap_horiz, color: C.muted),
                     onPressed: () => setState(() => flipped[step] = !(flipped[step] ?? false)),
                   ),
                   Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
@@ -301,7 +301,7 @@ class _CmScreenState extends State<CmScreen> {
             ),
           const SizedBox(height: 4),
           OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(side: const BorderSide(color: C.border), minimumSize: const Size.fromHeight(44)),
+            style: OutlinedButton.styleFrom(side: BorderSide(color: C.border), minimumSize: const Size.fromHeight(44)),
             onPressed: _pickOther,
             icon: const Icon(Icons.search, size: 18),
             label: Text(us ? L('Выбрать другого героя', 'Choose another hero') : L('Что выбрал соперник?', 'What did they choose?')),

@@ -2,6 +2,7 @@ import '../i18n.dart';
 import 'package:flutter/material.dart';
 
 import '../theme.dart';
+import '../update.dart';
 import 'analysis_screen.dart';
 import 'draft_screen.dart';
 import 'game_screen.dart';
@@ -18,6 +19,15 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   int index = 0;
+  UpdateInfo? update;
+
+  @override
+  void initState() {
+    super.initState();
+    checkUpdate().then((u) {
+      if (mounted && u != null) setState(() => update = u);
+    });
+  }
 
   static List<(IconData, IconData, String)> get _tabs => [
     (Icons.grid_view_outlined, Icons.grid_view_rounded, L('Драфт', 'Draft')),
@@ -31,18 +41,49 @@ class _HomeShellState extends State<HomeShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: C.bg,
-      body: IndexedStack(
-        index: index,
-        children: [
-          const DraftScreen(),
-          AnalysisScreen(onOpenDraft: () => setState(() => index = 0)),
-          const MetaScreen(),
-          const GameScreen(),
-          const ProfileScreen(),
-        ],
-      ),
+      body: Column(children: [
+        if (update != null)
+          Material(
+            color: C.accent,
+            child: InkWell(
+              onTap: () => openUrl(update!.url),
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  child: Row(children: [
+                    const Icon(Icons.system_update, color: Colors.white, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(L('Вышла новая версия (build-${update!.build}). Нажми, чтобы скачать.',
+                          'A new version is out (build-${update!.build}). Tap to download.'),
+                          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                    ),
+                    InkWell(onTap: () => setState(() => update = null), child: const Icon(Icons.close, color: Colors.white, size: 18)),
+                  ]),
+                ),
+              ),
+            ),
+          ),
+        Expanded(
+          child: MediaQuery.removePadding(
+            context: context,
+            removeTop: update != null,
+            child: IndexedStack(
+            index: index,
+            children: [
+              const DraftScreen(),
+              AnalysisScreen(onOpenDraft: () => setState(() => index = 0)),
+              const MetaScreen(),
+              const GameScreen(),
+              const ProfileScreen(),
+            ],
+          ),
+          ),
+        ),
+      ]),
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(color: C.surface, border: Border(top: BorderSide(color: C.border))),
+        decoration: BoxDecoration(color: C.surface, border: Border(top: BorderSide(color: C.border))),
         child: SizedBox(
           height: 60,
           child: Row(children: [

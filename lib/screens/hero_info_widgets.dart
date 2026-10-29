@@ -22,7 +22,7 @@ Widget abilityIcon(Ability a, {double size = 34}) => ClipRRect(
           height: size,
           color: C.surface2,
           alignment: Alignment.center,
-          child: Text(a.name.isEmpty ? '?' : a.name[0], style: const TextStyle(color: C.muted, fontWeight: FontWeight.w800)),
+          child: Text(a.name.isEmpty ? '?' : a.name[0], style: TextStyle(color: C.muted, fontWeight: FontWeight.w800)),
         ),
       ),
     );

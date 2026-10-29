@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 
 import '../data.dart';
 import '../i18n.dart';
+import '../platform.dart';
+import '../update.dart';
 import '../opendota.dart';
 import '../state.dart';
 import '../theme.dart';
@@ -296,7 +298,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       IconButton(
                         visualDensity: VisualDensity.compact,
-                        icon: const Icon(Icons.close, size: 18, color: C.muted),
+                        icon: Icon(Icons.close, size: 18, color: C.muted),
                         onPressed: () => s.removeFriend(f.id),
                       ),
                     ]),
@@ -312,32 +314,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(width: 6),
                 Pill('English', color: C.accent, filled: s.lang == 'en', onTap: () => s.setLang('en')),
               ]),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
+              Row(children: [
+                Expanded(child: Text(L('Тема', 'Theme'), style: T.body)),
+                Pill(L('Тёмная', 'Dark'), color: C.accent, filled: s.theme != 'light', onTap: () => s.setTheme('dark')),
+                const SizedBox(width: 6),
+                Pill(L('Светлая', 'Light'), color: C.accent, filled: s.theme == 'light', onTap: () => s.setTheme('light')),
+              ]),
+              if (isAndroid) ...[
+                const SizedBox(height: 6),
+                Row(children: [
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(L('Уведомления', 'Notifications'), style: T.body),
+                      Text(L('Новый патч и изменения твоих героев в мете', 'New patch and changes of your heroes in the meta'),
+                          style: T.small),
+                    ]),
+                  ),
+                  Switch(
+                    value: s.notify,
+                    activeTrackColor: C.accent,
+                    onChanged: (v) async {
+                      final ok = await s.setNotify(v);
+                      if (!ok && context.mounted) {
+                        showToast(context, L('Разреши уведомления для Dota Draft в настройках телефона', 'Allow notifications for Dota Draft in phone settings'));
+                      }
+                    },
+                  ),
+                ]),
+                const SizedBox(height: 6),
+                Text(
+                  L('Виджет: зажми пустое место на главном экране → «Виджеты» → Dota Draft.',
+                      'Widget: long-press the home screen → Widgets → Dota Draft.'),
+                  style: T.small,
+                ),
+              ],
+              const SizedBox(height: 8),
               Row(children: [
                 Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(L('Уведомления', 'Notifications'), style: T.body),
-                    Text(L('Новый патч и изменения твоих героев в мете', 'New patch and changes of your heroes in the meta'),
-                        style: T.small),
-                  ]),
+                  child: Text(L('Версия: build-$buildNumber', 'Version: build-$buildNumber'), style: T.small),
                 ),
-                Switch(
-                  value: s.notify,
-                  activeTrackColor: C.accent,
-                  onChanged: (v) async {
-                    final ok = await s.setNotify(v);
-                    if (!ok && context.mounted) {
-                      showToast(context, L('Разреши уведомления для Dota Draft в настройках телефона', 'Allow notifications for Dota Draft in phone settings'));
+                TextButton(
+                  onPressed: () async {
+                    final u = await checkUpdate();
+                    if (!context.mounted) return;
+                    if (u == null) {
+                      showToast(context, L('У тебя последняя версия', 'You have the latest version'));
+                    } else {
+                      showToast(context, L('Скачиваю build-${u.build}…', 'Downloading build-${u.build}…'));
+                      openUrl(u.url);
                     }
                   },
+                  child: Text(L('Проверить обновления', 'Check for updates')),
                 ),
               ]),
-              const SizedBox(height: 6),
-              Text(
-                L('Виджет: зажми пустое место на главном экране → «Виджеты» → Dota Draft.',
-                    'Widget: long-press the home screen → Widgets → Dota Draft.'),
-                style: T.small,
-              ),
             ]),
           ),
           SectionLabel(L('Ещё', 'More')),
@@ -391,7 +421,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ]),
               ),
-              const Icon(Icons.chevron_right, color: C.muted),
+              Icon(Icons.chevron_right, color: C.muted),
             ]),
           ),
         ],

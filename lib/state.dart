@@ -13,6 +13,7 @@ import 'engine.dart';
 import 'i18n.dart';
 import 'info.dart';
 import 'opendota.dart';
+import 'theme.dart';
 
 /// Сохранённый драфт для истории и проверки точности.
 class SavedDraft {
@@ -108,6 +109,10 @@ class AppState extends ChangeNotifier {
   String playerAvatar = '';
   int? rankTier;
   final Map<int, List<int>> played = {};
+  // Личная статистика с героями: [игр вместе, побед вместе, игр против, побед против]
+  final Map<int, List<int>> vsHeroes = {};
+  // Заметки к матчам: id матча -> текст
+  final Map<String, String> notes = {};
   bool playerLoading = false;
   String? playerError;
 
@@ -121,6 +126,7 @@ class AppState extends ChangeNotifier {
   final List<Goal> goals = [];
   final List<List<int>> rankHistory = []; // [время (сек), rank_tier]
   String lang = 'ru';
+  String theme = 'dark'; // dark / light
   bool notify = false;
 
   // Справочные данные
@@ -128,6 +134,7 @@ class AppState extends ChangeNotifier {
   List<PatchNotes> patches = const [];
   List<ProDraft> proDrafts = const [];
   Portraits portraits = Portraits.empty;
+  Map<String, ItemRef> itemRef = const {};
 
   Map<int, List<String>> get friendHeroes {
     final out = <int, List<String>>{};
@@ -157,7 +164,10 @@ class AppState extends ChangeNotifier {
     try {
       final p = await OpenDota.profile(id);
       final h = await OpenDota.heroes(id);
-      friends.add(Friend(id, p.name, p.avatar, p.rankTier, h));
+      friends.add(Friend(id, p.name, p.avatar, p.rankTier, {
+        for (final e in h.entries)
+          if (e.value[0] > 0) e.key: [e.value[0], e.value[1]],
+      }));
       partyMode = true;
       _changed();
       return null;
@@ -216,6 +226,12 @@ class AppState extends ChangeNotifier {
     await updateWidget(line1, line2);
   }
 
+  void setTheme(String t) {
+    theme = t;
+    C.dark = t != 'light';
+    _changed();
+  }
+
   void setLang(String l) {
     lang = l;
     isEn = l == 'en';
@@ -227,6 +243,7 @@ class AppState extends ChangeNotifier {
     patches = PatchNotes.parse(await JsonRepo.load('patch.json'));
     proDrafts = ProDraft.parse(await JsonRepo.load('pro_drafts.json'));
     portraits = Portraits.parse(await JsonRepo.load('portraits.json'));
+    itemRef = ItemRef.parse(await JsonRepo.load('items.json'));
   }
 
   Future<void> _fetchInfo({bool force = false}) async {
@@ -238,6 +255,8 @@ class AppState extends ChangeNotifier {
     if (d != null) proDrafts = ProDraft.parse(d);
     final po = await JsonRepo.fetch('portraits.json', force: force);
     if (po != null) portraits = Portraits.parse(po);
+    final it = await JsonRepo.fetch('items.json', force: force);
+    if (it != null) itemRef = ItemRef.parse(it);
   }
 
   // Средние показатели игроков по рангам + мои подробные матчи (загружаются по запросу)
@@ -441,7 +460,16 @@ class AppState extends ChangeNotifier {
       }
       played
         ..clear()
-        ..addAll(h);
+        ..addAll({
+          for (final e in h.entries)
+            if (e.value[0] > 0) e.key: [e.value[0], e.value[1]],
+        });
+      vsHeroes
+        ..clear()
+        ..addAll({
+          for (final e in h.entries)
+            if (e.value.length >= 6) e.key: e.value.sublist(2, 6),
+        });
       if (h.isEmpty) {
         playerError = L('Матчи не найдены. Включи в Dota 2: Настройки → Общение → «Открыть общий доступ к данным матчей».', 'No matches found. In Dota 2 enable: Settings → Social → "Expose Public Match Data".');
       }
@@ -454,12 +482,22 @@ class AppState extends ChangeNotifier {
     return playerError;
   }
 
+  void setNote(int matchId, String text) {
+    if (text.trim().isEmpty) {
+      notes.remove('$matchId');
+    } else {
+      notes['$matchId'] = text.trim();
+    }
+    _changed();
+  }
+
   void forgetPlayer() {
     accountId = null;
     playerName = '';
     playerAvatar = '';
     rankTier = null;
     played.clear();
+    vsHeroes.clear();
     myMatches = null;
     _changed();
   }
@@ -578,6 +616,8 @@ class AppState extends ChangeNotifier {
         'playerAvatar': playerAvatar,
         'rankTier': rankTier,
         'played': played.map((k, v) => MapEntry('$k', v)),
+        'vs': vsHeroes.map((k, v) => MapEntry('$k', v)),
+        'notes': notes,
         'history': history.map((d) => d.toJson()).toList(),
         'myPos': myPos,
         'friends': friends.map((f) => f.toJson()).toList(),
@@ -586,6 +626,7 @@ class AppState extends ChangeNotifier {
         'rankHistory': rankHistory,
         'lang': lang,
         'notify': notify,
+        'theme': theme,
       }));
     } catch (_) {}
   }
@@ -620,6 +661,15 @@ class AppState extends ChangeNotifier {
         });
       }
       history.addAll(((j['history'] as List?) ?? const []).whereType<Map>().map(SavedDraft.fromJson));
+      final vs = j['vs'];
+      if (vs is Map) {
+        vs.forEach((k, v) {
+          final id = int.tryParse('$k');
+          if (id != null && v is List && v.length >= 4) vsHeroes[id] = [for (final x in v.take(4)) x is num ? x.toInt() : 0];
+        });
+      }
+      final nt = j['notes'];
+      if (nt is Map) nt.forEach((k, v) => notes['$k'] = '$v');
       myPos = ((j['myPos'] as num?)?.toInt() ?? 0).clamp(0, 5);
       friends.addAll(((j['friends'] as List?) ?? const []).whereType<Map>().map(Friend.fromJson));
       partyMode = j['partyMode'] == true && friends.isNotEmpty;
@@ -629,6 +679,8 @@ class AppState extends ChangeNotifier {
       }
       lang = j['lang'] == 'en' ? 'en' : 'ru';
       notify = j['notify'] == true;
+      theme = j['theme'] == 'light' ? 'light' : 'dark';
+      C.dark = theme != 'light';
       isEn = lang == 'en';
     } catch (_) {}
   }

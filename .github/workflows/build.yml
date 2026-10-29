@@ -80,14 +80,52 @@ jobs:
       - name: Build APK
         run: |
           set -o pipefail
-          flutter build apk --release 2>&1 | tee build.txt || { python3 tools/annotate.py build.txt "build"; exit 1; }
+          flutter build apk --release --dart-define=BUILD=${{ github.run_number }} 2>&1 | tee build.txt || { python3 tools/annotate.py build.txt "build"; exit 1; }
 
       - name: Publish release with APK
         run: |
           cp build/app/outputs/flutter-apk/app-release.apk Dota-Draft.apk
           gh release create "build-${{ github.run_number }}" Dota-Draft.apk \
             --title "Dota Draft, сборка ${{ github.run_number }}" \
-            --notes "Скачай Dota-Draft.apk и установи на телефон." \
+            --notes "Телефон: скачай Dota-Draft.apk и установи. Windows: скачай Dota-Draft-Windows.zip, распакуй и запусти dota_draft.exe (появится через несколько минут после APK)." \
             --latest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  windows:
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Data assets
+        shell: bash
+        run: |
+          mkdir -p assets
+          cp data/draft.json assets/draft.json
+          for f in bench heroinfo patch pro_drafts portraits items; do
+            if [ -f data/$f.json ]; then cp data/$f.json assets/$f.json; else echo "{}" > assets/$f.json; fi
+          done
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Create Windows project files
+        shell: bash
+        run: |
+          flutter create --project-name dota_draft --org com.dotadraft --platforms windows .
+          rm -rf test
+          flutter pub get
+          dart run flutter_launcher_icons || true
+          sed -i 's/"dota_draft"/"Dota Draft"/' windows/runner/main.cpp || true
+      - name: Build Windows app
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter build windows --release --dart-define=BUILD=${{ github.run_number }} 2>&1 | tee build.txt || { python3 tools/annotate.py build.txt "windows"; exit 1; }
+      - name: Package and attach to the release
+        shell: pwsh
+        run: |
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath Dota-Draft-Windows.zip
+          gh release upload "build-${{ github.run_number }}" Dota-Draft-Windows.zip --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

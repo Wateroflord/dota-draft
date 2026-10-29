@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../data.dart';
 import '../i18n.dart';
+import '../platform.dart';
 import '../recognize.dart';
 import '../state.dart';
 import '../theme.dart';
@@ -128,13 +129,14 @@ class _ScanDraftScreenState extends State<ScanDraftScreen> {
                 style: FilledButton.styleFrom(backgroundColor: C.accent, minimumSize: const Size.fromHeight(44)),
                 onPressed: () => _pick(ImageSource.gallery),
                 icon: const Icon(Icons.image_outlined),
-                label: Text(L('Из галереи', 'From gallery')),
+                label: Text(isWindows ? L('Выбрать скриншот', 'Choose screenshot') : L('Из галереи', 'From gallery')),
               ),
             ),
-            const SizedBox(width: 8),
+            if (!isWindows) const SizedBox(width: 8),
+            if (!isWindows)
             Expanded(
               child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(side: const BorderSide(color: C.border), minimumSize: const Size.fromHeight(44)),
+                style: OutlinedButton.styleFrom(side: BorderSide(color: C.border), minimumSize: const Size.fromHeight(44)),
                 onPressed: () => _pick(ImageSource.camera),
                 icon: const Icon(Icons.photo_camera_outlined),
                 label: Text(L('Камера', 'Camera')),
@@ -250,11 +252,11 @@ class _ScanDraftScreenState extends State<ScanDraftScreen> {
                 final h = chosen[i] == null ? null : s.data!.byId[chosen[i]];
                 return Column(children: [
                   h == null
-                      ? SizedBox(height: c.maxWidth * 0.5625, child: const Icon(Icons.help_outline, color: C.muted, size: 18))
+                      ? SizedBox(height: c.maxWidth * 0.5625, child: Icon(Icons.help_outline, color: C.muted, size: 18))
                       : HeroImg(h, width: c.maxWidth),
                   const SizedBox(height: 2),
                   Text(h?.name ?? L('пусто', 'empty'),
-                      maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, color: C.muted)),
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, color: C.muted)),
                 ]);
               }),
             ),

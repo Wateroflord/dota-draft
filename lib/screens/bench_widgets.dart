@@ -120,7 +120,7 @@ class _BenchSectionState extends State<BenchSection> {
             for (var g = 1; g <= 3; g++) head(short[g], hl: g == my),
             if (me != null) head(L('Ты\n(${me.n.round()} игр)', 'You\n(${me.n.round()} games)'), hl: true),
           ]),
-          const Divider(color: C.border, height: 14),
+          Divider(color: C.border, height: 14),
           for (final m in benchMetrics)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),

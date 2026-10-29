@@ -118,6 +118,10 @@ class ToolsState extends ChangeNotifier {
   String? mapImage; // путь к своей картинке карты
 
   int quizBest = 0;
+  bool gsiOn = false; // принимать данные из Dota 2 (Game State Integration)
+  int gsiPort = 3000;
+  int breakAfter = 0; // напомнить о перерыве после N игр подряд (0 — не напоминать)
+  bool overlayClickThrough = false;
 
   List<TimerEvent> get timerEvents => [
         for (final d in defaultTimerEvents)
@@ -187,6 +191,17 @@ class ToolsState extends ChangeNotifier {
     _changed();
   }
 
+  void setGsi(bool on, {int? port}) {
+    gsiOn = on;
+    if (port != null) gsiPort = port;
+    _changed();
+  }
+
+  void setBreakAfter(int n) {
+    breakAfter = n;
+    _changed();
+  }
+
   void setQuizBest(int v) {
     if (v <= quizBest) return;
     quizBest = v;
@@ -223,6 +238,9 @@ class ToolsState extends ChangeNotifier {
         'routes': customRoutes.map((r) => r.toJson()).toList(),
         'mapImage': mapImage,
         'quizBest': quizBest,
+        'gsiOn': gsiOn,
+        'gsiPort': gsiPort,
+        'breakAfter': breakAfter,
       }));
     } catch (_) {}
   }
@@ -256,6 +274,9 @@ class ToolsState extends ChangeNotifier {
       mapImage = j['mapImage']?.toString();
       if (mapImage != null && !File(mapImage!).existsSync()) mapImage = null;
       quizBest = (j['quizBest'] as num?)?.toInt() ?? 0;
+      gsiOn = j['gsiOn'] == true;
+      gsiPort = (j['gsiPort'] as num?)?.toInt() ?? 3000;
+      breakAfter = (j['breakAfter'] as num?)?.toInt() ?? 0;
       notifyListeners();
     } catch (_) {}
   }

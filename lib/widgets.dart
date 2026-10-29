@@ -140,10 +140,10 @@ void showToast(BuildContext context, String msg) {
   ScaffoldMessenger.maybeOf(context)
     ?..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(
-      content: Text(msg, style: const TextStyle(color: C.text)),
+      content: Text(msg, style: TextStyle(color: C.text)),
       backgroundColor: C.surface2,
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: const BorderSide(color: C.border)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: C.border)),
     ));
 }
 
@@ -223,7 +223,7 @@ class ChanceBars extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(i < labels.length ? labels[i] : '', style: const TextStyle(fontSize: 10.5, color: C.muted)),
+                Text(i < labels.length ? labels[i] : '', style: TextStyle(fontSize: 10.5, color: C.muted)),
               ]),
             ),
           ),

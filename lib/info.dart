@@ -224,3 +224,32 @@ class Portraits {
     return Portraits(_i(j['w']) == 0 ? 16 : _i(j['w']), _i(j['h']) == 0 ? 9 : _i(j['h']), out);
   }
 }
+
+/// Предмет в справочнике.
+class ItemRef {
+  final String key;
+  final int id;
+  final String ru, en, descRu, descEn;
+  final int cost, tier, cd, mana;
+  final List<String> comps, attrs;
+  final String qual;
+  const ItemRef(this.key, this.id, this.ru, this.en, this.descRu, this.descEn, this.cost, this.tier, this.cd, this.mana, this.comps,
+      this.attrs, this.qual);
+
+  String get name => L(ru, en);
+  String get desc => L(descRu.isEmpty ? descEn : descRu, descEn.isEmpty ? descRu : descEn);
+  bool get neutral => tier >= 0;
+  String get image => 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/items/$key.png';
+
+  static Map<String, ItemRef> parse(dynamic j) {
+    if (j is! Map || j['items'] is! Map) return const {};
+    final out = <String, ItemRef>{};
+    (j['items'] as Map).forEach((k, v) {
+      if (v is! Map) return;
+      List<String> sl(dynamic x) => ((x as List?) ?? const []).map((e) => '$e').toList();
+      out['$k'] = ItemRef('$k', _i(v['id']), _s(v['ru']), _s(v['en']), _s(v['dru']), _s(v['den']), _i(v['cost']),
+          v['tier'] is num ? (v['tier'] as num).toInt() : -1, _i(v['cd']), _i(v['mc']), sl(v['comps']), sl(v['attrs']), _s(v['qual']));
+    });
+    return out;
+  }
+}

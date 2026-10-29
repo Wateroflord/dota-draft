@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 import '../data.dart';
 import '../engine.dart';
@@ -12,6 +13,11 @@ import 'share_screen.dart';
 import 'cm_screen.dart';
 import 'scan_draft_screen.dart';
 import '../i18n.dart';
+import '../overlay.dart';
+import '../platform.dart';
+import '../voice.dart';
+import 'personal_screen.dart';
+import 'trainer_screen.dart';
 
 Map<int, String> get stageTitles => {1: L('1 пик', '1st pick'), 2: L('2 пик', '2nd pick'), 3: L('3 пик', '3rd pick')};
 Map<int, String> get stageHints => {
@@ -58,7 +64,7 @@ class DraftScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: C.bg,
         surfaceTintColor: Colors.transparent,
-        title: const Text('Dota Draft', style: T.h2),
+        title: Text('Dota Draft', style: T.h2),
         actions: [
           IconButton(
             tooltip: L('Драфт по скриншоту', 'Draft from screenshot'),
@@ -86,6 +92,20 @@ class DraftScreen extends StatelessWidget {
                   'Draft saved. Mark the result in My heroes → Draft history'));
             },
           ),
+          if (isAndroid)
+            IconButton(
+              tooltip: L('Голосом: «Пудж врагам»', 'By voice: "Pudge to enemies"'),
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.mic_none),
+              onPressed: () => voiceInput(context),
+            ),
+          if (isWindows)
+            IconButton(
+              tooltip: L('Оверлей поверх игры (Ctrl+Shift+O)', 'Overlay on top of the game (Ctrl+Shift+O)'),
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.picture_in_picture_alt_outlined),
+              onPressed: overlay.enter,
+            ),
           PopupMenuButton<int>(
             icon: const Icon(Icons.more_vert),
             color: C.surface2,
@@ -99,12 +119,15 @@ class DraftScreen extends StatelessWidget {
                   s.clear();
                 case 3:
                   Navigator.of(context).push(MaterialPageRoute(builder: (_) => const InfoScreen()));
+                case 4:
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TrainerScreen()));
               }
             },
             itemBuilder: (_) => [
               PopupMenuItem(value: 0, child: Text(L('Captains Mode (пики и баны по очереди)', 'Captains Mode (step by step)'))),
               PopupMenuItem(value: 1, child: Text(L('Поменять команды местами', 'Swap teams'))),
               PopupMenuItem(value: 2, child: Text(L('Очистить драфт', 'Clear draft'))),
+              PopupMenuItem(value: 4, child: Text(L('Тренировка драфта против бота', 'Draft practice vs bot'))),
               PopupMenuItem(value: 3, child: Text(L('О данных', 'About the data'))),
             ],
           ),
@@ -167,7 +190,7 @@ class DraftScreen extends StatelessWidget {
           ]),
           const SizedBox(height: 6),
           Wrap(spacing: 4, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
-            const Icon(Icons.person_pin_circle_outlined, size: 16, color: C.accent2),
+            Icon(Icons.person_pin_circle_outlined, size: 16, color: C.accent2),
             Text(L('Я играю:', 'I play:'), style: T.small),
             for (final p in const [0, 1, 2, 3, 4, 5])
               Pill(p == 0 ? L('любую', 'any') : '$p', color: C.accent2, filled: s.myPos == p, onTap: () => s.setMyPos(p)),
@@ -207,6 +230,7 @@ class DraftScreen extends StatelessWidget {
           ],
           SectionLabel(enemies.length >= 5 ? L('Опасные герои', 'Dangerous heroes') : L('Опасные пики противника — кандидаты в бан', 'Dangerous enemy picks — ban candidates')),
           _Threats(),
+          const PersonalDraftCard(),
           const SizedBox(height: 14),
           Text(
             L('Нажми на героя в рекомендациях, чтобы добавить его в свою команду. Долгое нажатие — другие действия.', 'Tap a recommended hero to add it to your team. Long press for other actions.'),
@@ -240,7 +264,7 @@ class _WinCard extends StatelessWidget {
             const SizedBox(height: 6),
             Row(children: [
               Text(us == 0 ? '—' : us.round().toString(), style: T.num(18, color: C.ally)),
-              const Text('  vs  ', style: T.small),
+              Text('  vs  ', style: T.small),
               Text(them == 0 ? '—' : them.round().toString(), style: T.num(18, color: C.enemy)),
             ]),
           ]),
@@ -347,7 +371,7 @@ class _TeamRow extends StatelessWidget {
                       h == null ? '' : (positions[h.id] == null ? h.name : L('поз. ${positions[h.id]}', 'pos. ${positions[h.id]}')),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 10.5, color: C.muted),
+                      style: TextStyle(fontSize: 10.5, color: C.muted),
                     ),
                   ]),
                 );
@@ -361,7 +385,7 @@ class _TeamRow extends StatelessWidget {
   }
 }
 
-Widget _sheetBtn(BuildContext context, IconData icon, String text, VoidCallback onTap, {Color color = C.text}) => InkWell(
+Widget _sheetBtn(BuildContext context, IconData icon, String text, VoidCallback onTap, {Color? color}) => InkWell(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
@@ -404,7 +428,7 @@ class _Bans extends StatelessWidget {
         IconButton(
           visualDensity: VisualDensity.compact,
           tooltip: L('Забанить героя', 'Ban a hero'),
-          icon: const Icon(Icons.add_circle_outline, color: C.accent2),
+          icon: Icon(Icons.add_circle_outline, color: C.accent2),
           onPressed: () async {
             final h = await pickHero(context, title: L('Бан', 'Ban'), disabled: s.unavailable);
             if (h != null) s.toggleBan(h);
@@ -515,7 +539,7 @@ class _PickCard extends StatelessWidget {
           ),
           IconButton(
             visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.more_vert, color: C.muted, size: 20),
+            icon: Icon(Icons.more_vert, color: C.muted, size: 20),
             onPressed: () => heroActions(context, h),
           ),
         ]),
@@ -617,4 +641,43 @@ class _Threats extends StatelessWidget {
       ),
     );
   }
+}
+
+
+/// Голосовой ввод героев: «Пудж врагам», «Инвокер нам», «бан Войд».
+Future<void> voiceInput(BuildContext context) async {
+  final s = StateScope.read(context);
+  final stt = SpeechToText();
+  var ok = false;
+  try {
+    ok = await stt.initialize();
+  } catch (_) {}
+  if (!context.mounted) return;
+  if (!ok) {
+    showToast(context, L('Распознавание речи недоступно — разреши микрофон для приложения.', 'Speech recognition unavailable — allow the microphone.'));
+    return;
+  }
+  showToast(context, L('Говори: «Пудж врагам», «Инвокер нам», «бан Войд»', 'Say: "Pudge enemy", "Invoker us", "ban Void"'));
+  await stt.listen(
+    localeId: isEn ? 'en_US' : 'ru_RU',
+    listenFor: const Duration(seconds: 7),
+    onResult: (r) {
+      if (!r.finalResult) return;
+      final found = parseVoice(r.recognizedWords, s.data!.heroes);
+      if (found.isEmpty) {
+        if (context.mounted) showToast(context, L('Не понял героя: «${r.recognizedWords}»', 'Did not catch a hero: "${r.recognizedWords}"'));
+        return;
+      }
+      for (final f in found) {
+        if (f.$2 == 2) {
+          if (!s.bans.contains(f.$1.id)) s.toggleBan(f.$1.id);
+        } else {
+          s.add(f.$2 == 0, f.$1.id);
+        }
+      }
+      if (context.mounted) {
+        showToast(context, found.map((f) => '${f.$1.name} → ${[L('нам', 'us'), L('врагам', 'enemy'), L('бан', 'ban')][f.$2]}').join(', '));
+      }
+    },
+  );
 }

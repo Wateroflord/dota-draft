@@ -15,14 +15,19 @@ def permission(name):
 
 
 for p in ("android.permission.INTERNET", "android.permission.CAMERA", "android.permission.POST_NOTIFICATIONS",
-          "android.permission.VIBRATE", "android.permission.RECEIVE_BOOT_COMPLETED", "android.permission.WAKE_LOCK"):
+          "android.permission.VIBRATE", "android.permission.RECEIVE_BOOT_COMPLETED", "android.permission.WAKE_LOCK",
+          "android.permission.RECORD_AUDIO"):
     permission(p)
 
 if "TTS_SERVICE" not in text:
     text = text.replace(
         "</manifest>",
-        '    <queries>\n        <intent>\n            <action android:name="android.intent.action.TTS_SERVICE"/>\n'
-        "        </intent>\n    </queries>\n</manifest>",
+        '    <queries>\n'
+        '        <intent>\n            <action android:name="android.intent.action.TTS_SERVICE"/>\n        </intent>\n'
+        '        <intent>\n            <action android:name="android.speech.RecognitionService"/>\n        </intent>\n'
+        '        <intent>\n            <action android:name="android.intent.action.VIEW"/>\n'
+        '            <data android:scheme="https"/>\n        </intent>\n'
+        "    </queries>\n</manifest>",
     )
 text = re.sub(r'android:label="[^"]*"', 'android:label="Dota Draft"', text, count=1)
 

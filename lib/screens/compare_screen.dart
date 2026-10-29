@@ -57,7 +57,7 @@ class _CompareScreenState extends State<CompareScreen> {
         children: [
           Row(children: [
             Expanded(child: _slot(a, () => _pick(true))),
-            const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text('vs', style: T.h2)),
+            Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text('vs', style: T.h2)),
             Expanded(child: _slot(b, () => _pick(false))),
           ]),
           const SizedBox(height: 6),
@@ -77,7 +77,7 @@ class _CompareScreenState extends State<CompareScreen> {
         padding: const EdgeInsets.all(8),
         onTap: onTap,
         child: h == null
-            ? const SizedBox(
+            ? SizedBox(
                 height: 86,
                 child: Center(child: Icon(Icons.add, color: C.muted, size: 30)),
               )

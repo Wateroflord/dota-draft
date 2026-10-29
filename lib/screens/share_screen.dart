@@ -1,4 +1,5 @@
 import '../i18n.dart';
+import '../platform.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -84,6 +85,7 @@ class _ShareScreenState extends State<ShareScreen> {
             ),
           ],
           SectionLabel(L('Открыть чужой драфт', 'Open someone else\'s draft')),
+          if (!isWindows)
           SizedBox(
             height: 46,
             child: FilledButton.icon(
@@ -99,7 +101,7 @@ class _ShareScreenState extends State<ShareScreen> {
             const SizedBox(width: 6),
             IconButton(
               tooltip: L('Вставить из буфера', 'Paste from clipboard'),
-              icon: const Icon(Icons.content_paste, color: C.muted),
+              icon: Icon(Icons.content_paste, color: C.muted),
               onPressed: () async {
                 final d = await Clipboard.getData('text/plain');
                 if (d?.text != null) setState(() => input.text = d!.text!);
@@ -108,7 +110,7 @@ class _ShareScreenState extends State<ShareScreen> {
           ]),
           const SizedBox(height: 8),
           OutlinedButton(
-            style: OutlinedButton.styleFrom(side: const BorderSide(color: C.border)),
+            style: OutlinedButton.styleFrom(side: BorderSide(color: C.border)),
             onPressed: () => _apply(input.text),
             child: Text(L('Открыть по коду', 'Open by code')),
           ),

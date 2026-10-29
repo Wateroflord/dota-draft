@@ -1,5 +1,6 @@
 import '../i18n.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 import '../state.dart';
 import '../theme.dart';
@@ -48,6 +49,8 @@ class InfoScreen extends StatelessWidget {
               ),
             ]),
           ),
+          SectionLabel(L('Офлайн-режим', 'Offline mode')),
+          const _OfflineCard(),
           SectionLabel(L('Откуда данные', 'Where the data comes from')),
           AppCard(
             child: Text(
@@ -89,4 +92,72 @@ class InfoScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+
+/// Скачать все картинки, чтобы приложение работало без интернета.
+class _OfflineCard extends StatefulWidget {
+  const _OfflineCard();
+
+  @override
+  State<_OfflineCard> createState() => _OfflineCardState();
+}
+
+class _OfflineCardState extends State<_OfflineCard> {
+  int done = 0, total = 0;
+  bool busy = false;
+
+  Future<void> _download() async {
+    final s = StateScope.read(context);
+    final urls = <String>{
+      for (final h in s.data!.heroes) h.image,
+      for (final it in s.data!.items.values) it.image,
+      for (final it in s.itemRef.values) it.image,
+      for (final h in s.info.heroes.values)
+        for (final a in h.abilities) a.image,
+    }.toList();
+    setState(() {
+      busy = true;
+      done = 0;
+      total = urls.length;
+    });
+    final cm = DefaultCacheManager();
+    for (var i = 0; i < urls.length; i += 6) {
+      await Future.wait([
+        for (final u in urls.skip(i).take(6))
+          cm.downloadFile(u).then((_) {}, onError: (_) {}),
+      ]);
+      if (!mounted) return;
+      setState(() => done = (i + 6).clamp(0, total));
+    }
+    if (mounted) {
+      setState(() => busy = false);
+      showToast(context, L('Готово: картинки сохранены на устройстве', 'Done: images saved on the device'));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => AppCard(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(
+            L('Статистика уже хранится на устройстве. Скачай ещё картинки героев, предметов и умений — '
+                'тогда приложение полностью работает без интернета (кроме профиля Steam и разбора матчей).',
+                'Stats are already stored on the device. Download hero, item and ability images too — '
+                'then the app works fully offline (except Steam profile and match breakdowns).'),
+            style: T.small,
+          ),
+          const SizedBox(height: 8),
+          if (busy) ...[
+            LinearProgressIndicator(value: total == 0 ? null : done / total, color: C.accent, backgroundColor: C.surface2),
+            const SizedBox(height: 4),
+            Text('$done / $total', style: T.small),
+          ] else
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(side: BorderSide(color: C.border)),
+              onPressed: _download,
+              icon: const Icon(Icons.download_for_offline_outlined, size: 18),
+              label: Text(L('Скачать картинки для офлайна', 'Download images for offline')),
+            ),
+        ]),
+      );
 }

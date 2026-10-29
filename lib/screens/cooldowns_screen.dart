@@ -24,7 +24,8 @@ class _Cd {
 
 /// Перезарядка ультов и байбэков врагов: нажал «использовал» — пошёл отсчёт, голос скажет, когда готово.
 class CooldownsScreen extends StatefulWidget {
-  const CooldownsScreen({super.key});
+  final bool embedded; // внутри оверлея: без заголовка
+  const CooldownsScreen({super.key, this.embedded = false});
 
   @override
   State<CooldownsScreen> createState() => _CooldownsScreenState();
@@ -86,15 +87,35 @@ class _CooldownsScreenState extends State<CooldownsScreen> {
     final s = StateScope.of(context);
     return Scaffold(
       backgroundColor: C.bg,
-      appBar: AppBar(
-        backgroundColor: C.bg,
-        surfaceTintColor: Colors.transparent,
-        title: Text(L('Ульты и байбэки врагов', 'Enemy ults & buybacks'), style: T.h2),
-        actions: [IconButton(onPressed: _add, icon: const Icon(Icons.person_add_alt))],
-      ),
+      appBar: widget.embedded
+          ? null
+          : AppBar(
+              backgroundColor: C.bg,
+              surfaceTintColor: Colors.transparent,
+              title: Text(L('Ульты и байбэки врагов', 'Enemy ults & buybacks'), style: T.h2),
+              actions: [IconButton(onPressed: _add, icon: const Icon(Icons.person_add_alt))],
+            ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 0, 14, 32),
         children: [
+          if (widget.embedded)
+            Row(children: [
+              TextButton.icon(
+                onPressed: () => setState(() {
+                  heroes
+                    ..clear()
+                    ..addAll(StateScope.read(context).enemies.whereType<int>());
+                }),
+                icon: const Icon(Icons.sync, size: 16),
+                label: Text(L('Из драфта', 'From draft'), style: const TextStyle(fontSize: 12)),
+              ),
+              TextButton.icon(
+                onPressed: _add,
+                icon: const Icon(Icons.person_add_alt, size: 16),
+                label: Text(L('Добавить', 'Add'), style: const TextStyle(fontSize: 12)),
+              ),
+            ]),
+          if (!widget.embedded)
           Text(
             L('Увидел ульт или выкуп врага — нажми кнопку. Когда перезарядка закончится, телефон скажет и завибрирует. '
                 'Экран не гаснет, пока открыт этот экран.',
@@ -184,7 +205,7 @@ class _CooldownsScreenState extends State<CooldownsScreen> {
             ),
             IconButton(
               visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.close, size: 18, color: C.muted),
+              icon: Icon(Icons.close, size: 18, color: C.muted),
               onPressed: () => setState(() {
                 heroes.remove(h.id);
                 running.remove('${h.id}:ult');

@@ -68,7 +68,7 @@ class HistoryScreen extends StatelessWidget {
                     IconButton(
                       visualDensity: VisualDensity.compact,
                       tooltip: L('Открыть в драфте', 'Open in draft'),
-                      icon: const Icon(Icons.open_in_new, size: 18, color: C.accent2),
+                      icon: Icon(Icons.open_in_new, size: 18, color: C.accent2),
                       onPressed: () {
                         s.loadDraft(x);
                         Navigator.pop(context);
@@ -78,7 +78,7 @@ class HistoryScreen extends StatelessWidget {
                     IconButton(
                       visualDensity: VisualDensity.compact,
                       tooltip: L('Удалить', 'Delete'),
-                      icon: const Icon(Icons.delete_outline, size: 18, color: C.muted),
+                      icon: Icon(Icons.delete_outline, size: 18, color: C.muted),
                       onPressed: () => s.deleteDraft(x.id),
                     ),
                   ]),

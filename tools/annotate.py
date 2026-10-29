@@ -17,7 +17,7 @@ else:
     picked = []
     for i, l in enumerate(lines):
         low = l.lower()
-        if "error:" in low or "exception" in low or "failed" in low or "what went wrong" in low:
+        if "error:" in low or ": error" in low or "error c" in low or "exception" in low or "failed" in low or "what went wrong" in low:
             picked.extend(x.strip() for x in lines[i:i + 3])
     picked = list(dict.fromkeys(p for p in picked if p))
 

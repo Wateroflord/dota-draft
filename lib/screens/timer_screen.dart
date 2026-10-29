@@ -7,6 +7,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../theme.dart';
+import '../gsi.dart';
 import '../tools_state.dart';
 import '../widgets.dart';
 
@@ -102,7 +103,7 @@ class _TimerScreenState extends State<TimerScreen> {
         title: Text(L('Сколько сейчас в игре?', 'What is the game time now?'), style: T.h2),
         content: Row(children: [
           Expanded(child: TextField(controller: m, keyboardType: TextInputType.number, decoration: fieldDeco(L('мин', 'min')))),
-          const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text(':', style: T.h2)),
+          Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text(':', style: T.h2)),
           Expanded(child: TextField(controller: s, keyboardType: TextInputType.number, decoration: fieldDeco(L('сек', 'sec')))),
         ]),
         actions: [
@@ -138,7 +139,18 @@ class _TimerScreenState extends State<TimerScreen> {
   }
 
   void _tick() {
-    if (!mounted || !running) return;
+    if (!mounted) return;
+    // Если Dota присылает время матча (GSI) — часы идут сами.
+    final g = gsi.last;
+    if (gsi.live && g != null && g.clock != null && g.inGame) {
+      final target = DateTime.now().subtract(Duration(seconds: g.clock!));
+      if (!running || startedAt == null || startedAt!.difference(target).inSeconds.abs() > 1) {
+        startedAt = target;
+        if (!running) WakelockPlus.enable();
+        running = true;
+      }
+    }
+    if (!running) return;
     final t = now;
     final events = ToolsScope.read(context).timerEvents.where((e) => e.enabled);
     for (final e in events) {
@@ -205,7 +217,7 @@ class _TimerScreenState extends State<TimerScreen> {
             child: Column(children: [
               Text(mmss(t), style: T.num(56, color: running ? C.text : C.muted)),
               const SizedBox(height: 4),
-              Text(running ? L('идёт игра', 'game running') : (startedAt == null ? L('нажми «Старт» вместе с горном 0:00', 'tap Start together with the 0:00 horn') : L('пауза', 'paused')),
+              Text(running ? gsi.live ? L('синхронизировано с Dota', 'synced with Dota') : L('идёт игра', 'game running') : (startedAt == null ? L('нажми «Старт» вместе с горном 0:00', 'tap Start together with the 0:00 horn') : L('пауза', 'paused')),
                   style: T.small),
               const SizedBox(height: 14),
               Row(children: [
@@ -219,12 +231,12 @@ class _TimerScreenState extends State<TimerScreen> {
                 ),
                 const SizedBox(width: 8),
                 OutlinedButton(
-                  style: OutlinedButton.styleFrom(minimumSize: const Size(0, 46), side: const BorderSide(color: C.border)),
+                  style: OutlinedButton.styleFrom(minimumSize: const Size(0, 46), side: BorderSide(color: C.border)),
                   onPressed: _setTime,
                   child: Text(L('Задать время', 'Set time')),
                 ),
                 const SizedBox(width: 8),
-                IconButton(onPressed: _reset, icon: const Icon(Icons.restart_alt, color: C.muted)),
+                IconButton(onPressed: _reset, icon: Icon(Icons.restart_alt, color: C.muted)),
               ]),
             ]),
           ),

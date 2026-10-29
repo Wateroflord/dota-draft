@@ -7,6 +7,7 @@ import '../data.dart';
 import '../opendota.dart';
 import '../state.dart';
 import '../theme.dart';
+import '../tools_state.dart';
 import '../widgets.dart';
 import 'bench_widgets.dart';
 import 'hero_screen.dart';
@@ -228,6 +229,8 @@ class _StatsScreenState extends State<StatsScreen> {
             ),
           ),
         ],
+        SectionLabel(L('Время в игре', 'Time played')),
+        _playtime(ms),
         SectionLabel(L('Ты против среднего игрока на тех же героях', 'You vs the average player on the same heroes')),
         if (cmp.values.every((m) => m.isEmpty))
           AppCard(
@@ -254,7 +257,7 @@ class _StatsScreenState extends State<StatsScreen> {
                     ),
                   ),
               ]),
-              const Divider(color: C.border, height: 14),
+              Divider(color: C.border, height: 14),
               for (final m in benchMetrics.where((m) => m.label != 'KDA'))
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
@@ -309,6 +312,44 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
+  Widget _playtime(List<PlayerMatch> ms) {
+    final tools = ToolsScope.of(context);
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    double hours(int days) =>
+        ms.where((m) => now - m.startTime < days * 86400).fold<int>(0, (s, m) => s + m.duration) / 3600;
+    final today = DateTime.now();
+    final midnight = DateTime(today.year, today.month, today.day).millisecondsSinceEpoch ~/ 1000;
+    final todayGames = ms.where((m) => m.startTime >= midnight).length;
+    // Самая длинная сессия: матчи с перерывом меньше часа.
+    var longest = 0, cur = 0;
+    final chrono = ms.reversed.toList();
+    for (var i = 0; i < chrono.length; i++) {
+      if (i > 0 && chrono[i].startTime - (chrono[i - 1].startTime + chrono[i - 1].duration) > 3600) cur = 0;
+      cur++;
+      if (cur > longest) longest = cur;
+    }
+    return AppCard(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          _big(hours(7).toStringAsFixed(1), L('часов за неделю', 'hours this week')),
+          _big((hours(30) / 30).toStringAsFixed(1), L('в день (30 дн.)', 'per day (30d)')),
+          _big('$todayGames', L('игр сегодня', 'games today')),
+          _big('$longest', L('макс. подряд', 'max in a row')),
+        ]),
+        const SizedBox(height: 10),
+        Wrap(spacing: 6, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
+          Text(L('Напомнить о перерыве после', 'Remind me to rest after'), style: T.small),
+          for (final n in const [0, 3, 5, 7])
+            Pill(n == 0 ? L('нет', 'off') : L('$n игр', '$n games'),
+                color: C.gold, filled: tools.breakAfter == n, onTap: () => tools.setBreakAfter(n)),
+        ]),
+        const SizedBox(height: 4),
+        Text(L('Напоминание работает, когда включена связь с Dota (экран «Живой матч»).',
+            'The reminder works when the Dota link is on (Live match page).'), style: T.small.copyWith(fontSize: 11)),
+      ]),
+    );
+  }
+
   Color _good(BenchMetric m, double? v) {
     if (v == null) return C.muted;
     final x = m.higherBetter ? v : -v;
@@ -317,7 +358,7 @@ class _StatsScreenState extends State<StatsScreen> {
     return C.text;
   }
 
-  Widget _big(String v, String l, {Color color = C.text}) => Expanded(
+  Widget _big(String v, String l, {Color? color}) => Expanded(
         child: Column(children: [
           Text(v, style: T.num(19, color: color)),
           const SizedBox(height: 2),

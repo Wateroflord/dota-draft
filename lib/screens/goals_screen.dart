@@ -139,7 +139,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
           : ListView(
               padding: const EdgeInsets.fromLTRB(14, 0, 14, 32),
               children: [
-                if (s.myMatchesLoading) const LinearProgressIndicator(color: C.accent, backgroundColor: C.surface2),
+                if (s.myMatchesLoading) LinearProgressIndicator(color: C.accent, backgroundColor: C.surface2),
                 if (s.goals.isEmpty)
                   AppCard(
                     onTap: _add,
@@ -189,7 +189,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
             ),
             IconButton(
               visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.delete_outline, size: 18, color: C.muted),
+              icon: Icon(Icons.delete_outline, size: 18, color: C.muted),
               onPressed: () => s.removeGoal(g.id),
             ),
           ]),

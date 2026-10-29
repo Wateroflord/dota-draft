@@ -5,7 +5,15 @@ import '../opendota.dart';
 import '../state.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import '../overlay.dart';
+import '../platform.dart';
+import 'checklist_screen.dart';
 import 'cm_screen.dart';
+import 'item_timings_screen.dart';
+import 'items_screen.dart';
+import 'live_screen.dart';
+import 'personal_screen.dart';
+import 'trainer_screen.dart';
 import 'compare_screen.dart';
 import 'cooldowns_screen.dart';
 import 'friend_compare_screen.dart';
@@ -44,6 +52,14 @@ class GameScreen extends StatelessWidget {
               L('Пики и баны по очереди с подсказками на каждый ход', 'Step-by-step picks and bans with advice on every turn'), C.accent,
               () => go(const CmScreen())),
           SectionLabel(L('Во время матча', 'During the match')),
+          _tile(Icons.sensors, L('Живой матч (связь с Dota)', 'Live match (Dota link)'),
+              L('Время, золото, предметы из игры; таймеры идут сами; что купить дальше', 'Clock, gold, items from the game; auto timers; what to buy next'),
+              C.ally, () => go(const LiveScreen())),
+          if (isWindows)
+            _tile(Icons.picture_in_picture_alt_outlined, L('Оверлей поверх игры', 'In-game overlay'),
+                L('Маленькое окно поверх Dota. Ctrl+Shift+O — вкл/выкл, Ctrl+Shift+X — сквозь мышь, Ctrl+Shift+H — скрыть',
+                    'Small window on top of Dota. Ctrl+Shift+O on/off, Ctrl+Shift+X click-through, Ctrl+Shift+H hide'),
+                C.accent, overlay.enter),
           _tile(Icons.timer_outlined, L('Таймеры матча', 'Match timers'),
               L('Руны, стаки, Рошан, Аегис, Торментор, день и ночь — с голосом', 'Runes, stacks, Roshan, Aegis, Tormentor, day/night — with voice'),
               C.gold, () => go(const TimerScreen())),
@@ -60,6 +76,15 @@ class GameScreen extends StatelessWidget {
           _tile(Icons.fact_check_outlined, L('Разбор последнего матча', 'Last match breakdown'),
               L('MVP, кто недоиграл, кто руинил, почему проиграли', 'MVP, who underperformed, who ruined, why you lost'), C.gold,
               () => _openLast(context)),
+          _tile(Icons.history, L('Разбор любых матчей', 'Any match breakdown'),
+              L('Твои прошлые игры с фильтрами, игры друзей, любой матч по номеру', 'Your past games with filters, friends\' games, any match by ID'),
+              C.gold, () => go(const MatchesScreen())),
+          _tile(Icons.person_search_outlined, L('Мои контрпики', 'My counters'),
+              L('Против кого ты проигрываешь и с кем выигрываешь — по твоим играм', 'Who you lose against and win with — from your games'),
+              C.enemy, () => go(const PersonalScreen())),
+          _tile(Icons.schedule, L('Тайминги предметов', 'Item timings'),
+              L('Когда ты собираешь BKB и другие предметы — против всех игроков', 'When you finish BKB and other items — vs everyone'),
+              C.intel, () => go(const ItemTimingsScreen())),
           _tile(Icons.query_stats, L('Моя статистика', 'My stats'),
               L('Ты против игроков своего ранга, выше и ниже; тильт; друзья', 'You vs players of your rank, above and below; tilt; friends'),
               C.accent, () => go(const StatsScreen())),
@@ -73,6 +98,15 @@ class GameScreen extends StatelessWidget {
               L('Кто лучше фармит, реже умирает и на каких героях', 'Who farms better, dies less and on which heroes'), C.intel,
               () => go(const FriendCompareScreen())),
           SectionLabel(L('Тренировка', 'Practice')),
+          _tile(Icons.smart_toy_outlined, L('Тренировка драфта против бота', 'Draft practice vs bot'),
+              L('Бот пикает контрпики — собери команду сильнее', 'The bot counterpicks — draft a stronger team'), C.accent,
+              () => go(const TrainerScreen())),
+          _tile(Icons.checklist, L('Чек-листы по позициям', 'Position checklists'),
+              L('Что делать по минутам на позициях 1–5', 'What to do minute by minute on positions 1–5'), C.ally,
+              () => go(ChecklistScreen(position: StateScope.read(context).myPos == 0 ? 1 : StateScope.read(context).myPos))),
+          _tile(Icons.inventory_2_outlined, L('Справочник предметов', 'Item reference'),
+              L('Все предметы: описание, цена, рецепт, кто покупает', 'All items: description, cost, recipe, who buys'), C.gold,
+              () => go(const ItemsScreen())),
           _tile(Icons.compare_arrows, L('Сравнить героев', 'Compare heroes'),
               L('Два героя бок о бок: винрейт, фарм, время игры, контрпики', 'Two heroes side by side: win rate, farm, timing, counters'),
               C.accent2, () => go(const CompareScreen())),
@@ -126,7 +160,7 @@ class GameScreen extends StatelessWidget {
                 Text(sub, style: T.small),
               ]),
             ),
-            const Icon(Icons.chevron_right, color: C.muted),
+            Icon(Icons.chevron_right, color: C.muted),
           ]),
         ),
       );

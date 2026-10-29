@@ -28,7 +28,7 @@ class AnalysisScreen extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const Icon(Icons.insights, color: C.muted, size: 48),
+                  Icon(Icons.insights, color: C.muted, size: 48),
                   const SizedBox(height: 12),
                   Text(L('Выбери героев на вкладке «Драфт» — здесь появится разбор составов, линий и предметов.', 'Pick heroes on the Draft tab — the lineup, lanes and items breakdown will appear here.'),
                       textAlign: TextAlign.center, style: T.body),
@@ -205,7 +205,7 @@ class _LanesCard extends StatelessWidget {
               const SizedBox(height: 6),
               Row(children: [
                 for (final h in l.ours) ...[HeroImg(h, width: 48), const SizedBox(width: 3)],
-                const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text('vs', style: T.small)),
+                Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text('vs', style: T.small)),
                 for (final h in l.theirs) ...[HeroImg(h, width: 48), const SizedBox(width: 3)],
               ]),
             ]),
@@ -254,7 +254,7 @@ class _TipsCard extends StatelessWidget {
                     SizedBox(
                       width: 64,
                       child: Text(itemNames[k] ?? k,
-                          maxLines: 2, textAlign: TextAlign.center, style: const TextStyle(fontSize: 9.5, color: C.muted)),
+                          maxLines: 2, textAlign: TextAlign.center, style: TextStyle(fontSize: 9.5, color: C.muted)),
                     ),
                   ]),
               ]),
@@ -291,7 +291,7 @@ class _BuildRow extends StatelessWidget {
                 ? Text(L('${hero.name}: сборка появится после обновления данных', '${hero.name}: build will appear after a data update'), style: T.small)
                 : Wrap(spacing: 4, runSpacing: 4, children: [for (final it in list.take(6)) ItemImg(it.key, width: 36)]),
           ),
-          const Icon(Icons.chevron_right, color: C.muted, size: 18),
+          Icon(Icons.chevron_right, color: C.muted, size: 18),
         ]),
       ),
     );
