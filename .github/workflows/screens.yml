@@ -58,8 +58,9 @@ jobs:
           tar xf shots.tar -C screenshots || true
           git config user.name "dota-draft-bot"
           git config user.email "actions@users.noreply.github.com"
+          rm -rf screenshots/app_flutter
           git checkout --orphan screens-out
           git rm -rf --cached . > /dev/null
           git add -f screenshots
           git commit -m "screenshots" > /dev/null
-          git push -f origin screens-out
+          git push -f origin screens-out > push.txt 2>&1 || { echo "error: push failed"; cat push.txt; python3 tools/annotate.py push.txt build; exit 1; }
