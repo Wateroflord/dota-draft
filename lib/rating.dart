@@ -117,13 +117,15 @@ MatchVerdict rateMatch(MatchInfo m, StatsData d, BenchData bench, {double? draft
       out.add(PlayerRating(p, core, score, good, bad, verdict));
     }
   }
-  // MVP — лучший в матче, «лучший в команде» — у второй команды.
+  // MVP — лучший у победителей, «лучший в команде» — у проигравших.
   if (out.isNotEmpty) {
     final sorted = [...out]..sort((a, b) => b.score.compareTo(a.score));
-    final mvp = sorted.first;
-    final i = out.indexOf(mvp);
-    out[i] = PlayerRating(mvp.p, mvp.core, mvp.score, mvp.good, mvp.bad, 'mvp');
-    final other = sorted.where((r) => r.p.radiant != mvp.p.radiant && r.verdict != 'leaver').firstOrNull;
+    final mvp = sorted.where((r) => r.p.radiant == m.radiantWin && r.verdict != 'leaver').firstOrNull;
+    if (mvp != null) {
+      final i = out.indexOf(mvp);
+      out[i] = PlayerRating(mvp.p, mvp.core, mvp.score, mvp.good, mvp.bad, 'mvp');
+    }
+    final other = sorted.where((r) => r.p.radiant != m.radiantWin && r.verdict != 'leaver').firstOrNull;
     if (other != null) {
       final j = out.indexOf(other);
       out[j] = PlayerRating(other.p, other.core, other.score, other.good, other.bad, 'best');

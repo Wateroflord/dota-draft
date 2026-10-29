@@ -193,6 +193,7 @@ class _MatchScreenState extends State<MatchScreen> {
     final mePlayer = m.players.where((p) => s.accountId != null && p.accountId == s.accountId).firstOrNull ??
         m.players.where((p) => p.heroId == widget.myHero).firstOrNull;
     final myHero = mePlayer?.heroId ?? widget.myHero;
+    final known = mePlayer != null || myHero != null;
     final iAmRadiant = mePlayer?.radiant ?? (myHero == null ? true : m.radiant.contains(myHero));
     final allies = heroes(iAmRadiant ? m.radiant : m.dire);
     final enemies = heroes(iAmRadiant ? m.dire : m.radiant);
@@ -222,8 +223,13 @@ class _MatchScreenState extends State<MatchScreen> {
         AppCard(
           child: Row(children: [
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(won ? L('ПОБЕДА', 'VICTORY') : L('ПОРАЖЕНИЕ', 'DEFEAT'),
-                  style: T.label.copyWith(color: won ? C.ally : C.enemy, fontSize: 13)),
+              Text(
+                  !known
+                      ? (m.radiantWin ? L('ПОБЕДИЛ СВЕТ', 'RADIANT WON') : L('ПОБЕДИЛА ТЬМА', 'DIRE WON'))
+                      : won
+                          ? L('ПОБЕДА', 'VICTORY')
+                          : L('ПОРАЖЕНИЕ', 'DEFEAT'),
+                  style: T.label.copyWith(color: !known ? C.gold : (won ? C.ally : C.enemy), fontSize: 13)),
               const SizedBox(height: 4),
               Text(
                 '${iAmRadiant ? m.radiantScore : m.direScore} : ${iAmRadiant ? m.direScore : m.radiantScore}',
@@ -234,7 +240,10 @@ class _MatchScreenState extends State<MatchScreen> {
             Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
               Text(L('${m.duration ~/ 60} мин', '${m.duration ~/ 60} min'), style: T.small),
               const SizedBox(height: 4),
-              Text(L('шанс на драфте ${pct(chance, digits: 0)}', 'draft chance ${pct(chance, digits: 0)}'),
+              Text(
+                  !known
+                      ? L('драфт: Свет ${pct(chance, digits: 0)}', 'draft: Radiant ${pct(chance, digits: 0)}')
+                      : L('шанс на драфте ${pct(chance, digits: 0)}', 'draft chance ${pct(chance, digits: 0)}'),
                   style: T.num(13, color: chance >= 0.5 ? C.ally : C.enemy)),
             ]),
           ]),
@@ -255,7 +264,11 @@ class _MatchScreenState extends State<MatchScreen> {
             ]),
           ),
         ],
-        SectionLabel(won ? L('Почему победили', 'Why we won') : L('Почему проиграли', 'Why we lost')),
+        SectionLabel(!known
+            ? L('Почему такой исход', 'Why it ended this way')
+            : won
+                ? L('Почему победили', 'Why we won')
+                : L('Почему проиграли', 'Why we lost')),
         AppCard(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             for (final r in verdict.reasons)
@@ -294,14 +307,17 @@ class _MatchScreenState extends State<MatchScreen> {
             child: Column(children: [
               SizedBox(height: 140, child: CustomPaint(size: Size.infinite, painter: _AdvPainter(m.goldAdv!, iAmRadiant))),
               const SizedBox(height: 4),
-              Text(L('Выше нуля — твоя команда впереди. По горизонтали — минуты.', 'Above zero — your team is ahead. Horizontal — minutes.'),
+              Text(
+                  !known
+                      ? L('Выше нуля — впереди Свет. По горизонтали — минуты.', 'Above zero — Radiant is ahead. Horizontal — minutes.')
+                      : L('Выше нуля — твоя команда впереди. По горизонтали — минуты.', 'Above zero — your team is ahead. Horizontal — minutes.'),
                   style: T.small),
             ]),
           ),
         ],
-        SectionLabel(L('Твоя команда', 'Your team')),
+        SectionLabel(!known ? L('Свет', 'Radiant') : L('Твоя команда', 'Your team')),
         for (final r in verdict.players.where((r) => r.p.radiant == iAmRadiant)) _player(d, r, r.p == mePlayer),
-        SectionLabel(L('Противники', 'Enemies')),
+        SectionLabel(!known ? L('Тьма', 'Dire') : L('Противники', 'Enemies')),
         for (final r in verdict.players.where((r) => r.p.radiant != iAmRadiant)) _player(d, r, false),
         const SizedBox(height: 6),
         Text(
