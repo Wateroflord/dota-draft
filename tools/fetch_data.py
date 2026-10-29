@@ -238,9 +238,14 @@ def fetch_items(stats, old):
     if not consts:
         return old.get("items", {}), {h["id"]: h.get("items") for h in old.get("heroes", [])}
     by_id = {}
+    assembled = set()  # собираемые предметы (у них есть компоненты)
+    standalone = {"blink", "aghanims_shard", "ultimate_scepter", "boots", "magic_stick", "hand_of_midas",
+                  "black_king_bar"}
     for key, it in consts.items():
         if isinstance(it, dict) and it.get("id") is not None:
             by_id[int(it["id"])] = (key, it.get("dname") or key, int(it.get("cost") or 0))
+            if it.get("components"):
+                assembled.add(int(it["id"]))
     used, per_hero = {}, {}
     old_items = {h["id"]: h.get("items") for h in old.get("heroes", [])}
     for h in stats:
@@ -261,6 +266,8 @@ def fetch_items(stats, old):
                     continue
                 if phase != "start_game_items" and cost < 500:
                     continue  # мелочь (ветки, танго) только в стартовой закупке
+                if phase in ("mid_game_items", "late_game_items") and iid not in assembled and key not in standalone:
+                    continue  # компоненты (Ultimate Orb, Eaglesong) не показываем как отдельные предметы
                 ids.append(iid)
                 used[iid] = [key, name, cost]
                 if len(ids) >= 6:
