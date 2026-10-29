@@ -12,55 +12,38 @@ def show(title, obj, n=1500):
     print(f"===== {title} ({len(s)} chars)\n{s[:n]}\n", flush=True)
 
 O = "https://api.opendota.com/api"
-try:
-    ab = get(O + "/constants/abilities")
-    show("ability chrono", ab.get("faceless_void_chronosphere"))
-    show("ability bb", {k: ab.get(k) for k in ["special_bonus_unique_faceless_void_2"]})
-    ha = get(O + "/constants/hero_abilities")
-    show("hero_abilities void", ha.get("npc_dota_hero_faceless_void"))
-    show("hero_abilities invoker", ha.get("npc_dota_hero_invoker"), 800)
-    ids = get(O + "/constants/ability_ids")
-    show("ability_ids", dict(list(ids.items())[:5]))
-except Exception as e:
-    print("ERR const", e)
+D = "https://www.dota2.com/datafeed"
+for title, url, n in [
+    ("itemTimings", O + "/scenarios/itemTimings?hero_id=11&item=black_king_bar", 1500),
+    ("itemTimings no item", O + "/scenarios/itemTimings?hero_id=11", 800),
+    ("player heroes", O + "/players/105248644/heroes", 800),
+    ("player wl", O + "/players/105248644/wl?date=7", 300),
+    ("itemlist ru", D + "/itemlist?language=russian", 1500),
+    ("itemdata bkb ru", D + "/itemdata?language=russian&item_id=116", 4000),
+    ("const items bkb", None, 0),
+]:
+    try:
+        if url is None:
+            it = get(O + "/constants/items")
+            show(title, it.get("black_king_bar"), 2500)
+            show("const items neutral sample", it.get("trusty_shovel"), 1500)
+            continue
+        show(title, get(url), n)
+    except Exception as e:
+        print("ERR", title, e)
 try:
     pm = get(O + "/proMatches")
-    show("proMatches", pm[:2])
     m = get(O + f"/matches/{pm[0]['match_id']}")
-    show("pro match keys", sorted(m.keys()), 3000)
     p = m["players"][0]
-    show("pro player keys", sorted(p.keys()), 4000)
-    show("pro player sample", {k: p.get(k) for k in ["hero_id", "ability_upgrades_arr", "benchmarks", "lane_role", "rank_tier", "gold_t", "lh_t", "lane_efficiency_pct", "item_neutral", "item_neutral2", "leaver_status", "abandons", "net_worth", "hero_healing", "stuns", "obs_placed", "sen_placed", "camps_stacked", "teamfight_participation", "is_roaming", "lane", "deaths_log"]}, 4000)
-    show("radiant_gold_adv", m.get("radiant_gold_adv"), 600)
+    show("purchase_log", p.get("purchase_log"), 1200)
+    show("first_purchase_time", p.get("first_purchase_time"), 800)
+    show("purchase_time", p.get("purchase_time"), 600)
+    show("lh_t", p.get("lh_t"), 300)
+    show("parsed keys", sorted(k for k in p.keys()), 4000)
 except Exception as e:
-    print("ERR pro", e)
+    print("ERR match", e)
 try:
-    pub = get(O + "/publicMatches")
-    mid = pub[0]["match_id"]
-    show("public sample", pub[0])
-    m = get(O + f"/matches/{mid}")
-    show("public match keys", sorted(m.keys()), 3000)
-    p = m["players"][0]
-    show("public player keys", sorted(p.keys()), 4000)
-    show("public player sample", {k: p.get(k) for k in ["hero_id", "ability_upgrades_arr", "benchmarks", "lane_role", "rank_tier", "leaver_status", "net_worth", "hero_healing", "item_neutral", "personaname", "account_id"]}, 3000)
+    r = get(O + "/players/105248644/matches?limit=3&project=hero_id&project=purchase_time&project=first_purchase_time&project=item_0")
+    show("player matches project purchase", r, 1500)
 except Exception as e:
-    print("ERR public", e)
-D = "https://www.dota2.com/datafeed"
-try:
-    pl = get(D + "/patchnoteslist?language=russian")
-    show("patchnoteslist", pl, 1200)
-    last = pl["patches"][-1]["patch_number"] if "patches" in pl else None
-    pn = get(D + f"/patchnotes?version={last}&language=russian")
-    show("patchnotes keys", list(pn.keys()))
-    show("patchnotes hero sample", (pn.get("heroes") or [None])[:2], 3000)
-    show("patchnotes general", pn.get("general_notes"), 800)
-    show("patchnotes items", (pn.get("items") or [None])[:1], 800)
-except Exception as e:
-    print("ERR patch", e)
-try:
-    hl = get(D + "/herolist?language=russian")
-    show("herolist", hl, 800)
-    hd = get(D + "/herodata?language=russian&hero_id=41")
-    show("herodata void", hd, 4000)
-except Exception as e:
-    print("ERR herodata", e)
+    print("ERR pm", e)
