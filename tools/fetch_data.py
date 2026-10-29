@@ -24,6 +24,17 @@ KEY = os.environ.get("OPENDOTA_KEY", "")
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 AGG = os.path.join(ROOT, "data", "agg.json.gz")
 OUT = os.path.join(ROOT, "data", "draft.json")
+HIST = os.path.join(ROOT, "data", "history.json")
+
+# Длительность матча: <25, 25–35, 35–45, 45+ минут.
+DUR_BINS = [25 * 60, 35 * 60, 45 * 60]
+
+
+def dur_bin(sec):
+    for i, b in enumerate(DUR_BINS):
+        if sec < b:
+            return i
+    return len(DUR_BINS)
 
 DECAY = 0.93  # каждый запуск (раз в день) старые матчи весят меньше
 SHRINK = 80.0  # сколько игр нужно, чтобы доверять паре наполовину
@@ -117,10 +128,11 @@ def load_agg():
         with gzip.open(AGG, "rt", encoding="utf-8") as f:
             a = json.load(f)
         if a.get("version") == 1:
+            a.setdefault("dur", {})
             return a
     except (OSError, ValueError):
         pass
-    return {"version": 1, "last_id": 0, "matches": 0.0, "hero": {}, "ally": {}, "vs": {}}
+    return {"version": 1, "last_id": 0, "matches": 0.0, "hero": {}, "ally": {}, "vs": {}, "dur": {}}
 
 
 def decay(a):
@@ -134,6 +146,8 @@ def decay(a):
                 del d[k]
             else:
                 d[k] = [round(g, 3), round(w, 3)]
+    for h, bins in a["dur"].items():
+        a["dur"][h] = [[round(g * DECAY, 3), round(w * DECAY, 3)] for g, w in bins]
 
 
 def add(d, k, win):
@@ -172,11 +186,15 @@ def crawl(a, max_calls, deadline):
             if len(r) != 5 or len(d) != 5:
                 continue
             rw = bool(m.get("radiant_win"))
+            b = dur_bin(m.get("duration") or 0)
             taken += 1
             a["matches"] += 1
             for side, won in ((r, rw), (d, not rw)):
                 for h in side:
                     add(a["hero"], str(h), won)
+                    bins = a["dur"].setdefault(str(h), [[0.0, 0.0] for _ in range(len(DUR_BINS) + 1)])
+                    bins[b][0] += 1
+                    bins[b][1] += 1 if won else 0
                 for i in range(5):
                     for j in range(i + 1, 5):
                         x, y = sorted((side[i], side[j]))
@@ -214,6 +232,49 @@ def matchups_fallback(a, heroes):
         time.sleep(1.1 if not KEY else 0.15)
 
 
+def fetch_items(stats, old):
+    """Популярные предметы героев по стадиям игры. При ошибке — берём из прошлых данных."""
+    consts = get("/constants/items")
+    if not consts:
+        return old.get("items", {}), {h["id"]: h.get("items") for h in old.get("heroes", [])}
+    by_id = {}
+    for key, it in consts.items():
+        if isinstance(it, dict) and it.get("id") is not None:
+            by_id[int(it["id"])] = (key, it.get("dname") or key, int(it.get("cost") or 0))
+    used, per_hero = {}, {}
+    old_items = {h["id"]: h.get("items") for h in old.get("heroes", [])}
+    for h in stats:
+        pop = get(f"/heroes/{h['id']}/itemPopularity")
+        time.sleep(1.1 if not KEY else 0.15)
+        if not isinstance(pop, dict):
+            per_hero[h["id"]] = old_items.get(h["id"])
+            continue
+        res = {}
+        for phase, short in (("start_game_items", "s"), ("early_game_items", "e"),
+                             ("mid_game_items", "m"), ("late_game_items", "l")):
+            rows = sorted(((int(k), v) for k, v in (pop.get(phase) or {}).items() if int(k) in by_id),
+                          key=lambda x: -x[1])
+            ids = []
+            for iid, _ in rows:
+                key, name, cost = by_id[iid]
+                if key.startswith("recipe_"):
+                    continue
+                if phase != "start_game_items" and cost < 500:
+                    continue  # мелочь (ветки, танго) только в стартовой закупке
+                ids.append(iid)
+                used[iid] = [key, name, cost]
+                if len(ids) >= 6:
+                    break
+            res[short] = ids
+        per_hero[h["id"]] = res
+    for items in per_hero.values():
+        for ids in (items or {}).values():
+            for iid in ids:
+                if iid not in used and iid in by_id:
+                    used[iid] = list(by_id[iid])
+    return {str(k): v for k, v in used.items()}, per_hero
+
+
 def main():
     max_calls = 1000
     if "--calls" in sys.argv:
@@ -227,6 +288,16 @@ def main():
         print("heroStats unavailable", flush=True)
         sys.exit(1 if not os.path.exists(OUT) else 0)
     stats.sort(key=lambda h: h["id"])
+
+    try:
+        with open(OUT, encoding="utf-8") as f:
+            old = json.load(f)
+    except (OSError, ValueError):
+        old = {}
+    items, hero_items = ({}, {}) if "--no-items" in sys.argv else fetch_items(stats, old)
+    if not items:
+        items = old.get("items", {})
+        hero_items = {h["id"]: h.get("items") for h in old.get("heroes", [])}
 
     a = load_agg()
     decay(a)
@@ -285,6 +356,18 @@ def main():
                 total = sum(sum((x.get(f"{b}_pick") or 0) for b in range(1, 9)) for x in stats) / 10 or 1
             wr.append(round(wins / picks, 4) if picks else 0.5)
             pr.append(round(picks / total, 4))
+        # Турбо — отдельная группа (последняя).
+        tp, tw = h.get("turbo_picks") or 0, h.get("turbo_wins") or 0
+        ttotal = sum((x.get("turbo_picks") or 0) for x in stats) / 10 or 1
+        wr.append(round(tw / tp, 4) if tp else wr[0])
+        pr.append(round(tp / ttotal, 4))
+        # Винрейт по длительности матча (притянут к общему, если игр мало).
+        bins = a["dur"].get(str(h["id"]))
+        base_wr = base.get(h["id"], 0.5)
+        dur = []
+        for i in range(len(DUR_BINS) + 1):
+            g, w = (bins[i] if bins else (0, 0))
+            dur.append(round((w + base_wr * 60) / (g + 60), 4))
         heroes.append({
             "id": h["id"],
             "n": h.get("localized_name") or short,
@@ -294,12 +377,42 @@ def main():
             "p": positions_for(short, h.get("roles", [])),
             "wr": wr,
             "pr": pr,
+            "pro": [h.get("pro_pick") or 0, h.get("pro_win") or 0, h.get("pro_ban") or 0],
+            "dur": dur,
+            "items": hero_items.get(h["id"]) or {},
         })
+
+    # История винрейтов для трендов (последние 40 дней) и изменение за ~неделю.
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    try:
+        with open(HIST, encoding="utf-8") as f:
+            hist = json.load(f)
+    except (OSError, ValueError):
+        hist = {}
+    hist[today] = {str(x["id"]): x["wr"] for x in heroes}
+    for d in sorted(hist.keys())[:-40]:
+        del hist[d]
+    past = [d for d in sorted(hist.keys()) if d < today]
+    ref = None
+    for d in reversed(past):
+        if (datetime.strptime(today, "%Y-%m-%d") - datetime.strptime(d, "%Y-%m-%d")).days >= 6:
+            ref = d
+            break
+    if ref is None and past:
+        ref = past[0]
+    for x in heroes:
+        old_wr = hist.get(ref, {}).get(str(x["id"])) if ref else None
+        if old_wr and len(old_wr) == len(x["wr"]):
+            x["wrd"] = [round(n - o, 4) for n, o in zip(x["wr"], old_wr)]
+    with open(HIST, "w", encoding="utf-8") as f:
+        json.dump(hist, f, separators=(",", ":"))
 
     out = {
         "updated": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         "matches": round(a["matches"]),
         "source": "OpenDota API",
+        "trend_from": ref,
+        "items": items,
         "heroes": heroes,
         "adv": adv,
         "syn": syn,
