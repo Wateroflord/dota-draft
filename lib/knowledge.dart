@@ -231,3 +231,64 @@ const itemNames = {
 };
 
 String itemImage(String key) => 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/items/$key.png';
+
+/// Известные сильные связки героев: ключи героев и короткое объяснение.
+class Combo {
+  final String a, b;
+  final String why;
+  const Combo(this.a, this.b, this.why);
+}
+
+const combos = <Combo>[
+  Combo('magnataur', 'faceless_void', 'Реверс Магнуса собирает врагов, Хроносфера держит — массовое убийство.'),
+  Combo('magnataur', 'sven', 'Реверс + Буря и ульт Свена — урон по всей группе.'),
+  Combo('magnataur', 'phantom_assassin', 'Скьюер подтаскивает врага к ПА — быстрый крит.'),
+  Combo('enigma', 'queenofpain', 'Чёрная дыра + Sonic Wave по стоящим в куче врагам.'),
+  Combo('enigma', 'invoker', 'Чёрная дыра + Chaos Meteor и Deafening Blast.'),
+  Combo('faceless_void', 'skywrath_mage', 'Скай бьёт ультом по застывшим в Хроносфере.'),
+  Combo('faceless_void', 'jakiro', 'Макропирус и Ледяной путь по врагам в Хроносфере.'),
+  Combo('tidehunter', 'kunkka', 'Равейдж и Ghostship — два массовых контроля подряд.'),
+  Combo('earthshaker', 'dark_seer', 'Vacuum стягивает, Эхо Слэм бьёт по всем.'),
+  Combo('dark_seer', 'phantom_lancer', 'Ion Shell и Surge делают из ПЛ машину для пуша.'),
+  Combo('dark_seer', 'troll_warlord', 'Surge и Ion Shell для Тролля — быстрый темп.'),
+  Combo('wisp', 'gyrocopter', 'Ио даёт скорость и реген, вместе — сильные ранние ганги.'),
+  Combo('wisp', 'tiny', 'Классика: Ио + Тини — релокейт и бросок.'),
+  Combo('wisp', 'chaos_knight', 'Релокейт с ульт-иллюзиями Хаоса.'),
+  Combo('tiny', 'lycan', 'Тини бросает в кучу, Ликан с волками быстро добивает.'),
+  Combo('shadow_demon', 'phantom_lancer', 'Иллюзии Disruption от ШД + раскачанные ПЛ.'),
+  Combo('shadow_demon', 'terrorblade', 'Иллюзии Террорблейда и Disruption — урон и пуш.'),
+  Combo('vengefulspirit', 'drow_ranger', 'Аура урона + аура Дроу — сильный ранний пуш.'),
+  Combo('ogre_magi', 'troll_warlord', 'Bloodlust на Тролля — бешеная скорость атаки.'),
+  Combo('ogre_magi', 'huskar', 'Bloodlust на Хускара — очень быстрые убийства.'),
+  Combo('dazzle', 'huskar', 'Shallow Grave и хил — Хускар почти бессмертен.'),
+  Combo('oracle', 'huskar', 'False Promise и Fortune\'s End — Хускар не умирает.'),
+  Combo('abaddon', 'huskar', 'Щит Абаддона и ульт — длинные драки для Хускара.'),
+  Combo('treant', 'medusa', 'Living Armor и Eyes in the Forest — сильная защита.'),
+  Combo('treant', 'troll_warlord', 'Living Armor держит Тролля в драке.'),
+  Combo('bane', 'pudge', 'Кошмар/Захват + хук — гарантированный размен.'),
+  Combo('vengefulspirit', 'pudge', 'Сваап + хук — подтягиваем врага к команде.'),
+  Combo('chen', 'tiny', 'Сейвы Чена и бросок Тини.'),
+  Combo('naga_siren', 'disruptor', 'Песня Наги + Статический шторм по спящим.'),
+  Combo('naga_siren', 'warlock', 'Песня Наги, потом Голем и Fatal Bonds.'),
+  Combo('dark_willow', 'kunkka', 'Cursed Crown под X-Marks — надёжный контроль.'),
+  Combo('crystal_maiden', 'faceless_void', 'Freezing Field по врагам в Хроносфере.'),
+  Combo('witch_doctor', 'faceless_void', 'Death Ward по врагам в Хроносфере.'),
+  Combo('witch_doctor', 'enigma', 'Death Ward по врагам в Чёрной дыре.'),
+  Combo('legion_commander', 'abaddon', 'Щит Абаддона на Легионку перед Duel.'),
+  Combo('legion_commander', 'oracle', 'False Promise держит Легионку в Duel.'),
+  Combo('snapfire', 'batrider', 'Бат вытаскивает врага, Снапфаер добивает.'),
+  Combo('mirana', 'riki', 'Ульт Мираны прячет команду — внезапная атака.'),
+  Combo('beastmaster', 'drow_ranger', 'Аура Бистмастера и Дроу — пуш с 10 минуты.'),
+  Combo('slardar', 'templar_assassin', 'Corrosive Haze и раскачанный урон ТА.'),
+  Combo('grimstroke', 'lion', 'Soulbind: Finger of Death бьёт двух героев.'),
+  Combo('earth_spirit', 'tiny', 'Земляной дух + Тини — два сейва и масс-контроль.'),
+  Combo('ancient_apparition', 'huskar', 'Ульт АА выключает хил врагов — Хускар без контры.'),
+  Combo('undying', 'bristleback', 'Undying и Бристлбек выигрывают долгие драки.'),
+  Combo('marci', 'sven', 'Rebound и Unleash Марси + урон Свена.'),
+];
+
+/// Сочетания, которые есть в команде.
+List<Combo> combosIn(Iterable<String> keys) {
+  final s = keys.toSet();
+  return combos.where((c) => s.contains(c.a) && s.contains(c.b)).toList();
+}

@@ -1,0 +1,33 @@
+name: Update hero info and patch notes
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: info
+  cancel-in-progress: false
+
+jobs:
+  info:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install pillow
+      - name: Fetch hero info, patch notes, pro drafts, portraits
+        run: python3 tools/fetch_info.py
+        env:
+          OPENDOTA_KEY: ${{ secrets.OPENDOTA_KEY }}
+      - name: Commit data
+        run: |
+          git config user.name "dota-draft-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data
+          git diff --cached --quiet && exit 0
+          git commit -m "Update hero info $(date -u +%F)"
+          for i in 1 2 3; do git pull --rebase origin main && git push && break; sleep 5; done

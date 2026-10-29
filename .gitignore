@@ -10,3 +10,7 @@ pubspec.lock
 *.iml
 /assets/draft.json
 /assets/bench.json
+/assets/heroinfo.json
+/assets/patch.json
+/assets/pro_drafts.json
+/assets/portraits.json

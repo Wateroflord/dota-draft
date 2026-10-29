@@ -47,11 +47,12 @@ def load():
             return a
     except (OSError, ValueError):
         pass
-    return {"version": 1, "seen": [], "stats": {}, "neutral": {}}
+    return {"version": 1, "seen": [], "stats": {}, "neutral": {}, "skills": {}, "talents": {}}
 
 
 def decay(a):
-    for key in ("stats", "neutral"):
+    for key in ("stats", "neutral", "skills", "talents"):
+        a.setdefault(key, {})
         for k in list(a[key].keys()):
             row = [round(v * DECAY, 3) for v in a[key][k]]
             if row[0] < 0.3:
@@ -130,6 +131,11 @@ def main():
         random.shuffle(b)
     print("candidates:", {k: len(v) for k, v in buckets.items()}, flush=True)
 
+    # Названия умений по id (чтобы отличать таланты от обычных умений).
+    ability_ids = get("/constants/ability_ids") or {}
+    talent_ids = {int(k) for k, v in ability_ids.items() if str(v).startswith("special_bonus") and str(v) != "special_bonus_attributes"}
+    skip_ids = {int(k) for k, v in ability_ids.items() if str(v).startswith("special_bonus")}
+
     # 2) Детали матчей по очереди из разных групп, пока есть время.
     done = 0
     order = [1, 2, 3]
@@ -154,6 +160,23 @@ def main():
                 rad = p.get("isRadiant") if isinstance(p.get("isRadiant"), bool) else (p.get("player_slot", 0) < 128)
                 won = rad == rw
                 add_stats(a, hid, g, p, dur, won)
+                ups = p.get("ability_upgrades_arr")
+                if isinstance(ups, list) and ups:
+                    lvl = 0
+                    for aid in ups:
+                        if not isinstance(aid, int):
+                            continue
+                        if aid in talent_ids:
+                            k = f"{hid}:{aid}"
+                            row = a["talents"].get(k, [0.0, 0.0])
+                            a["talents"][k] = [row[0] + 1, row[1] + (1 if won else 0)]
+                            continue
+                        if aid in skip_ids or lvl >= 16:
+                            continue
+                        k = f"{hid}:{lvl}:{aid}"
+                        row = a["skills"].get(k, [0.0, 0.0])
+                        a["skills"][k] = [row[0] + 1, row[1] + (1 if won else 0)]
+                        lvl += 1
                 nid = p.get("item_neutral")
                 if nid:
                     k = f"{hid}:{nid}"
@@ -190,7 +213,31 @@ def main():
         neutral[hid] = sorted(neutral[hid], key=lambda r: -r[1])[:6]
     used = {r[0] for rows in neutral.values() for r in rows}
 
+    # Порядок прокачки: на каждом шаге — умение, которое чаще берут победители.
+    by_step = {}
+    for k, (n, w) in a["skills"].items():
+        hid, step, aid = k.split(":")
+        by_step.setdefault(hid, {}).setdefault(int(step), []).append((w, n, int(aid)))
+    skills = {}
+    for hid, steps in by_step.items():
+        seq = []
+        for step in range(16):
+            opts = steps.get(step)
+            if not opts:
+                break
+            tot_w = sum(o[0] for o in opts) or 1
+            best = max(opts, key=lambda o: (o[0], o[1]))
+            seq.append([best[2], round(best[0] / tot_w, 2)])
+        if len(seq) >= 6:
+            skills[hid] = seq
+    talents = {}
+    for k, (n, w) in a["talents"].items():
+        hid, aid = k.split(":")
+        talents.setdefault(hid, {})[aid] = [round(n, 1), round(w / n, 4) if n else 0]
+
     out = {
+        "skills": skills,
+        "talents": talents,
         "updated": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         "fields": FIELDS,
         "heroes": heroes,

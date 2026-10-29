@@ -27,6 +27,10 @@ flutter:
   assets:
     - assets/draft.json
     - assets/bench.json
+    - assets/heroinfo.json
+    - assets/patch.json
+    - assets/pro_drafts.json
+    - assets/portraits.json
 
 flutter_launcher_icons:
   android: true
