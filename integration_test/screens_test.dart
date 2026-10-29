@@ -15,6 +15,12 @@ import 'package:dota_draft/screens/share_screen.dart';
 import 'package:dota_draft/screens/stats_screen.dart';
 import 'package:dota_draft/screens/timer_screen.dart';
 import 'package:dota_draft/screens/who_won_screen.dart';
+import 'package:dota_draft/screens/live_screen.dart';
+import 'package:dota_draft/screens/personal_screen.dart';
+import 'package:dota_draft/screens/item_timings_screen.dart';
+import 'package:dota_draft/screens/items_screen.dart';
+import 'package:dota_draft/screens/trainer_screen.dart';
+import 'package:dota_draft/screens/checklist_screen.dart';
 import 'package:dota_draft/screens/home_shell.dart';
 import 'package:dota_draft/state.dart';
 import 'dart:io';
@@ -173,6 +179,25 @@ void main() {
       await shot('stats_more');
     });
     await open('rank', const RankScreen());
+    await open('matches_browser', const MatchesScreen(), then: () async {
+      await tester.pump(const Duration(seconds: 6));
+      await shot('matches_loaded');
+    });
+    await open('personal', const PersonalScreen());
+    await open('item_timings', const ItemTimingsScreen(), then: () async {
+      await tester.pump(const Duration(seconds: 10));
+      await shot('item_timings_loaded');
+    });
+    await open('items', const ItemsScreen());
+    await open('trainer', const TrainerScreen(), then: () async {
+      final start = find.byIcon(Icons.play_arrow);
+      if (start.evaluate().isNotEmpty) {
+        await tester.tap(start);
+        await shot('trainer_started');
+      }
+    });
+    await open('checklist', const ChecklistScreen(position: 5));
+    await open('live', const LiveScreen());
     await open('goals', const GoalsScreen());
     await open('friend', const FriendCompareScreen());
     s.setLang('en');
@@ -181,6 +206,13 @@ void main() {
     await tab('Game');
     await shot('english_game');
     s.setLang('ru');
+    await tester.pump(const Duration(seconds: 1));
+    s.setTheme('light');
+    await tester.pump(const Duration(seconds: 2));
+    await shot('light_draft');
+    await tab('Мои герои');
+    await shot('light_profile');
+    s.setTheme('dark');
     await tester.pump(const Duration(seconds: 1));
 
     FlutterError.onError = old;
