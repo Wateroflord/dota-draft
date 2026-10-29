@@ -8,10 +8,10 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
-import 'package:workmanager/workmanager.dart';
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 
 const _raw = 'https://raw.githubusercontent.com/Wateroflord/dota-draft/main/data/';
-const taskName = 'dota-draft-check';
+const _alarmId = 4242;
 
 final _notifications = FlutterLocalNotificationsPlugin();
 
@@ -49,28 +49,26 @@ Future<void> notify(int id, String title, String body) async {
 Future<void> scheduleBackground(bool on) async {
   try {
     if (on) {
-      await Workmanager().registerPeriodicTask(
-        taskName,
-        taskName,
-        frequency: const Duration(hours: 12),
-        constraints: Constraints(networkType: NetworkType.connected),
+      await AndroidAlarmManager.periodic(
+        const Duration(hours: 12),
+        _alarmId,
+        backgroundEntry,
+        rescheduleOnReboot: true,
+        allowWhileIdle: true,
       );
     } else {
-      await Workmanager().cancelByUniqueName(taskName);
+      await AndroidAlarmManager.cancel(_alarmId);
     }
   } catch (_) {}
 }
 
 @pragma('vm:entry-point')
-void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) async {
-    WidgetsFlutterBinding.ensureInitialized();
-    try {
-      await initNotifications();
-      await backgroundCheck();
-    } catch (_) {}
-    return true;
-  });
+Future<void> backgroundEntry() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await initNotifications();
+    await backgroundCheck();
+  } catch (_) {}
 }
 
 Future<Map<String, dynamic>> _readJson(String name) async {

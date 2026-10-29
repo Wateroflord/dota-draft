@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:workmanager/workmanager.dart';
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 
 import 'background.dart';
 
@@ -24,7 +24,7 @@ Future<void> main() async {
   tools.load();
   await state.init();
   try {
-    await Workmanager().initialize(callbackDispatcher);
+    await AndroidAlarmManager.initialize();
     await initNotifications();
     if (state.notify) await scheduleBackground(true);
   } catch (_) {}

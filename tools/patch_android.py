@@ -15,7 +15,7 @@ def permission(name):
 
 
 for p in ("android.permission.INTERNET", "android.permission.CAMERA", "android.permission.POST_NOTIFICATIONS",
-          "android.permission.VIBRATE"):
+          "android.permission.VIBRATE", "android.permission.RECEIVE_BOOT_COMPLETED", "android.permission.WAKE_LOCK"):
     permission(p)
 
 if "TTS_SERVICE" not in text:
@@ -25,6 +25,26 @@ if "TTS_SERVICE" not in text:
         "        </intent>\n    </queries>\n</manifest>",
     )
 text = re.sub(r'android:label="[^"]*"', 'android:label="Dota Draft"', text, count=1)
+
+# Фоновая проверка (android_alarm_manager_plus).
+if "AlarmService" not in text:
+    alarm = '''        <service
+            android:name="dev.fluttercommunity.plus.androidalarmmanager.AlarmService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false"/>
+        <receiver
+            android:name="dev.fluttercommunity.plus.androidalarmmanager.AlarmBroadcastReceiver"
+            android:exported="false"/>
+        <receiver
+            android:name="dev.fluttercommunity.plus.androidalarmmanager.RebootBroadcastReceiver"
+            android:enabled="false"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+    </application>'''
+    text = text.replace("    </application>", alarm, 1)
 
 # Виджет на главный экран.
 if "DotaWidgetProvider" not in text:
