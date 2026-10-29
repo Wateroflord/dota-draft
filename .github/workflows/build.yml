@@ -1,0 +1,81 @@
+name: Build APK
+
+on:
+  push:
+    paths-ignore:
+      - 'data/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Hero stats (first time)
+        run: |
+          if [ ! -f data/draft.json ]; then python3 tools/fetch_data.py --calls 400 --minutes 8; fi
+          mkdir -p assets
+          cp data/draft.json assets/draft.json
+          ls -la data assets
+
+      - name: Save stats to repo (first time)
+        run: |
+          git config user.name "dota-draft-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data
+          git diff --cached --quiet || { git commit -m "Initial hero stats"; git push; }
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Create Android project files
+        run: |
+          flutter create --project-name dota_draft --org com.dotadraft --platforms android .
+          rm -rf test
+
+      - name: Configure Android
+        run: python3 tools/patch_android.py
+
+      - name: Install signing key
+        run: |
+          mkdir -p ~/.android
+          cp tools/debug.keystore ~/.android/debug.keystore
+
+      - name: Get packages
+        run: flutter pub get
+
+      - name: App icon
+        continue-on-error: true
+        run: dart run flutter_launcher_icons
+
+      - name: Analyze (errors shown as annotations)
+        run: |
+          flutter analyze --no-fatal-infos --no-fatal-warnings > analyze.txt 2>&1 || true
+          cat analyze.txt
+          python3 tools/annotate.py analyze.txt "analyze"
+
+      - name: Build APK
+        run: |
+          set -o pipefail
+          flutter build apk --release 2>&1 | tee build.txt || { python3 tools/annotate.py build.txt "build"; exit 1; }
+
+      - name: Publish release with APK
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk Dota-Draft.apk
+          gh release create "build-${{ github.run_number }}" Dota-Draft.apk \
+            --title "Dota Draft, сборка ${{ github.run_number }}" \
+            --notes "Скачай Dota-Draft.apk и установи на телефон." \
+            --latest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

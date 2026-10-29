@@ -26,11 +26,12 @@ AGG = os.path.join(ROOT, "data", "agg.json.gz")
 OUT = os.path.join(ROOT, "data", "draft.json")
 
 DECAY = 0.93  # каждый запуск (раз в день) старые матчи весят меньше
-SHRINK = 40.0  # сколько игр нужно, чтобы доверять паре наполовину
+SHRINK = 80.0  # сколько игр нужно, чтобы доверять паре наполовину
 MIN_DURATION = 15 * 60
 
 # Группы рангов: 1 Рекрут, 2 Страж, 3 Рыцарь, 4 Герой, 5 Легенда, 6 Властелин, 7 Божество, 8 Титан.
-GROUPS = [list(range(1, 9)), [1, 2], [3, 4, 5], [6, 7], [8]]
+# (OpenDota сейчас отдаёт Титанов вместе с Божеством, поэтому верхняя группа — 6–8.)
+GROUPS = [list(range(1, 9)), [1, 2], [3, 4, 5], [6, 7, 8]]
 
 # Типичные позиции (1 керри, 2 мид, 3 хард, 4 полусаппорт, 5 саппорт). Для новых героев — по ролям.
 POSITIONS = {
@@ -140,13 +141,13 @@ def add(d, k, win):
     d[k] = [g + 1, w + (1 if win else 0)]
 
 
-def crawl(a, max_calls):
+def crawl(a, max_calls, deadline):
     newest_seen = a["last_id"]
     stop_at = a["last_id"]
     less_than = None
     used = 0
     taken = 0
-    while used < max_calls:
+    while used < max_calls and time.time() < deadline:
         path = "/publicMatches" + (f"?less_than_match_id={less_than}" if less_than else "")
         page = get(path)
         used += 1
@@ -217,6 +218,10 @@ def main():
     max_calls = 1000
     if "--calls" in sys.argv:
         max_calls = int(sys.argv[sys.argv.index("--calls") + 1])
+    minutes = 30.0
+    if "--minutes" in sys.argv:
+        minutes = float(sys.argv[sys.argv.index("--minutes") + 1])
+    deadline = time.time() + minutes * 60
     stats = get("/heroStats")
     if not stats:
         print("heroStats unavailable", flush=True)
@@ -225,7 +230,7 @@ def main():
 
     a = load_agg()
     decay(a)
-    taken = crawl(a, max_calls)
+    taken = crawl(a, max_calls, deadline)
     if a["matches"] < 3000 and taken < 3000:
         print("few public matches — using matchups fallback", flush=True)
         matchups_fallback(a, stats)
@@ -274,6 +279,10 @@ def main():
             picks = sum((h.get(f"{b}_pick") or 0) for b in grp)
             wins = sum((h.get(f"{b}_win") or 0) for b in grp)
             total = sum(sum((x.get(f"{b}_pick") or 0) for b in grp) for x in stats) / 10 or 1
+            if picks <= 0:  # нет данных по группе — берём общие
+                picks = sum((h.get(f"{b}_pick") or 0) for b in range(1, 9))
+                wins = sum((h.get(f"{b}_win") or 0) for b in range(1, 9))
+                total = sum(sum((x.get(f"{b}_pick") or 0) for b in range(1, 9)) for x in stats) / 10 or 1
             wr.append(round(wins / picks, 4) if picks else 0.5)
             pr.append(round(picks / total, 4))
         heroes.append({

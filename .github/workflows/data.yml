@@ -15,11 +15,11 @@ concurrency:
 jobs:
   data:
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 55
     steps:
       - uses: actions/checkout@v4
       - name: Fetch stats from OpenDota
-        run: python3 tools/fetch_data.py --calls 1000
+        run: python3 tools/fetch_data.py --calls 1500 --minutes 32
         env:
           OPENDOTA_KEY: ${{ secrets.OPENDOTA_KEY }}
       - name: Commit data
