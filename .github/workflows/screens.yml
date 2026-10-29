@@ -58,7 +58,7 @@ jobs:
           tar xf shots.tar -C screenshots || true
           git config user.name "dota-draft-bot"
           git config user.email "actions@users.noreply.github.com"
-          rm -rf screenshots/app_flutter
+          rm -rf screenshots/app_flutter screenshots/report.json
           git checkout --orphan screens-out
           git rm -rf --cached . > /dev/null
           git add -f screenshots
