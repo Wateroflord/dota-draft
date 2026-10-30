@@ -124,10 +124,19 @@ jobs:
         run: |
           set -o pipefail
           flutter build windows --release --dart-define=BUILD=${{ github.run_number }} 2>&1 | tee build.txt || { python3 tools/annotate.py build.txt "windows"; exit 1; }
+      - name: Build installer
+        shell: pwsh
+        env:
+          BUILD_NO: ${{ github.run_number }}
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress | Out-Null }
+          & $iscc tools\installer.iss
+          if ($LASTEXITCODE -ne 0) { echo "::error title=installer::Inno Setup failed"; exit 1 }
       - name: Package and attach to the release
         shell: pwsh
         run: |
           Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath Dota-Draft-Windows.zip
-          gh release upload "build-${{ github.run_number }}" Dota-Draft-Windows.zip --clobber
+          gh release upload "build-${{ github.run_number }}" Dota-Draft-Windows.zip dist/Dota-Draft-Setup.exe --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

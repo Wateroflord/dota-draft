@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'background.dart';
+import 'coach.dart';
+import 'desktop.dart';
 import 'gsi.dart';
 import 'i18n.dart';
 import 'overlay.dart';
 import 'platform.dart';
 import 'screens/draft_screen.dart';
 import 'screens/home_shell.dart';
+import 'screens/matches_screen.dart';
 import 'screens/overlay_screen.dart';
 import 'state.dart';
 import 'theme.dart';
@@ -16,6 +19,7 @@ import 'tools_state.dart';
 
 /// Для сообщений без контекста (например, напоминание о перерыве после матча).
 final messengerKey = GlobalKey<ScaffoldMessengerState>();
+final navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +36,12 @@ Future<void> main() async {
   final tools = ToolsState();
   runApp(StateScope(state: state, child: ToolsScope(state: tools, child: const DotaDraftApp())));
   await tools.load();
+  overlay.attach(tools);
+  coach.attach(state, tools);
+  // После матча — сам открыть разбор.
+  coach.openMatch = (id, hero) => navigatorKey.currentState?.push(MaterialPageRoute(
+      builder: (_) => MatchScreen(matchId: id, myHero: hero == 0 ? null : hero)));
+  desktopMessage = (text) => messengerKey.currentState?.showSnackBar(SnackBar(content: Text(text), duration: const Duration(seconds: 5)));
   if (tools.gsiOn) gsi.start(onPort: tools.gsiPort);
   gsi.onGameEnd(() {
     final n = tools.breakAfter;
@@ -43,6 +53,7 @@ Future<void> main() async {
     }
   });
   await state.init();
+  await desktopStart(state, tools);
   if (isAndroid) {
     try {
       await AndroidAlarmManager.initialize();
@@ -63,6 +74,7 @@ class DotaDraftApp extends StatelessWidget {
       title: 'Dota Draft',
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: messengerKey,
+      navigatorKey: navigatorKey,
       theme: buildTheme(),
       // Всё приложение — выше системных кнопок телефона.
       builder: (context, child) => ColoredBox(

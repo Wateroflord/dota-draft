@@ -8,6 +8,8 @@ import '../update.dart';
 import '../opendota.dart';
 import '../state.dart';
 import '../theme.dart';
+import 'desktop_settings_screen.dart';
+import 'transfer_screen.dart';
 import '../widgets.dart';
 import 'hero_picker.dart';
 import 'hero_screen.dart';
@@ -321,6 +323,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(width: 6),
                 Pill(L('Светлая', 'Light'), color: C.accent, filled: s.theme == 'light', onTap: () => s.setTheme('light')),
               ]),
+              const SizedBox(height: 4),
+              InkWell(
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const DesktopSettingsScreen())),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(children: [
+                    Expanded(
+                      child: Text(isWindows ? L('Оверлей, подсказки, горячие клавиши', 'Overlay, hints, hotkeys') : L('Подсказки во время игры', 'In-game hints'),
+                          style: T.body),
+                    ),
+                    Icon(Icons.chevron_right, color: C.muted),
+                  ]),
+                ),
+              ),
+              InkWell(
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TransferScreen())),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(children: [
+                    Expanded(child: Text(L('Перенос телефон ↔ ПК', 'Phone ↔ PC transfer'), style: T.body)),
+                    Icon(Icons.chevron_right, color: C.muted),
+                  ]),
+                ),
+              ),
               if (isAndroid) ...[
                 const SizedBox(height: 6),
                 Row(children: [
@@ -362,7 +388,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       showToast(context, L('У тебя последняя версия', 'You have the latest version'));
                     } else {
                       showToast(context, L('Скачиваю build-${u.build}…', 'Downloading build-${u.build}…'));
-                      openUrl(u.url);
+                      final err = await installUpdate(u);
+                      if (err != null && context.mounted) showToast(context, err);
                     }
                   },
                   child: Text(L('Проверить обновления', 'Check for updates')),

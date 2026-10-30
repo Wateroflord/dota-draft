@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../theme.dart';
 import '../update.dart';
+import '../widgets.dart';
 import 'analysis_screen.dart';
 import 'draft_screen.dart';
 import 'game_screen.dart';
@@ -20,6 +21,7 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int index = 0;
   UpdateInfo? update;
+  double? progress; // скачивание установщика (Windows)
 
   @override
   void initState() {
@@ -46,7 +48,17 @@ class _HomeShellState extends State<HomeShell> {
           Material(
             color: C.accent,
             child: InkWell(
-              onTap: () => openUrl(update!.url),
+              onTap: () async {
+                if (progress != null) return;
+                if (update!.setup != null) setState(() => progress = 0);
+                final err = await installUpdate(update!, progress: (p) {
+                  if (mounted) setState(() => progress = p);
+                });
+                if (err != null && mounted) {
+                  setState(() => progress = null);
+                  showToast(context, err);
+                }
+              },
               child: SafeArea(
                 bottom: false,
                 child: Padding(
@@ -55,8 +67,13 @@ class _HomeShellState extends State<HomeShell> {
                     const Icon(Icons.system_update, color: Colors.white, size: 18),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(L('Вышла новая версия (build-${update!.build}). Нажми, чтобы скачать.',
-                          'A new version is out (build-${update!.build}). Tap to download.'),
+                      child: Text(
+                          progress != null
+                              ? L('Скачиваю обновление… ${(progress! * 100).round()}%', 'Downloading the update… ${(progress! * 100).round()}%')
+                              : update!.setup != null
+                                  ? L('Вышла новая версия (build-${update!.build}). Нажми — обновлю сам.', 'A new version is out (build-${update!.build}). Tap to update.')
+                                  : L('Вышла новая версия (build-${update!.build}). Нажми, чтобы скачать.',
+                                      'A new version is out (build-${update!.build}). Tap to download.'),
                           style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
                     ),
                     InkWell(onTap: () => setState(() => update = null), child: const Icon(Icons.close, color: Colors.white, size: 18)),

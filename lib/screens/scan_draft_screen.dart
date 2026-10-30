@@ -14,9 +14,21 @@ import '../theme.dart';
 import '../widgets.dart';
 import 'hero_picker.dart';
 
+/// Полоса с портретами по умолчанию (доли от экрана) — зависит от соотношения сторон.
+Rect defaultBand(double ratio) => ratio > 2.0
+    ? const Rect.fromLTWH(0.31, 0.0, 0.38, 0.05)
+    : ratio < 1.5
+        ? const Rect.fromLTWH(0.18, 0.0, 0.64, 0.045)
+        : const Rect.fromLTWH(0.25, 0.0, 0.5, 0.05);
+
+const defaultLeft = Rect.fromLTWH(0.068, 0.08, 0.348, 0.84);
+const defaultRight = Rect.fromLTWH(0.584, 0.08, 0.348, 0.84);
+
 /// Драфт по скриншоту: выделяешь полосу с портретами героев вверху экрана, приложение их узнаёт.
 class ScanDraftScreen extends StatefulWidget {
-  const ScanDraftScreen({super.key});
+  final Uint8List? initial; // готовый снимок экрана (Windows)
+  final bool? weLeft;
+  const ScanDraftScreen({super.key, this.initial, this.weLeft});
 
   @override
   State<ScanDraftScreen> createState() => _ScanDraftScreenState();
@@ -34,22 +46,32 @@ class _ScanDraftScreenState extends State<ScanDraftScreen> {
   List<List<List<num>>>? result;
   final List<int?> chosen = List.filled(10, null);
 
+  @override
+  void initState() {
+    super.initState();
+    if (widget.weLeft != null) weLeft = widget.weLeft!;
+    if (widget.initial != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await _use(widget.initial!);
+        if (mounted) _recognize();
+      });
+    }
+  }
+
   Future<void> _pick(ImageSource src) async {
     final x = await ImagePicker().pickImage(source: src, maxWidth: 2560);
     if (x == null) return;
-    final b = await x.readAsBytes();
+    await _use(await x.readAsBytes());
+  }
+
+  Future<void> _use(Uint8List b) async {
     final im = await decodeImageFromList(b);
+    if (!mounted) return;
     setState(() {
       bytes = b;
       image = im;
       result = null;
-      // Для широкоформатных и обычных экранов полоса по умолчанию чуть разная.
-      final ratio = im.width / im.height;
-      band = ratio > 2.0
-          ? const Rect.fromLTWH(0.31, 0.0, 0.38, 0.05)
-          : ratio < 1.5
-              ? const Rect.fromLTWH(0.18, 0.0, 0.64, 0.045)
-              : const Rect.fromLTWH(0.25, 0.0, 0.5, 0.05);
+      band = defaultBand(im.width / im.height);
     });
   }
 

@@ -110,6 +110,7 @@ class _MetaScreenState extends State<MetaScreen> {
               const SizedBox(height: 10),
               Text(hint, style: T.small),
               const SizedBox(height: 10),
+              if (mode == 3 && s.patches.isNotEmpty && s.pool.isNotEmpty) _poolSummary(s, d.heroes, g),
             ]);
           }
           final h = list[i - 1];
@@ -179,6 +180,46 @@ class _MetaScreenState extends State<MetaScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  /// Короткая сводка патча по моим героям.
+  Widget _poolSummary(AppState s, List<DHero> heroes, int g) {
+    final patch = s.patches.first;
+    final mine = [for (final h in heroes) if (s.inPool(h.id)) h];
+    final changed = mine.where((h) => patch.forHero(h.id).isNotEmpty).toList();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: AppCard(
+        padding: const EdgeInsets.all(10),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(L('Мои герои в патче ${patch.version}', 'My heroes in patch ${patch.version}'), style: T.body.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 4),
+          if (changed.isEmpty)
+            Text(L('Патч не задел твоих героев (${mine.length}) — играй как раньше.', 'The patch did not touch your heroes (${mine.length}) — play as before.'),
+                style: T.small)
+          else
+            for (final h in changed)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(children: [
+                  HeroImg(h, width: 40, radius: 4),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '${h.name} · ${L('правок', 'changes')}: ${patch.forHero(h.id).length}',
+                      style: T.body.copyWith(fontSize: 13),
+                    ),
+                  ),
+                  if (h.trendAt(g) case final t?)
+                    Text(
+                      t.abs() < 0.005 ? L('без изменений', 'no change') : '${signedPct(t)} ${t > 0 ? L('сильнее', 'stronger') : L('слабее', 'weaker')}',
+                      style: T.small.copyWith(color: t.abs() < 0.005 ? C.muted : t > 0 ? C.ally : C.enemy),
+                    ),
+                ]),
+              ),
+        ]),
       ),
     );
   }

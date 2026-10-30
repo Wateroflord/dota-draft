@@ -17,6 +17,8 @@ import '../overlay.dart';
 import '../platform.dart';
 import '../voice.dart';
 import 'personal_screen.dart';
+import 'quick_input.dart';
+import '../screen_draft.dart';
 import 'trainer_screen.dart';
 
 Map<int, String> get stageTitles => {1: L('1 пик', '1st pick'), 2: L('2 пик', '2nd pick'), 3: L('3 пик', '3rd pick')};
@@ -101,6 +103,22 @@ class DraftScreen extends StatelessWidget {
             ),
           if (isWindows)
             IconButton(
+              tooltip: L('Драфт с экрана (Ctrl+Shift+D)', 'Draft from screen (Ctrl+Shift+D)'),
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.screenshot_monitor_outlined),
+              onPressed: () async {
+                final msg = await draftFromScreen(s);
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(msg),
+                  action: lastShot == null
+                      ? null
+                      : SnackBarAction(label: L('Проверить', 'Review'), onPressed: () => openLastShot(context)),
+                ));
+              },
+            ),
+          if (isWindows)
+            IconButton(
               tooltip: L('Оверлей поверх игры (Ctrl+Shift+O)', 'Overlay on top of the game (Ctrl+Shift+O)'),
               visualDensity: VisualDensity.compact,
               icon: const Icon(Icons.picture_in_picture_alt_outlined),
@@ -153,6 +171,7 @@ class DraftScreen extends StatelessWidget {
           _TeamRow(ally: false, ids: s.enemies, positions: Engine.assign(enemies).$2),
           const SizedBox(height: 8),
           _Bans(),
+          if (isWindows) ...[const SizedBox(height: 8), const QuickHeroInput()],
           SectionLabel(
             L('Кого брать', 'What to pick'),
             trailing: Text(s.stageOverride == null ? L('авто', 'auto') : L('вручную', 'manual'), style: T.small),

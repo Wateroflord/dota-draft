@@ -118,10 +118,26 @@ class ToolsState extends ChangeNotifier {
   String? mapImage; // путь к своей картинке карты
 
   int quizBest = 0;
+  int lastHitBest = 0;
   bool gsiOn = false; // принимать данные из Dota 2 (Game State Integration)
   int gsiPort = 3000;
   int breakAfter = 0; // напомнить о перерыве после N игр подряд (0 — не напоминать)
   bool overlayClickThrough = false;
+  // Подсказки во время игры
+  bool coachVoice = true; // озвучивать подсказки
+  bool toasts = false; // всплывающие уведомления Windows
+  bool autoBreakdown = true; // открывать разбор после матча
+  // Windows
+  bool autoOverlay = true; // включать оверлей, когда запущена Dota
+  bool trayOnClose = true; // при закрытии окна — в трей
+  bool obsServer = false; // страница для OBS
+  bool autoEnemies = true; // в начале матча распознать врагов с экрана
+  double overlayOpacity = 0.9;
+  double overlayScale = 1.0;
+  int overlayCorner = 0; // 0 — где оставил, 1 ↖, 2 ↗, 3 ↙, 4 ↘
+  List<double>? overlayRect; // x, y, w, h
+  final Set<String> overlayHidden = {}; // скрытые блоки: stats, items, events, buttons, alerts, farm
+  final Map<String, String> hotkeys = {}; // действие -> HotKey json
 
   List<TimerEvent> get timerEvents => [
         for (final d in defaultTimerEvents)
@@ -191,9 +207,43 @@ class ToolsState extends ChangeNotifier {
     _changed();
   }
 
+  void setLastHitBest(int v) {
+    lastHitBest = v;
+    _changed();
+  }
+
   void setGsi(bool on, {int? port}) {
     gsiOn = on;
     if (port != null) gsiPort = port;
+    _changed();
+  }
+
+  void setOverlay({double? opacity, double? scale, int? corner, List<double>? rect, String? toggleBlock}) {
+    if (opacity != null) overlayOpacity = opacity;
+    if (scale != null) overlayScale = scale;
+    if (corner != null) overlayCorner = corner;
+    if (rect != null) overlayRect = rect;
+    if (toggleBlock != null && !overlayHidden.remove(toggleBlock)) overlayHidden.add(toggleBlock);
+    _changed();
+  }
+
+  void setFlags({bool? coachVoice, bool? toasts, bool? autoBreakdown, bool? autoOverlay, bool? trayOnClose, bool? obsServer, bool? autoEnemies}) {
+    if (autoEnemies != null) this.autoEnemies = autoEnemies;
+    if (coachVoice != null) this.coachVoice = coachVoice;
+    if (toasts != null) this.toasts = toasts;
+    if (autoBreakdown != null) this.autoBreakdown = autoBreakdown;
+    if (autoOverlay != null) this.autoOverlay = autoOverlay;
+    if (trayOnClose != null) this.trayOnClose = trayOnClose;
+    if (obsServer != null) this.obsServer = obsServer;
+    _changed();
+  }
+
+  void setHotkey(String action, String? json) {
+    if (json == null) {
+      hotkeys.remove(action);
+    } else {
+      hotkeys[action] = json;
+    }
     _changed();
   }
 
@@ -241,6 +291,20 @@ class ToolsState extends ChangeNotifier {
         'gsiOn': gsiOn,
         'gsiPort': gsiPort,
         'breakAfter': breakAfter,
+        'coachVoice': coachVoice,
+        'toasts': toasts,
+        'autoBreakdown': autoBreakdown,
+        'autoOverlay': autoOverlay,
+        'trayOnClose': trayOnClose,
+        'obsServer': obsServer,
+        'autoEnemies': autoEnemies,
+        'lastHitBest': lastHitBest,
+        'overlayOpacity': overlayOpacity,
+        'overlayScale': overlayScale,
+        'overlayCorner': overlayCorner,
+        'overlayRect': overlayRect,
+        'overlayHidden': overlayHidden.toList(),
+        'hotkeys': hotkeys,
       }));
     } catch (_) {}
   }
@@ -277,6 +341,22 @@ class ToolsState extends ChangeNotifier {
       gsiOn = j['gsiOn'] == true;
       gsiPort = (j['gsiPort'] as num?)?.toInt() ?? 3000;
       breakAfter = (j['breakAfter'] as num?)?.toInt() ?? 0;
+      coachVoice = j['coachVoice'] != false;
+      toasts = j['toasts'] == true;
+      autoBreakdown = j['autoBreakdown'] != false;
+      autoOverlay = j['autoOverlay'] != false;
+      trayOnClose = j['trayOnClose'] != false;
+      obsServer = j['obsServer'] == true;
+      autoEnemies = j['autoEnemies'] != false;
+      lastHitBest = (j['lastHitBest'] as num?)?.toInt() ?? 0;
+      overlayOpacity = (j['overlayOpacity'] as num?)?.toDouble() ?? 0.9;
+      overlayScale = (j['overlayScale'] as num?)?.toDouble() ?? 1.0;
+      overlayCorner = (j['overlayCorner'] as num?)?.toInt() ?? 0;
+      final rect = j['overlayRect'];
+      if (rect is List && rect.length == 4) overlayRect = [for (final v in rect) (v as num).toDouble()];
+      overlayHidden.addAll(((j['overlayHidden'] as List?) ?? const []).map((e) => '$e'));
+      final hk = j['hotkeys'];
+      if (hk is Map) hk.forEach((k, v) => hotkeys['$k'] = '$v');
       notifyListeners();
     } catch (_) {}
   }

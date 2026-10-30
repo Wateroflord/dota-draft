@@ -23,8 +23,23 @@ class GsiState {
   final String team; // radiant / dire
   final List<String> items; // ключи предметов (без item_), включая рюкзак и тайник
   final String winTeam;
+  final int? x, y; // позиция героя в мировых координатах (примерно −8300…8300)
+  final List<GsiAbility> abilities;
+  final int talentsTaken;
+  final bool hasTp;
+  final int wardCd; // через сколько секунд в лавке снова появятся варды (0 — есть)
+  final int wardsHeld;
+  final int netWorth;
   final DateTime received;
   const GsiState({
+    this.x,
+    this.y,
+    this.abilities = const [],
+    this.talentsTaken = 0,
+    this.hasTp = true,
+    this.wardCd = 0,
+    this.wardsHeld = 0,
+    this.netWorth = 0,
     this.clock,
     this.gameState = '',
     this.daytime = true,
@@ -54,6 +69,13 @@ class GsiState {
   bool get inDraft => gameState.contains('HERO_SELECTION') || gameState.contains('STRATEGY_TIME');
   bool get postGame => gameState.contains('POST_GAME');
 
+  /// Позиция на схеме карты (0–100, Свет внизу слева). null — нет данных.
+  (double, double)? get mapPos =>
+      x == null || y == null ? null : (((x! + 8300) / 166).clamp(0.0, 100.0), (100 - (y! + 8300) / 166).clamp(0.0, 100.0));
+
+  /// Сколько очков умений вложено (без талантов).
+  int get skillPoints => abilities.where((a) => !a.name.startsWith('special_bonus')).fold(0, (s, a) => s + a.level);
+
   static int _i(dynamic v) => v is num ? v.toInt() : int.tryParse('$v') ?? 0;
 
   static GsiState parse(Map j) {
@@ -61,13 +83,32 @@ class GsiState {
     final player = j['player'] is Map ? j['player'] as Map : const {};
     final hero = j['hero'] is Map ? j['hero'] as Map : const {};
     final items = <String>[];
+    var hasTp = false;
+    var wards = 0;
     if (j['items'] is Map) {
       (j['items'] as Map).forEach((slot, v) {
         if (v is Map) {
           final n = '${v['name'] ?? ''}';
-          if (n.isNotEmpty && n != 'empty') items.add(n.replaceFirst('item_', ''));
+          if (n.isNotEmpty && n != 'empty') {
+            final k = n.replaceFirst('item_', '');
+            items.add(k);
+            if (k == 'tpscroll' || k.startsWith('travel_boots')) hasTp = true;
+            if (k == 'ward_observer' || k == 'ward_dispenser') wards += _i(v['charges']) == 0 ? 1 : _i(v['charges']);
+          }
         }
       });
+    }
+    final abilities = <GsiAbility>[];
+    if (j['abilities'] is Map) {
+      (j['abilities'] as Map).forEach((k, v) {
+        if (v is Map) {
+          abilities.add(GsiAbility('${v['name'] ?? ''}', _i(v['level']), v['ultimate'] == true, _i(v['cooldown'])));
+        }
+      });
+    }
+    var talents = 0;
+    for (var i = 1; i <= 8; i++) {
+      if (hero['talent_$i'] == true) talents++;
     }
     return GsiState(
       clock: map['clock_time'] is num ? (map['clock_time'] as num).toInt() : null,
@@ -92,9 +133,25 @@ class GsiState {
       team: '${player['team_name'] ?? ''}',
       items: items,
       winTeam: '${map['win_team'] ?? ''}',
+      x: hero['xpos'] is num ? (hero['xpos'] as num).toInt() : null,
+      y: hero['ypos'] is num ? (hero['ypos'] as num).toInt() : null,
+      abilities: abilities,
+      talentsTaken: talents,
+      hasTp: hasTp || j['items'] is! Map,
+      wardCd: _i(map['ward_purchase_cooldown']),
+      wardsHeld: wards,
+      netWorth: _i(player['net_worth']),
       received: DateTime.now(),
     );
   }
+}
+
+class GsiAbility {
+  final String name;
+  final int level;
+  final bool ultimate;
+  final int cooldown;
+  const GsiAbility(this.name, this.level, this.ultimate, this.cooldown);
 }
 
 /// Приёмник данных от Dota 2 (Game State Integration). Игра шлёт POST-запросы на http://<адрес>:<порт>/.

@@ -8,6 +8,12 @@ import '../widgets.dart';
 import '../overlay.dart';
 import '../platform.dart';
 import 'checklist_screen.dart';
+import 'dashboard_screen.dart';
+import 'desktop_settings_screen.dart';
+import 'farm_report_screen.dart';
+import 'lasthit_screen.dart';
+import 'learn_screen.dart';
+import 'session_screen.dart';
 import 'cm_screen.dart';
 import 'item_timings_screen.dart';
 import 'items_screen.dart';
@@ -57,9 +63,16 @@ class GameScreen extends StatelessWidget {
               C.ally, () => go(const LiveScreen())),
           if (isWindows)
             _tile(Icons.picture_in_picture_alt_outlined, L('Оверлей поверх игры', 'In-game overlay'),
-                L('Маленькое окно поверх Dota. Ctrl+Shift+O — вкл/выкл, Ctrl+Shift+X — сквозь мышь, Ctrl+Shift+H — скрыть',
-                    'Small window on top of Dota. Ctrl+Shift+O on/off, Ctrl+Shift+X click-through, Ctrl+Shift+H hide'),
+                L('Окно поверх Dota (нужен режим «окно без рамки»). Ctrl+Shift+O — вкл/выкл, X — сквозь мышь, M — полоса таймеров, D — драфт с экрана',
+                    'Window on top of Dota (needs borderless window mode). Ctrl+Shift+O on/off, X click-through, M timer strip, D draft from screen'),
                 C.accent, overlay.enter),
+          if (isWindows)
+            _tile(Icons.desktop_windows_outlined, L('Панель для второго монитора', 'Second monitor dashboard'),
+                L('Живой матч, драфт и ульты врагов на одном широком экране', 'Live match, draft and enemy ults on one wide screen'), C.accent2,
+                () => go(const DashboardScreen())),
+          _tile(Icons.record_voice_over_outlined, isWindows ? L('Оверлей, подсказки, горячие клавиши', 'Overlay, hints, hotkeys') : L('Подсказки во время игры', 'In-game hints'),
+              L('Прокачка и таланты, нет ТП, выкуп, варды, план по минутам — голосом', 'Skills and talents, no TP, buyback, wards, timeline — by voice'),
+              C.gold, () => go(const DesktopSettingsScreen())),
           _tile(Icons.timer_outlined, L('Таймеры матча', 'Match timers'),
               L('Руны, стаки, Рошан, Аегис, Торментор, день и ночь — с голосом', 'Runes, stacks, Roshan, Aegis, Tormentor, day/night — with voice'),
               C.gold, () => go(const TimerScreen())),
@@ -76,6 +89,12 @@ class GameScreen extends StatelessWidget {
           _tile(Icons.fact_check_outlined, L('Разбор последнего матча', 'Last match breakdown'),
               L('MVP, кто недоиграл, кто руинил, почему проиграли', 'MVP, who underperformed, who ruined, why you lost'), C.gold,
               () => _openLast(context)),
+          _tile(Icons.route_outlined, L('Разбор маршрута фарма', 'Farm route review'),
+              L('Где ходил герой, сколько стоял без дела, смерти, GPM против среднего', 'Where your hero went, idle time, deaths, GPM vs average'),
+              C.ally, () => go(const FarmReportScreen())),
+          _tile(Icons.today_outlined, L('Итоги сессии', 'Session summary'),
+              L('Сегодняшние игры: рейтинг, лучший матч, над чем поработать; экспорт в CSV', 'Today\'s games: rating, best match, what to work on; CSV export'),
+              C.accent, () => go(const SessionScreen())),
           _tile(Icons.history, L('Разбор любых матчей', 'Any match breakdown'),
               L('Твои прошлые игры с фильтрами, игры друзей, любой матч по номеру', 'Your past games with filters, friends\' games, any match by ID'),
               C.gold, () => go(const MatchesScreen())),
@@ -101,6 +120,12 @@ class GameScreen extends StatelessWidget {
           _tile(Icons.smart_toy_outlined, L('Тренировка драфта против бота', 'Draft practice vs bot'),
               L('Бот пикает контрпики — собери команду сильнее', 'The bot counterpicks — draft a stronger team'), C.accent,
               () => go(const TrainerScreen())),
+          _tile(Icons.school_outlined, L('Какого героя выучить', 'Which hero to learn'),
+              L('Сильный в мете, контрит тех, кто тебя обыгрывает, и подходит твоим героям', 'Strong in the meta, counters who beats you, fits your pool'),
+              C.gold, () => go(const LearnScreen())),
+          _tile(Icons.ads_click, L('Тренировка добиваний', 'Last-hit trainer'),
+              L('Мини-игра: добей крипа с учётом замаха удара', 'Mini-game: last-hit creeps with attack delay'), C.enemy,
+              () => go(const LastHitScreen())),
           _tile(Icons.checklist, L('Чек-листы по позициям', 'Position checklists'),
               L('Что делать по минутам на позициях 1–5', 'What to do minute by minute on positions 1–5'), C.ally,
               () => go(ChecklistScreen(position: StateScope.read(context).myPos == 0 ? 1 : StateScope.read(context).myPos))),

@@ -24,6 +24,17 @@ import 'package:dota_draft/screens/trainer_screen.dart';
 import 'package:dota_draft/screens/checklist_screen.dart';
 import 'package:dota_draft/screens/home_shell.dart';
 import 'package:dota_draft/state.dart';
+import 'package:dota_draft/coach.dart';
+import 'package:dota_draft/gsi.dart';
+import 'package:dota_draft/tools_state.dart';
+import 'package:dota_draft/screens/farm_report_screen.dart';
+import 'package:dota_draft/screens/learn_screen.dart';
+import 'package:dota_draft/screens/lasthit_screen.dart';
+import 'package:dota_draft/screens/session_screen.dart';
+import 'package:dota_draft/screens/desktop_settings_screen.dart';
+import 'package:dota_draft/screens/transfer_screen.dart';
+import 'package:dota_draft/screens/dashboard_screen.dart';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -200,6 +211,79 @@ void main() {
     await open('live', const LiveScreen());
     await open('goals', const GoalsScreen());
     await open('friend', const FriendCompareScreen());
+    // Новые экраны.
+    await open('learn', const LearnScreen());
+    await open('lasthit', const LastHitScreen(), then: () async {
+      await tester.tap(find.byType(FilledButton).last);
+      await tester.pump(const Duration(seconds: 2));
+      await shot('lasthit_running');
+    });
+    await open('session', const SessionScreen(), then: () async {
+      await tester.pump(const Duration(seconds: 6));
+      await shot('session_loaded');
+    });
+    await open('hints_settings', const DesktopSettingsScreen());
+    await open('transfer', const TransferScreen());
+
+    // Имитация матча через Game State Integration: герой фармит лес, тренер даёт подсказки, маршрут записывается.
+    try {
+      final tools = ToolsScope.read(ctx());
+      tools.setFlags(autoBreakdown: false, coachVoice: false);
+      s.setMyPos(1);
+      await gsi.start(onPort: 3000);
+      final hero = s.data!.heroes.first;
+      final info = s.info.heroes[hero.id];
+      Future<void> post(Map<String, dynamic> j) async {
+        final c = HttpClient();
+        final r = await c.post('127.0.0.1', 3000, '/');
+        r.headers.contentType = ContentType.json;
+        r.write(jsonEncode(j));
+        await (await r.close()).drain<void>();
+        c.close();
+      }
+
+      Map<String, dynamic> state(int clock, double sx, double sy, {int level = 6, int deaths = 0, String gs = 'DOTA_GAMERULES_STATE_GAME_IN_PROGRESS', bool alive = true}) => {
+            'map': {'clock_time': clock, 'game_state': gs, 'matchid': '7777777777', 'daytime': true, 'win_team': gs.contains('POST') ? 'radiant' : 'none', 'ward_purchase_cooldown': 0},
+            'player': {'team_name': 'radiant', 'gold': 900 + clock, 'gpm': 300 + clock ~/ 6, 'xpm': 400, 'kills': 2, 'deaths': deaths, 'assists': 3, 'last_hits': clock ~/ 8, 'denies': 4, 'net_worth': 4000 + clock * 3},
+            'hero': {'id': hero.id, 'name': 'npc_dota_hero_${hero.key}', 'level': level, 'alive': alive, 'respawn_seconds': alive ? 0 : 20, 'buyback_cost': 600, 'buyback_cooldown': 0,
+              'xpos': (sx * 166 - 8300).round(), 'ypos': ((100 - sy) * 166 - 8300).round()},
+            'items': {'slot0': {'name': 'item_power_treads'}, 'slot1': {'name': 'empty'}},
+            'abilities': {
+              for (final (i, a) in (info?.abilities.where((a) => a.granted.isEmpty).take(4).toList() ?? []).indexed)
+                'ability$i': {'name': a.key, 'level': i < 3 ? 2 : 0, 'ultimate': a.ult, 'cooldown': 0},
+            },
+          };
+      // Путь по лесу Света: с линии в лес и обратно.
+      final path = [for (var i = 0; i <= 40; i++) (40 + i * 0.6, 88 - i * 0.4)];
+      var clock = 540;
+      for (final (i, p) in path.indexed) {
+        await post(state(clock, p.$1, p.$2, level: i < 20 ? 6 : 7, deaths: i < 30 ? 0 : 1, alive: i < 30 || i > 33));
+        clock += 3;
+        if (i % 8 == 0) await tester.pump(const Duration(milliseconds: 50));
+      }
+      await open('live_coach', const LiveScreen(), then: () async {
+        await tester.drag(find.byType(Scrollable).first, const Offset(0, -700));
+        await shot('live_coach_more');
+        await tester.drag(find.byType(Scrollable).first, const Offset(0, -900));
+        await shot('live_coach_more2');
+      });
+      await open('dashboard', const DashboardScreen());
+      await post(state(clock, 60, 72, level: 7, deaths: 1, gs: 'DOTA_GAMERULES_STATE_POST_GAME'));
+      await tester.pump(const Duration(seconds: 1));
+      await open('farm_list', const FarmReportScreen());
+      if (coach.history.isNotEmpty) {
+        await open('farm_report', FarmReportDetail(rec: coach.history.first), then: () async {
+          await tester.drag(find.byType(Scrollable).first, const Offset(0, -800));
+          await shot('farm_report_more');
+        });
+      } else {
+        note('coach history is empty after fake match');
+      }
+      await gsi.stop();
+    } catch (e) {
+      note('gsi sim: $e');
+    }
+
     s.setLang('en');
     await tester.pump(const Duration(seconds: 2));
     await shot('english_draft');

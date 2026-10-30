@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../advice.dart';
+import '../coach.dart';
 import '../gsi.dart';
 import '../i18n.dart';
 import '../platform.dart';
@@ -11,6 +12,7 @@ import '../state.dart';
 import '../theme.dart';
 import '../tools_state.dart';
 import '../widgets.dart';
+import 'live_coach.dart';
 import 'timer_screen.dart' show mmss;
 
 /// Отметки Рошана/Торментора для живого режима (общие для экрана и оверлея).
@@ -87,7 +89,7 @@ class _LivePanelState extends State<LivePanel> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: Listenable.merge([gsi, liveMarks]),
+      listenable: Listenable.merge([gsi, liveMarks, coach]),
       builder: (context, _) {
         final g = gsi.last;
         if (!gsi.live || g == null) {
@@ -121,6 +123,8 @@ class _LivePanelState extends State<LivePanel> {
     final hero = d.byId[g.heroId] ?? d.heroes.where((h) => h.key == g.heroName).firstOrNull;
     final clock = g.clock ?? 0;
     final c = widget.compact;
+    // В оверлее блоки можно прятать в настройках.
+    bool show(String block) => !c || !tools.overlayHidden.contains(block);
 
     // Ближайшие события.
     final upcoming = <(String, int)>[];
@@ -190,7 +194,10 @@ class _LivePanelState extends State<LivePanel> {
           style: T.small.copyWith(color: g.lastHits >= expLh ? C.ally : C.enemy, fontSize: c ? 11 : 12),
         ),
       ],
-      if (advice.isNotEmpty) ...[
+      if (show('alerts')) CoachAlertsCard(compact: c),
+      if (hero != null && clock < 240 && show('hero')) LiveHeroCard(hero: hero, compact: c),
+      if (show('farm') && (s.myPos <= 3)) LiveFarmCard(g: g, compact: c),
+      if (advice.isNotEmpty && show('items')) ...[
         SectionLabel(L('Что купить дальше', 'What to buy next')),
         AppCard(
           padding: const EdgeInsets.all(8),
@@ -214,6 +221,9 @@ class _LivePanelState extends State<LivePanel> {
           ]),
         ),
       ],
+      if (show('gpm')) LiveGpmCard(hero: hero, compact: c),
+      if (show('deaths')) DeathLogCard(compact: c),
+      if (show('events')) ...[
       SectionLabel(L('Ближайшие события', 'Upcoming events')),
       AppCard(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -228,6 +238,8 @@ class _LivePanelState extends State<LivePanel> {
             ),
         ]),
       ),
+      ],
+      if (show('buttons')) ...[
       const SizedBox(height: 8),
       Row(children: [
         Expanded(
@@ -246,6 +258,7 @@ class _LivePanelState extends State<LivePanel> {
           ),
         ),
       ]),
+      ],
       if (!c) ...[
         const SizedBox(height: 10),
         Text(
