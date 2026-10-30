@@ -26,7 +26,8 @@ jobs:
           '{"gsiOn":true,"gsiPort":3000,"coachVoice":false,"toasts":true,"myPos":1}' | Out-File -Encoding utf8NoBOM "$cfg\tools_state.json"
           '{"myPos":1,"lang":"ru"}' | Out-File -Encoding utf8NoBOM "$cfg\draft_state.json"
           gh release download "${{ github.event.inputs.tag }}" -p "Dota-Draft-Setup.exe"
-          $inst = Start-Process -FilePath ".\Dota-Draft-Setup.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -PassThru -Wait
+          $inst = Start-Process -FilePath ".\Dota-Draft-Setup.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -PassThru
+          $inst.WaitForExit(180000) | Out-Null
           $exe = "$env:LOCALAPPDATA\Programs\Dota Draft\dota_draft.exe"
           "installer_exit=$($inst.ExitCode) exe_exists=$(Test-Path $exe)" | Out-File out\status.txt
           Get-ChildItem "$env:APPDATA\Microsoft\Windows\Start Menu\Programs" -Recurse -Filter "Dota*" | Select-Object FullName | Out-File -Append out\status.txt
