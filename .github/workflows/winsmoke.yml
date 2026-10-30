@@ -16,29 +16,60 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Download and run
+      - name: Install and run
         shell: pwsh
         run: |
-          gh release download "${{ github.event.inputs.tag }}" -p "Dota-Draft-Windows.zip"
-          Expand-Archive Dota-Draft-Windows.zip -DestinationPath app
-          $p = Start-Process -FilePath "app\dota_draft.exe" -PassThru
-          Start-Sleep -Seconds 25
           New-Item -ItemType Directory -Force -Path out | Out-Null
-          "running=$(-not $p.HasExited) exit=$($p.ExitCode)" | Out-File out\status.txt
+          # Включаем связь с Dota заранее (как будто пользователь включил), чтобы проверить живой режим.
+          $cfg = "$env:APPDATA\com.dotadraft\dota_draft"
+          New-Item -ItemType Directory -Force -Path $cfg | Out-Null
+          '{"gsiOn":true,"gsiPort":3000,"coachVoice":false,"toasts":true,"myPos":1}' | Out-File -Encoding utf8NoBOM "$cfg\tools_state.json"
+          '{"myPos":1,"lang":"ru"}' | Out-File -Encoding utf8NoBOM "$cfg\draft_state.json"
+          gh release download "${{ github.event.inputs.tag }}" -p "Dota-Draft-Setup.exe"
+          $inst = Start-Process -FilePath ".\Dota-Draft-Setup.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -PassThru -Wait
+          $exe = "$env:LOCALAPPDATA\Programs\Dota Draft\dota_draft.exe"
+          "installer_exit=$($inst.ExitCode) exe_exists=$(Test-Path $exe)" | Out-File out\status.txt
+          Get-ChildItem "$env:APPDATA\Microsoft\Windows\Start Menu\Programs" -Recurse -Filter "Dota*" | Select-Object FullName | Out-File -Append out\status.txt
+          Start-Sleep -Seconds 5
+          if (-not (Get-Process dota_draft -ErrorAction SilentlyContinue)) { Start-Process -FilePath $exe }
+          Start-Sleep -Seconds 25
+          "running=$([bool](Get-Process dota_draft -ErrorAction SilentlyContinue))" | Out-File -Append out\status.txt
           Add-Type -AssemblyName System.Windows.Forms,System.Drawing
           $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
           $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
           $g = [System.Drawing.Graphics]::FromImage($bmp)
-          $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
-          $bmp.Save("out\screen.png")
-          # Оверлей: Ctrl+Shift+O
+          function Shot($name) { $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size); $bmp.Save("out\$name.png") }
+          Shot "screen"
+          # Имитация матча: герой идёт по лесу Света.
+          function Post($clock, $sx, $sy, $lvl, $state) {
+            $body = @{
+              map = @{ clock_time = $clock; game_state = $state; matchid = "7777777777"; daytime = $true; win_team = "radiant"; ward_purchase_cooldown = 0 }
+              player = @{ team_name = "radiant"; gold = 900 + $clock; gpm = 300 + [int]($clock / 6); xpm = 400; kills = 2; deaths = 0; assists = 3; last_hits = [int]($clock / 8); denies = 4; net_worth = 4000 + $clock * 3 }
+              hero = @{ id = 1; name = "npc_dota_hero_antimage"; level = $lvl; alive = $true; respawn_seconds = 0; buyback_cost = 600; buyback_cooldown = 0; xpos = [int]($sx * 166 - 8300); ypos = [int]((100 - $sy) * 166 - 8300) }
+              items = @{ slot0 = @{ name = "item_power_treads" } }
+              abilities = @{ ability0 = @{ name = "antimage_mana_break"; level = 2; ultimate = $false; cooldown = 0 }; ability1 = @{ name = "antimage_blink"; level = 2; ultimate = $false; cooldown = 0 }; ability2 = @{ name = "antimage_counterspell"; level = 1; ultimate = $false; cooldown = 0 }; ability3 = @{ name = "antimage_mana_void"; level = 1; ultimate = $true; cooldown = 0 } }
+            } | ConvertTo-Json -Depth 6
+            try { Invoke-RestMethod -Uri "http://127.0.0.1:3000/" -Method Post -Body $body -ContentType "application/json" | Out-Null } catch { "post failed: $_" | Out-File -Append out\status.txt }
+          }
+          $clock = 540
+          for ($i = 0; $i -le 40; $i++) { Post $clock (40 + $i * 0.6) (88 - $i * 0.4) ($(if ($i -lt 20) {6} else {7})) "DOTA_GAMERULES_STATE_GAME_IN_PROGRESS"; $clock += 3; Start-Sleep -Milliseconds 100 }
+          Start-Sleep -Seconds 3
           $ws = New-Object -ComObject WScript.Shell
           $ws.SendKeys("^+o")
           Start-Sleep -Seconds 6
-          $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
-          $bmp.Save("out\overlay.png")
-          Get-ChildItem -Recurse "$env:APPDATA" -Filter "*.json" -ErrorAction SilentlyContinue | Select-Object -First 20 FullName | Out-File out\appdata.txt
-          Get-ChildItem -Recurse "$env:USERPROFILE\Documents" -Filter "*.json" -ErrorAction SilentlyContinue | Select-Object -First 20 FullName | Out-File out\files.txt
+          Post $clock 64 72 7 "DOTA_GAMERULES_STATE_GAME_IN_PROGRESS"
+          Start-Sleep -Seconds 2
+          Shot "overlay"
+          $ws.SendKeys("^+m")
+          Start-Sleep -Seconds 4
+          Shot "strip"
+          $ws.SendKeys("^+m")
+          Start-Sleep -Seconds 3
+          $ws.SendKeys("^+d")
+          Start-Sleep -Seconds 8
+          Shot "screen_draft"
+          "running_end=$([bool](Get-Process dota_draft -ErrorAction SilentlyContinue))" | Out-File -Append out\status.txt
+          Get-ChildItem -Recurse "$env:APPDATA\com.dotadraft" -ErrorAction SilentlyContinue | Select-Object FullName | Out-File out\appdata.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Save
