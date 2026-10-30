@@ -1,0 +1,709 @@
+Resolving dependencies...
+Downloading packages...
+  cached_network_image 3.4.1 (4.0.6 available)
+  cached_network_image_platform_interface 4.1.1 (5.0.3 available)
+  cached_network_image_web 1.3.1 (2.0.4 available)
+  cli_util 0.4.2 (0.6.0 available)
+  code_assets 1.2.1 (2.1.0 available)
+  cross_file 0.3.5+5 (0.4.0 available)
+  dbus 0.7.15 (0.8.0 available)
+  flutter_local_notifications 19.5.0 (22.3.3 available)
+  flutter_local_notifications_linux 6.0.0 (8.0.2 available)
+  flutter_local_notifications_platform_interface 9.1.0 (12.2.0 available)
+  flutter_local_notifications_windows 1.0.3 (3.1.1 available)
+  google_fonts 6.3.3 (9.0.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  objective_c 9.5.0 (9.6.2 available)
+  package_info_plus 9.0.1 (10.2.2 available)
+  package_info_plus_platform_interface 3.2.1 (4.1.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  qr 3.0.3 (4.0.1 available)
+  record_use 0.6.0 (1.1.1 available)
+  screen_retriever 0.2.2 (0.3.0 available)
+  test_api 0.7.12 (0.7.15 available)
+  timezone 0.10.1 (0.11.2 available)
+  tray_manager 0.5.3 (0.8.0 available)
+  vector_math 2.4.0 (2.4.4 available)
+  wakelock_plus 1.5.2 (1.8.2 available)
+  win32 5.15.0 (6.4.0 available)
+  win32_registry 2.1.0 (3.0.3 available)
+  xml 6.6.1 (7.1.0 available)
+Got dependencies!
+30 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Running Gradle task 'assembleDebug'...                          
+Loading package information...                                                  
+Loading local repository...                                                     
+[                                       ] 3% Loading local repository...        
+[                                       ] 3% Fetch remote repository...         
+[=                                      ] 3% Fetch remote repository...         
+[=                                      ] 4% Fetch remote repository...         
+[=                                      ] 5% Fetch remote repository...         
+[==                                     ] 5% Fetch remote repository...         
+[==                                     ] 6% Fetch remote repository...         
+[==                                     ] 7% Fetch remote repository...         
+[==                                     ] 7% Computing updates...               
+[===                                    ] 8% Computing updates...               
+[===                                    ] 10% Computing updates...              
+[===                                    ] 10% Installing NDK (Side by side) 28.2
+[===                                    ] 10% Downloading android-ndk-r28c-linux
+[====                                   ] 10% Downloading android-ndk-r28c-linux
+[====                                   ] 11% Downloading android-ndk-r28c-linux
+[====                                   ] 12% Downloading android-ndk-r28c-linux
+[=====                                  ] 13% Downloading android-ndk-r28c-linux
+[=====                                  ] 14% Downloading android-ndk-r28c-linux
+[=====                                  ] 15% Downloading android-ndk-r28c-linux
+[======                                 ] 15% Downloading android-ndk-r28c-linux
+[======                                 ] 16% Downloading android-ndk-r28c-linux
+[======                                 ] 17% Downloading android-ndk-r28c-linux
+[=======                                ] 18% Downloading android-ndk-r28c-linux
+[=======                                ] 19% Downloading android-ndk-r28c-linux
+[=======                                ] 20% Downloading android-ndk-r28c-linux
+[========                               ] 20% Downloading android-ndk-r28c-linux
+[========                               ] 21% Downloading android-ndk-r28c-linux
+[========                               ] 22% Downloading android-ndk-r28c-linux
+[=========                              ] 23% Downloading android-ndk-r28c-linux
+[=========                              ] 24% Downloading android-ndk-r28c-linux
+[=========                              ] 25% Downloading android-ndk-r28c-linux
+[==========                             ] 25% Downloading android-ndk-r28c-linux
+[==========                             ] 26% Downloading android-ndk-r28c-linux
+[==========                             ] 27% Downloading android-ndk-r28c-linux
+[===========                            ] 28% Downloading android-ndk-r28c-linux
+[===========                            ] 29% Downloading android-ndk-r28c-linux
+[===========                            ] 30% Downloading android-ndk-r28c-linux
+[============                           ] 30% Downloading android-ndk-r28c-linux
+[============                           ] 31% Downloading android-ndk-r28c-linux
+[============                           ] 32% Downloading android-ndk-r28c-linux
+[============                           ] 33% Downloading android-ndk-r28c-linux
+[============                           ] 33% Unzipping...                      
+[============                           ] 33% Unzipping... android-ndk-r28c/    
+[============                           ] 33% Unzipping... android-ndk-r28c/READ
+[=============                          ] 33% Unzipping... android-ndk-r28c/READ
+[=============                          ] 33% Unzipping... android-ndk-r28c/meta
+[=============                          ] 33% Unzipping... android-ndk-r28c/shad
+[=============                          ] 33% Unzipping... android-ndk-r28c/ndk-
+[=============                          ] 33% Unzipping... android-ndk-r28c/wrap
+[=============                          ] 33% Unzipping... android-ndk-r28c/ndk-
+[=============                          ] 33% Unzipping... android-ndk-r28c/tool
+[=============                          ] 34% Unzipping... android-ndk-r28c/tool
+[=============                          ] 35% Unzipping... android-ndk-r28c/tool
+[==============                         ] 35% Unzipping... android-ndk-r28c/tool
+[==============                         ] 36% Unzipping... android-ndk-r28c/tool
+[==============                         ] 37% Unzipping... android-ndk-r28c/tool
+[===============                        ] 38% Unzipping... android-ndk-r28c/tool
+[===============                        ] 39% Unzipping... android-ndk-r28c/tool
+[===============                        ] 40% Unzipping... android-ndk-r28c/tool
+[================                       ] 40% Unzipping... android-ndk-r28c/tool
+[================                       ] 41% Unzipping... android-ndk-r28c/tool
+[================                       ] 42% Unzipping... android-ndk-r28c/tool
+[=================                      ] 43% Unzipping... android-ndk-r28c/tool
+[=================                      ] 44% Unzipping... android-ndk-r28c/tool
+[=================                      ] 45% Unzipping... android-ndk-r28c/tool
+[==================                     ] 45% Unzipping... android-ndk-r28c/tool
+[==================                     ] 46% Unzipping... android-ndk-r28c/tool
+[==================                     ] 47% Unzipping... android-ndk-r28c/tool
+[===================                    ] 48% Unzipping... android-ndk-r28c/tool
+[===================                    ] 49% Unzipping... android-ndk-r28c/tool
+[===================                    ] 50% Unzipping... android-ndk-r28c/tool
+[====================                   ] 50% Unzipping... android-ndk-r28c/tool
+[====================                   ] 51% Unzipping... android-ndk-r28c/tool
+[====================                   ] 52% Unzipping... android-ndk-r28c/tool
+[=====================                  ] 53% Unzipping... android-ndk-r28c/tool
+[=====================                  ] 54% Unzipping... android-ndk-r28c/tool
+[=====================                  ] 54% Unzipping... android-ndk-r28c/buil
+[=====================                  ] 54% Unzipping... android-ndk-r28c/sour
+[=====================                  ] 54% Unzipping... android-ndk-r28c/NOTI
+[=====================                  ] 54% Unzipping... android-ndk-r28c/ndk-
+[=====================                  ] 54% Unzipping... android-ndk-r28c/NOTI
+[=====================                  ] 54% Unzipping... android-ndk-r28c/pyth
+[=====================                  ] 54% Unzipping... android-ndk-r28c/preb
+[=====================                  ] 54% Unzipping... android-ndk-r28c/ndk-
+[=====================                  ] 54% Unzipping... android-ndk-r28c/sour
+[=====================                  ] 54% Unzipping... android-ndk-r28c/simp
+[=====================                  ] 55% Unzipping... android-ndk-r28c/simp
+[=====================                  ] 55% Unzipping... android-ndk-r28c/CHAN
+[=======================================] 100% Unzipping... android-ndk-r28c/CHA
+
+WARNING: Your app uses the following plugins that apply Kotlin Gradle Plugin (KGP): flutter_tts, home_widget, package_info_plus, wakelock_plus
+Future versions of Flutter will fail to build if your app uses plugins that apply KGP.
+
+Please check the changelogs of these plugins and upgrade to a version that supports Built-in Kotlin.
+If no such version exists, report the issue to the plugin. If necessary, here is a guide on filing
+an issue against a plugin: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers#report-incompatible-kotlin-gradle-plugin-usage-to-plugin-authors
+
+If you are a plugin author, please migrate your plugin to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
+Note: /home/runner/.pub-cache/hosted/pub.dev/android_alarm_manager_plus-5.1.2/android/src/main/java/dev/fluttercommunity/plus/androidalarmmanager/AlarmService.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Checking the license for package CMake 3.22.1 in /usr/local/lib/android/sdk/licenses
+License for package CMake 3.22.1 accepted.
+Preparing "Install CMake 3.22.1 v.3.22.1".
+"Install CMake 3.22.1 v.3.22.1" ready.
+Installing CMake 3.22.1 in /usr/local/lib/android/sdk/cmake/3.22.1
+"Install CMake 3.22.1 v.3.22.1" complete.
+"Install CMake 3.22.1 v.3.22.1" finished.
+Running Gradle task 'assembleDebug'...                            350.1s
+✓ Built build/app/outputs/flutter-apk/app-debug.apk
+Installing build/app/outputs/flutter-apk/app-debug.apk...          698ms
+I/Choreographer( 6039): Skipped 85 frames!  The application may be doing too much work on its main thread.
+D/FlutterJNI( 6039): Sending viewport metrics to the engine.
+VMServiceFlutterDriver: Connecting to Flutter application at http://127.0.0.1:33011/lC0znQPjz1U=/
+VMServiceFlutterDriver: Isolate found with number: 4420028308231771
+VMServiceFlutterDriver: Isolate 4420028308231771 is runnable.
+VMServiceFlutterDriver: Isolate is paused at start.
+VMServiceFlutterDriver: Attempting to resume isolate
+I/flutter ( 6039): 00:00 +0: all screens
+VMServiceFlutterDriver: Connected to Flutter application.
+I/FlutterBackgroundExecutor( 6039): Starting AlarmService...
+I/AndroidAlarmManagerPlugin( 6039): onAttachedToEngine
+I/TextToSpeech( 6039): Connected to TTS engine
+I/TextToSpeech( 6039): Sucessfully bound to com.google.android.tts
+I/flutter ( 6039): [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+I/TextToSpeech( 6039): Setting up the connection to TTS engine...
+D/ProfileInstaller( 6039): Installing profile for com.dotadraft.dota_draft
+I/AlarmService( 6039): AlarmService started!
+D/EGL_emulation( 6039): app_time_stats: avg=1676.42ms min=1259.17ms max=2093.66ms count=2
+VMServiceFlutterDriver: request_data message is taking a long time to complete...
+D/CompatibilityChangeReporter( 6039): Compat change id reported: 236825255; UID 10192; state: ENABLED
+D/EGL_emulation( 6039): app_time_stats: avg=3043.35ms min=3043.35ms max=3043.35ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=3123.91ms min=1255.07ms max=4992.74ms count=2
+D/EGL_emulation( 6039): app_time_stats: avg=1585.73ms min=1442.81ms max=1728.65ms count=2
+D/EGL_emulation( 6039): app_time_stats: avg=3445.96ms min=3445.96ms max=3445.96ms count=1
+I/flutter ( 6039): SHOT: 01_draft
+D/EGL_emulation( 6039): app_time_stats: avg=476.79ms min=30.66ms max=1358.77ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=1514.69ms min=1514.69ms max=1514.69ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=3341.64ms min=3341.64ms max=3341.64ms count=1
+I/flutter ( 6039): SHOT: 02_draft_picks
+D/EGL_emulation( 6039): app_time_stats: avg=310.42ms min=24.81ms max=750.97ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=1515.79ms min=1515.79ms max=1515.79ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1515.72ms min=1515.72ms max=1515.72ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=4271.17ms min=4271.17ms max=4271.17ms count=1
+I/flutter ( 6039): SHOT: 03_analysis
+D/EGL_emulation( 6039): app_time_stats: avg=431.98ms min=30.53ms max=1334.13ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=1514.42ms min=1514.42ms max=1514.42ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=3240.41ms min=3240.41ms max=3240.41ms count=1
+I/flutter ( 6039): SHOT: 04_analysis_more
+D/EGL_emulation( 6039): app_time_stats: avg=303.18ms min=29.74ms max=887.10ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=1513.95ms min=1513.95ms max=1513.95ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1518.82ms min=1518.82ms max=1518.82ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=4244.14ms min=4244.14ms max=4244.14ms count=1
+I/flutter ( 6039): SHOT: 05_meta
+D/EGL_emulation( 6039): app_time_stats: avg=431.63ms min=45.45ms max=1304.49ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=1526.25ms min=1526.25ms max=1526.25ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=3256.41ms min=3256.41ms max=3256.41ms count=1
+I/flutter ( 6039): SHOT: 06_meta_patch
+D/EGL_emulation( 6039): app_time_stats: avg=310.40ms min=32.33ms max=890.74ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=1516.20ms min=1516.20ms max=1516.20ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1517.44ms min=1517.44ms max=1517.44ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=4275.79ms min=4275.79ms max=4275.79ms count=1
+I/flutter ( 6039): SHOT: 07_game
+D/EGL_emulation( 6039): app_time_stats: avg=299.72ms min=23.84ms max=915.89ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=1515.62ms min=1515.62ms max=1515.62ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1517.19ms min=1517.19ms max=1517.19ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=4229.20ms min=4229.20ms max=4229.20ms count=1
+I/flutter ( 6039): SHOT: 08_profile
+D/EGL_emulation( 6039): app_time_stats: avg=549.13ms min=191.46ms max=906.80ms count=2
+D/EGL_emulation( 6039): app_time_stats: avg=708.16ms min=81.12ms max=1523.42ms count=3
+D/EGL_emulation( 6039): app_time_stats: avg=3223.22ms min=3223.22ms max=3223.22ms count=1
+I/flutter ( 6039): SHOT: 09_profile_more
+D/EGL_emulation( 6039): app_time_stats: avg=297.22ms min=27.54ms max=930.91ms count=4
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2114.76ms min=2114.76ms max=2114.76ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1554.01ms min=1554.01ms max=1554.01ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1519.81ms min=1519.81ms max=1519.81ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6377.00ms min=6377.00ms max=6377.00ms count=1
+I/flutter ( 6039): SHOT: 10_hero
+D/EGL_emulation( 6039): app_time_stats: avg=461.10ms min=33.33ms max=1357.77ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=1506.17ms min=1506.17ms max=1506.17ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=3352.51ms min=3352.51ms max=3352.51ms count=1
+I/flutter ( 6039): SHOT: 11_hero_more
+D/EGL_emulation( 6039): app_time_stats: avg=437.59ms min=18.24ms max=1373.61ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=1537.81ms min=1537.81ms max=1537.81ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=3291.06ms min=3291.06ms max=3291.06ms count=1
+I/flutter ( 6039): SHOT: 12_hero_more2
+D/EGL_emulation( 6039): app_time_stats: avg=430.13ms min=71.03ms max=1012.31ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=1513.18ms min=1513.18ms max=1513.18ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=3225.31ms min=3225.31ms max=3225.31ms count=1
+I/flutter ( 6039): SHOT: 13_hero_more3
+D/EGL_emulation( 6039): app_time_stats: avg=1267.61ms min=1267.61ms max=1267.61ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2058.72ms min=2058.72ms max=2058.72ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1538.71ms min=1538.71ms max=1538.71ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1498.60ms min=1498.60ms max=1498.60ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6368.29ms min=6368.29ms max=6368.29ms count=1
+I/flutter ( 6039): SHOT: 14_compare
+D/EGL_emulation( 6039): app_time_stats: avg=1236.41ms min=1236.41ms max=1236.41ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2055.74ms min=2055.74ms max=2055.74ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1529.31ms min=1529.31ms max=1529.31ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1510.85ms min=1510.85ms max=1510.85ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6333.22ms min=6333.22ms max=6333.22ms count=1
+I/flutter ( 6039): SHOT: 15_cm
+D/EGL_emulation( 6039): app_time_stats: avg=433.54ms min=43.62ms max=878.53ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=1541.99ms min=1541.99ms max=1541.99ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=3273.26ms min=3273.26ms max=3273.26ms count=1
+I/flutter ( 6039): SHOT: 16_cm_started
+D/EGL_emulation( 6039): app_time_stats: avg=1274.39ms min=1274.39ms max=1274.39ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=2097.56ms min=2097.56ms max=2097.56ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=1526.14ms min=1526.14ms max=1526.14ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1513.03ms min=1513.03ms max=1513.03ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6409.44ms min=6409.44ms max=6409.44ms count=1
+I/flutter ( 6039): SHOT: 17_cooldowns
+D/EGL_emulation( 6039): app_time_stats: avg=1181.97ms min=1181.97ms max=1181.97ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2067.61ms min=2067.61ms max=2067.61ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1507.75ms min=1507.75ms max=1507.75ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1519.78ms min=1519.78ms max=1519.78ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6285.75ms min=6285.75ms max=6285.75ms count=1
+I/flutter ( 6039): SHOT: 18_scan
+D/EGL_emulation( 6039): app_time_stats: avg=1180.54ms min=1180.54ms max=1180.54ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2069.98ms min=2069.98ms max=2069.98ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1517.27ms min=1517.27ms max=1517.27ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1533.33ms min=1533.33ms max=1533.33ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6294.50ms min=6294.50ms max=6294.50ms count=1
+I/flutter ( 6039): SHOT: 19_share
+D/EGL_emulation( 6039): app_time_stats: avg=1195.03ms min=1195.03ms max=1195.03ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=2074.73ms min=2074.73ms max=2074.73ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=1517.61ms min=1517.61ms max=1517.61ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1516.40ms min=1516.40ms max=1516.40ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6300.53ms min=6300.53ms max=6300.53ms count=1
+I/flutter ( 6039): SHOT: 20_timer
+D/EGL_emulation( 6039): app_time_stats: avg=1201.57ms min=1201.57ms max=1201.57ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2082.31ms min=2082.31ms max=2082.31ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1587.03ms min=1587.03ms max=1587.03ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1475.29ms min=1475.29ms max=1475.29ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6342.80ms min=6342.80ms max=6342.80ms count=1
+I/flutter ( 6039): SHOT: 21_farm
+D/EGL_emulation( 6039): app_time_stats: avg=1191.80ms min=1191.80ms max=1191.80ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2061.66ms min=2061.66ms max=2061.66ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1537.74ms min=1537.74ms max=1537.74ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1514.83ms min=1514.83ms max=1514.83ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6309.61ms min=6309.61ms max=6309.61ms count=1
+I/flutter ( 6039): SHOT: 22_wards
+D/EGL_emulation( 6039): app_time_stats: avg=1217.07ms min=1217.07ms max=1217.07ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2077.84ms min=2077.84ms max=2077.84ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1538.94ms min=1538.94ms max=1538.94ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1527.34ms min=1527.34ms max=1527.34ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6365.45ms min=6365.45ms max=6365.45ms count=1
+I/flutter ( 6039): SHOT: 23_quiz
+D/EGL_emulation( 6039): app_time_stats: avg=1227.60ms min=1227.60ms max=1227.60ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2068.70ms min=2068.70ms max=2068.70ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1524.70ms min=1524.70ms max=1524.70ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1514.23ms min=1514.23ms max=1514.23ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6333.65ms min=6333.65ms max=6333.65ms count=1
+I/flutter ( 6039): SHOT: 24_who_won
+D/EGL_emulation( 6039): app_time_stats: avg=1212.20ms min=1212.20ms max=1212.20ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2064.36ms min=2064.36ms max=2064.36ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1624.79ms min=1624.79ms max=1624.79ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1474.47ms min=1474.47ms max=1474.47ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6363.04ms min=6363.04ms max=6363.04ms count=1
+I/flutter ( 6039): SHOT: 25_match
+D/EGL_emulation( 6039): app_time_stats: avg=6157.40ms min=6157.40ms max=6157.40ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1515.21ms min=1515.21ms max=1515.21ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1515.72ms min=1515.72ms max=1515.72ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=9202.67ms min=9202.67ms max=9202.67ms count=1
+I/flutter ( 6039): SHOT: 26_match_loaded
+D/EGL_emulation( 6039): app_time_stats: avg=426.47ms min=58.66ms max=1234.84ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=1517.16ms min=1517.16ms max=1517.16ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=3224.95ms min=3224.95ms max=3224.95ms count=1
+I/flutter ( 6039): SHOT: 27_match_more
+D/EGL_emulation( 6039): app_time_stats: avg=1224.25ms min=1224.25ms max=1224.25ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=3477.29ms min=3477.29ms max=3477.29ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=2101.27ms min=2101.27ms max=2101.27ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1523.00ms min=1523.00ms max=1523.00ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=8326.27ms min=8326.27ms max=8326.27ms count=1
+I/flutter ( 6039): SHOT: 28_stats
+D/EGL_emulation( 6039): app_time_stats: avg=8181.37ms min=8181.37ms max=8181.37ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1519.56ms min=1519.56ms max=1519.56ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1514.79ms min=1514.79ms max=1514.79ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=11216.65ms min=11216.65ms max=11216.65ms count=1
+I/flutter ( 6039): SHOT: 29_stats_loaded
+D/EGL_emulation( 6039): app_time_stats: avg=426.89ms min=26.98ms max=1421.64ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=1515.27ms min=1515.27ms max=1515.27ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=3222.90ms min=3222.90ms max=3222.90ms count=1
+I/flutter ( 6039): SHOT: 30_stats_more
+D/EGL_emulation( 6039): app_time_stats: avg=1246.96ms min=1246.96ms max=1246.96ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=2062.27ms min=2062.27ms max=2062.27ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=1540.74ms min=1540.74ms max=1540.74ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1503.44ms min=1503.44ms max=1503.44ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6357.00ms min=6357.00ms max=6357.00ms count=1
+I/flutter ( 6039): SHOT: 31_rank
+D/EGL_emulation( 6039): app_time_stats: avg=1196.88ms min=1196.88ms max=1196.88ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2064.75ms min=2064.75ms max=2064.75ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1580.59ms min=1580.59ms max=1580.59ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1521.46ms min=1521.46ms max=1521.46ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6360.91ms min=6360.91ms max=6360.91ms count=1
+I/flutter ( 6039): SHOT: 32_matches_browser
+D/EGL_emulation( 6039): app_time_stats: avg=6227.36ms min=6227.36ms max=6227.36ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1513.72ms min=1513.72ms max=1513.72ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1517.51ms min=1517.51ms max=1517.51ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=9258.89ms min=9258.89ms max=9258.89ms count=1
+I/flutter ( 6039): SHOT: 33_matches_loaded
+D/EGL_emulation( 6039): app_time_stats: avg=1248.48ms min=1248.48ms max=1248.48ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2087.82ms min=2087.82ms max=2087.82ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1525.29ms min=1525.29ms max=1525.29ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1523.06ms min=1523.06ms max=1523.06ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6386.51ms min=6386.51ms max=6386.51ms count=1
+I/flutter ( 6039): SHOT: 34_personal
+D/EGL_emulation( 6039): app_time_stats: avg=1226.05ms min=1226.05ms max=1226.05ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2064.12ms min=2064.12ms max=2064.12ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1578.36ms min=1578.36ms max=1578.36ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1515.42ms min=1515.42ms max=1515.42ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6382.68ms min=6382.68ms max=6382.68ms count=1
+I/flutter ( 6039): SHOT: 35_item_timings
+D/EGL_emulation( 6039): app_time_stats: avg=10235.04ms min=10235.04ms max=10235.04ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1510.78ms min=1510.78ms max=1510.78ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1518.76ms min=1518.76ms max=1518.76ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=13264.23ms min=13264.23ms max=13264.23ms count=1
+I/flutter ( 6039): SHOT: 36_item_timings_loaded
+D/EGL_emulation( 6039): app_time_stats: avg=1246.36ms min=1246.36ms max=1246.36ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2082.43ms min=2082.43ms max=2082.43ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1543.79ms min=1543.79ms max=1543.79ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1508.09ms min=1508.09ms max=1508.09ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6383.36ms min=6383.36ms max=6383.36ms count=1
+I/flutter ( 6039): SHOT: 37_items
+D/EGL_emulation( 6039): app_time_stats: avg=1233.70ms min=1233.70ms max=1233.70ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2068.74ms min=2068.74ms max=2068.74ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1522.79ms min=1522.79ms max=1522.79ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1512.90ms min=1512.90ms max=1512.90ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6343.22ms min=6343.22ms max=6343.22ms count=1
+I/flutter ( 6039): SHOT: 38_trainer
+D/EGL_emulation( 6039): app_time_stats: avg=421.00ms min=26.59ms max=1344.03ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=1516.94ms min=1516.94ms max=1516.94ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=3205.42ms min=3205.42ms max=3205.42ms count=1
+I/flutter ( 6039): SHOT: 39_trainer_started
+D/EGL_emulation( 6039): app_time_stats: avg=1217.00ms min=1217.00ms max=1217.00ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2045.97ms min=2045.97ms max=2045.97ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1548.88ms min=1548.88ms max=1548.88ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1526.14ms min=1526.14ms max=1526.14ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6329.33ms min=6329.33ms max=6329.33ms count=1
+I/flutter ( 6039): SHOT: 40_checklist
+D/EGL_emulation( 6039): app_time_stats: avg=1202.70ms min=1202.70ms max=1202.70ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2076.60ms min=2076.60ms max=2076.60ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1537.89ms min=1537.89ms max=1537.89ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1497.78ms min=1497.78ms max=1497.78ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6319.59ms min=6319.59ms max=6319.59ms count=1
+I/flutter ( 6039): SHOT: 41_live
+D/EGL_emulation( 6039): app_time_stats: avg=1215.57ms min=1215.57ms max=1215.57ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2045.45ms min=2045.45ms max=2045.45ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1509.67ms min=1509.67ms max=1509.67ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1522.10ms min=1522.10ms max=1522.10ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6295.59ms min=6295.59ms max=6295.59ms count=1
+I/flutter ( 6039): SHOT: 42_goals
+D/EGL_emulation( 6039): app_time_stats: avg=1219.36ms min=1219.36ms max=1219.36ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2048.47ms min=2048.47ms max=2048.47ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1511.01ms min=1511.01ms max=1511.01ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1520.31ms min=1520.31ms max=1520.31ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6298.41ms min=6298.41ms max=6298.41ms count=1
+I/flutter ( 6039): SHOT: 43_friend
+D/EGL_emulation( 6039): app_time_stats: avg=1194.29ms min=1194.29ms max=1194.29ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2100.31ms min=2100.31ms max=2100.31ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1533.42ms min=1533.42ms max=1533.42ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1515.00ms min=1515.00ms max=1515.00ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6340.83ms min=6340.83ms max=6340.83ms count=1
+I/flutter ( 6039): SHOT: 44_learn
+D/EGL_emulation( 6039): app_time_stats: avg=1219.36ms min=1219.36ms max=1219.36ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2045.90ms min=2045.90ms max=2045.90ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1526.34ms min=1526.34ms max=1526.34ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1518.71ms min=1518.71ms max=1518.71ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6312.85ms min=6312.85ms max=6312.85ms count=1
+I/flutter ( 6039): SHOT: 45_lasthit
+D/EGL_emulation( 6039): app_time_stats: avg=548.71ms min=9.98ms max=1967.72ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=1514.01ms min=1514.01ms max=1514.01ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1514.60ms min=1514.60ms max=1514.60ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=5218.83ms min=5218.83ms max=5218.83ms count=1
+I/flutter ( 6039): SHOT: 46_lasthit_running
+D/EGL_emulation( 6039): app_time_stats: avg=1205.90ms min=1205.90ms max=1205.90ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=2031.98ms min=2031.98ms max=2031.98ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2025.66ms min=2025.66ms max=2025.66ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1522.63ms min=1522.63ms max=1522.63ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6798.07ms min=6798.07ms max=6798.07ms count=1
+I/flutter ( 6039): SHOT: 47_session
+D/EGL_emulation( 6039): app_time_stats: avg=6183.56ms min=6183.56ms max=6183.56ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1516.43ms min=1516.43ms max=1516.43ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1516.72ms min=1516.72ms max=1516.72ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=9211.88ms min=9211.88ms max=9211.88ms count=1
+I/flutter ( 6039): SHOT: 48_session_loaded
+D/EGL_emulation( 6039): app_time_stats: avg=1214.96ms min=1214.96ms max=1214.96ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=2073.33ms min=2073.33ms max=2073.33ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=1531.52ms min=1531.52ms max=1531.52ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1516.03ms min=1516.03ms max=1516.03ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6334.88ms min=6334.88ms max=6334.88ms count=1
+I/flutter ( 6039): SHOT: 49_hints_settings
+D/EGL_emulation( 6039): app_time_stats: avg=1208.28ms min=1208.28ms max=1208.28ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=2067.82ms min=2067.82ms max=2067.82ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=1649.80ms min=1649.80ms max=1649.80ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6411.59ms min=6411.59ms max=6411.59ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1523.30ms min=1523.30ms max=1523.30ms count=1
+I/flutter ( 6039): SHOT: 50_transfer
+D/EGL_emulation( 6039): app_time_stats: avg=1222.74ms min=1222.74ms max=1222.74ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=277.98ms min=113.51ms max=682.79ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=752.07ms min=90.71ms max=2062.33ms count=3
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=1568.97ms min=1568.97ms max=1568.97ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1533.15ms min=1533.15ms max=1533.15ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=7732.15ms min=7732.15ms max=7732.15ms count=1
+I/flutter ( 6039): SHOT: 51_live_coach
+D/EGL_emulation( 6039): app_time_stats: avg=426.17ms min=19.76ms max=1478.11ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=1531.28ms min=1531.28ms max=1531.28ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=3223.31ms min=3223.31ms max=3223.31ms count=1
+I/flutter ( 6039): SHOT: 52_live_coach_more
+D/EGL_emulation( 6039): app_time_stats: avg=424.41ms min=59.83ms max=1340.78ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=3214.52ms min=3214.52ms max=3214.52ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1583.94ms min=1583.94ms max=1583.94ms count=1
+I/flutter ( 6039): SHOT: 53_live_coach_more2
+D/EGL_emulation( 6039): app_time_stats: avg=1161.21ms min=1161.21ms max=1161.21ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2084.98ms min=2084.98ms max=2084.98ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1539.68ms min=1539.68ms max=1539.68ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1559.44ms min=1559.44ms max=1559.44ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6420.54ms min=6420.54ms max=6420.54ms count=1
+I/flutter ( 6039): SHOT: 54_dashboard
+D/EGL_emulation( 6039): app_time_stats: avg=1245.02ms min=1245.02ms max=1245.02ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1047.90ms min=1047.90ms max=1047.90ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=2065.64ms min=2065.64ms max=2065.64ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=1530.34ms min=1530.34ms max=1530.34ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1525.15ms min=1525.15ms max=1525.15ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=7428.44ms min=7428.44ms max=7428.44ms count=1
+I/flutter ( 6039): SHOT: 55_farm_list
+D/EGL_emulation( 6039): app_time_stats: avg=1192.53ms min=1192.53ms max=1192.53ms count=1
+W/WindowOnBackDispatcher( 6039): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher( 6039): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/EGL_emulation( 6039): app_time_stats: avg=2107.16ms min=2107.16ms max=2107.16ms count=1
+E/AccessibilityBridge( 6039): transform has not been initialized for id = 1111
+I/AccessibilityBridge( 6039): Semantics tree:SemanticsNode id=0 identifier=null label=null actions=0 flags=0
+I/AccessibilityBridge( 6039): Semantics tree:  +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:  +-- textDirection=UNKNOWN
+I/AccessibilityBridge( 6039): Semantics tree:  +-- rect.ltrb=(0.0, 0.0, 1080.0, 2337.0)
+I/AccessibilityBridge( 6039): Semantics tree:  +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:  SemanticsNode id=1 identifier=null label=null actions=0 flags=0
+I/AccessibilityBridge( 6039): Semantics tree:    +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:    +-- textDirection=LTR
+I/AccessibilityBridge( 6039): Semantics tree:    +-- rect.ltrb=(0.0, 0.0, 411.42856, 890.2857)
+I/AccessibilityBridge( 6039): Semantics tree:    +-- transform=[2.625, 0.0, 0.0, 0.0, 0.0, 2.625, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:    SemanticsNode id=1110 identifier=null label=null actions=0 flags=0
+I/AccessibilityBridge( 6039): Semantics tree:      +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:      +-- textDirection=UNKNOWN
+I/AccessibilityBridge( 6039): Semantics tree:      +-- rect.ltrb=(0.0, 0.0, 411.42856, 890.2857)
+I/AccessibilityBridge( 6039): Semantics tree:      +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:      SemanticsNode id=1112 identifier=null label=null actions=0 flags=2048
+I/AccessibilityBridge( 6039): Semantics tree:        +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:        +-- textDirection=UNKNOWN
+I/AccessibilityBridge( 6039): Semantics tree:        +-- rect.ltrb=(0.0, 0.0, 411.42856, 890.2857)
+I/AccessibilityBridge( 6039): Semantics tree:        +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:        SemanticsNode id=1130 identifier=null label=null actions=0 flags=0
+I/AccessibilityBridge( 6039): Semantics tree:          +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:          +-- textDirection=UNKNOWN
+I/AccessibilityBridge( 6039): Semantics tree:          +-- rect.ltrb=(0.0, 0.0, 411.42856, 104.7619)
+I/AccessibilityBridge( 6039): Semantics tree:          +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:          SemanticsNode id=1131 identifier=null label=Back actions=4194305 flags=2097352
+I/AccessibilityBridge( 6039): Semantics tree:            +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:            +-- textDirection=LTR
+I/AccessibilityBridge( 6039): Semantics tree:            +-- rect.ltrb=(0.0, 0.0, 48.0, 48.0)
+I/AccessibilityBridge( 6039): Semantics tree:            +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 4.0, 52.761906, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:          SemanticsNode id=1132 identifier=null label=Anti-Mage actions=0 flags=4608
+I/AccessibilityBridge( 6039): Semantics tree:            +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:            +-- textDirection=LTR
+I/AccessibilityBridge( 6039): Semantics tree:            +-- rect.ltrb=(0.0, 0.0, 82.64551, 22.0)
+I/AccessibilityBridge( 6039): Semantics tree:            +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 72.0, 65.7619, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:        SemanticsNode id=1113 identifier=null label=null actions=0 flags=0
+I/AccessibilityBridge( 6039): Semantics tree:          +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:          +-- textDirection=UNKNOWN
+I/AccessibilityBridge( 6039): Semantics tree:          +-- rect.ltrb=(0.0, 0.0, 411.42856, 785.5238)
+I/AccessibilityBridge( 6039): Semantics tree:          +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 104.7619, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:          SemanticsNode id=1129 identifier=null label=null actions=8388624 flags=262144
+I/AccessibilityBridge( 6039): Semantics tree:            +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:            +-- textDirection=UNKNOWN
+I/AccessibilityBridge( 6039): Semantics tree:            +-- rect.ltrb=(0.0, 0.0, 411.42856, 785.5238)
+I/AccessibilityBridge( 6039): Semantics tree:            +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:            SemanticsNode id=1114 identifier=null label=30.10 03:30 · керри · 11:00 actions=0 flags=0
+I/AccessibilityBridge( 6039): Semantics tree:              +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:              +-- textDirection=LTR
+I/AccessibilityBridge( 6039): Semantics tree:              +-- rect.ltrb=(0.0, 0.0, 383.42856, 16.0)
+I/AccessibilityBridge( 6039): Semantics tree:              +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 14.0, 0.0, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:            SemanticsNode id=1115 identifier=null label=Где ходил герой actions=0 flags=0
+I/AccessibilityBridge( 6039): Semantics tree:              +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:              +-- textDirection=LTR
+I/AccessibilityBridge( 6039): Semantics tree:              +-- rect.ltrb=(0.0, 0.0, 383.42856, 45.0)
+I/AccessibilityBridge( 6039): Semantics tree:              +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 14.0, 16.0, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:            SemanticsNode id=1116 identifier=null label=Весь матч
+I/AccessibilityBridge( 6039): Линия — путь героя (по 5 минут, ползунком), крестики — смерти. actions=0 flags=0
+I/AccessibilityBridge( 6039): Semantics tree:              +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:              +-- textDirection=LTR
+I/AccessibilityBridge( 6039): Semantics tree:              +-- rect.ltrb=(0.0, 0.0, 383.42856, 465.42856)
+I/AccessibilityBridge( 6039): Semantics tree:              +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 14.0, 61.0, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:              SemanticsNode id=1117 identifier=null label=null actions=4194496 flags=10485952
+I/AccessibilityBridge( 6039): Semantics tree:                +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:                +-- textDirection=LTR
+I/AccessibilityBridge( 6039): Semantics tree:                +-- rect.ltrb=(2.0, 0.0, 50.0, 48.0)
+I/AccessibilityBridge( 6039): Semantics tree:                +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 70.97574, 380.42856, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:              SemanticsNode id=1111 identifier=null label=null actions=0 flags=0
+I/AccessibilityBridge( 6039): Semantics tree:                +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:                +-- textDirection=null
+I/AccessibilityBridge( 6039): Semantics tree:                +-- rect.ltrb=(0.0, 0.0, 0.0, 0.0)
+I/AccessibilityBridge( 6039): Semantics tree:                +-- transform=null
+I/AccessibilityBridge( 6039): Semantics tree:            SemanticsNode id=1118 identifier=null label=Как распределилось время actions=0 flags=0
+I/AccessibilityBridge( 6039): Semantics tree:              +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:              +-- textDirection=LTR
+I/AccessibilityBridge( 6039): Semantics tree:              +-- rect.ltrb=(0.0, 0.0, 383.42856, 45.0)
+I/AccessibilityBridge( 6039): Semantics tree:              +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 14.0, 526.4286, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:            SemanticsNode id=1119 identifier=null label=Линии
+I/AccessibilityBridge( 6039): 7%
+I/AccessibilityBridge( 6039): Свой лес
+I/AccessibilityBridge( 6039): 83%
+I/AccessibilityBridge( 6039): Чужой лес
+I/AccessibilityBridge( 6039): 0%
+I/AccessibilityBridge( 6039): База
+I/AccessibilityBridge( 6039): 0%
+I/AccessibilityBridge( 6039): Мёртв
+I/AccessibilityBridge( 6039): 10%
+I/AccessibilityBridge( 6039): Простой (стоял без фарма)
+I/AccessibilityBridge( 6039): 0:00 actions=0 flags=0
+I/AccessibilityBridge( 6039): Semantics tree:              +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:              +-- textDirection=LTR
+I/AccessibilityBridge( 6039): Semantics tree:              +-- rect.ltrb=(0.0, 0.0, 383.42856, 160.0)
+I/AccessibilityBridge( 6039): Semantics tree:              +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 14.0, 571.4286, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:              SemanticsNode id=1120 identifier=null label=null actions=0 flags=0
+I/AccessibilityBridge( 6039): Semantics tree:                +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:                +-- textDirection=LTR
+I/AccessibilityBridge( 6039): Semantics tree:                +-- rect.ltrb=(0.0, 0.0, 189.42857, 8.0)
+I/AccessibilityBridge( 6039): Semantics tree:                +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 135.0, 22.0, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:              SemanticsNode id=1121 identifier=null label=null actions=0 flags=0
+I/AccessibilityBridge( 6039): Semantics tree:                +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:                +-- textDirection=LTR
+I/AccessibilityBridge( 6039): Semantics tree:                +-- rect.ltrb=(0.0, 0.0, 189.42857, 8.0)
+I/AccessibilityBridge( 6039): Semantics tree:                +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 135.0, 44.0, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:              SemanticsNode id=1122 identifier=null label=null actions=0 flags=0
+I/AccessibilityBridge( 6039): Semantics tree:                +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:                +-- textDirection=LTR
+I/AccessibilityBridge( 6039): Semantics tree:                +-- rect.ltrb=(0.0, 0.0, 189.42857, 8.0)
+I/AccessibilityBridge( 6039): Semantics tree:                +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 135.0, 66.0, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:              SemanticsNode id=1123 identifier=null label=null actions=0 flags=0
+I/AccessibilityBridge( 6039): Semantics tree:                +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:                +-- textDirection=LTR
+I/AccessibilityBridge( 6039): Semantics tree:                +-- rect.ltrb=(0.0, 0.0, 189.42857, 8.0)
+I/AccessibilityBridge( 6039): Semantics tree:                +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 135.0, 88.0, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:              SemanticsNode id=1124 identifier=null label=null actions=0 flags=0
+I/AccessibilityBridge( 6039): Semantics tree:                +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:                +-- textDirection=LTR
+I/AccessibilityBridge( 6039): Semantics tree:                +-- rect.ltrb=(0.0, 0.0, 189.42857, 8.0)
+I/AccessibilityBridge( 6039): Semantics tree:                +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 135.0, 110.0, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:            SemanticsNode id=1125 identifier=null label=Золото в минуту actions=0 flags=0
+I/AccessibilityBridge( 6039): Semantics tree:              +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:              +-- textDirection=LTR
+I/AccessibilityBridge( 6039): Semantics tree:              +-- rect.ltrb=(0.0, 0.0, 383.42856, 45.0)
+I/AccessibilityBridge( 6039): Semantics tree:              +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 14.0, 731.4286, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:            SemanticsNode id=1126 identifier=null label=Пунктир — средний GPM игроков твоего ранга на этом герое (618). actions=0 flags=0
+I/AccessibilityBridge( 6039): Semantics tree:              +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:              +-- textDirection=LTR
+I/AccessibilityBridge( 6039): Semantics tree:              +-- rect.ltrb=(0.0, 0.0, 383.42856, 9.095238)
+I/AccessibilityBridge( 6039): Semantics tree:              +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 14.0, 776.4286, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:            SemanticsNode id=1127 identifier=null label=Что улучшить actions=0 flags=8192
+I/AccessibilityBridge( 6039): Semantics tree:              +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:              +-- textDirection=LTR
+I/AccessibilityBridge( 6039): Semantics tree:              +-- rect.ltrb=(0.0, 0.0, 383.42856, 45.0)
+I/AccessibilityBridge( 6039): Semantics tree:              +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 14.0, 968.4286, 0.0, 1.0]
+I/AccessibilityBridge( 6039): Semantics tree:            SemanticsNode id=1128 identifier=null label=•  
+I/AccessibilityBridge( 6039): Итоговый GPM 410 ниже среднего на герое (618). actions=0 flags=8192
+I/AccessibilityBridge( 6039): Semantics tree:              +-- headingLevel=0
+I/AccessibilityBridge( 6039): Semantics tree:              +-- textDirection=LTR
+I/AccessibilityBridge( 6039): Semantics tree:              +-- rect.ltrb=(0.0, 0.0, 383.42856, 22.095238)
+I/AccessibilityBridge( 6039): Semantics tree:              +-- transform=[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 14.0, 1013.4286, 0.0, 1.0]
+D/EGL_emulation( 6039): app_time_stats: avg=1592.74ms min=1592.74ms max=1592.74ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1486.10ms min=1486.10ms max=1486.10ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6375.84ms min=6375.84ms max=6375.84ms count=1
+I/flutter ( 6039): SHOT: 56_farm_report
+D/EGL_emulation( 6039): app_time_stats: avg=424.13ms min=21.49ms max=1462.08ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=1515.00ms min=1515.00ms max=1515.00ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=3213.29ms min=3213.29ms max=3213.29ms count=1
+I/flutter ( 6039): SHOT: 57_farm_report_more
+D/EGL_emulation( 6039): app_time_stats: avg=1193.62ms min=1193.62ms max=1193.62ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=2700.13ms min=2700.13ms max=2700.13ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1526.58ms min=1526.58ms max=1526.58ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1519.62ms min=1519.62ms max=1519.62ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=6936.61ms min=6936.61ms max=6936.61ms count=1
+I/flutter ( 6039): SHOT: 58_english_draft
+D/EGL_emulation( 6039): app_time_stats: avg=314.93ms min=29.27ms max=927.91ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=1517.22ms min=1517.22ms max=1517.22ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1519.84ms min=1519.84ms max=1519.84ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=4298.34ms min=4298.34ms max=4298.34ms count=1
+I/flutter ( 6039): SHOT: 59_english_game
+D/EGL_emulation( 6039): app_time_stats: avg=1844.74ms min=1844.74ms max=1844.74ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=2350.08ms min=2350.08ms max=2350.08ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1544.06ms min=1544.06ms max=1544.06ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1521.98ms min=1521.98ms max=1521.98ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=7260.14ms min=7260.14ms max=7260.14ms count=1
+I/flutter ( 6039): SHOT: 60_light_draft
+D/FlutterJNI( 6039): Sending viewport metrics to the engine.
+D/EGL_emulation( 6039): app_time_stats: avg=300.33ms min=32.18ms max=921.63ms count=4
+D/EGL_emulation( 6039): app_time_stats: avg=1516.29ms min=1516.29ms max=1516.29ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=4239.71ms min=4239.71ms max=4239.71ms count=1
+D/EGL_emulation( 6039): app_time_stats: avg=1541.68ms min=1541.68ms max=1541.68ms count=1
+I/flutter ( 6039): SHOT: 61_light_profile
+D/EGL_emulation( 6039): app_time_stats: avg=1406.06ms min=1406.06ms max=1406.06ms count=1
+I/flutter ( 6039): ERRORS: 0
+I/flutter ( 6039): 06:02 +1: (tearDownAll)
+I/Choreographer( 6039): Skipped 75 frames!  The application may be doing too much work on its main thread.
+D/FlutterJNI( 6039): Sending viewport metrics to the engine.
+D/EGL_emulation( 6039): app_time_stats: avg=2717.19ms min=2717.19ms max=2717.19ms count=1
+I/flutter ( 6039): 06:03 +2: All tests passed!
+I/OpenGLRenderer( 6039): Davey! duration=1260ms; Flags=0, FrameTimelineVsyncId=125903, IntendedVsync=752512043992, Vsync=753762043942, InputEventId=0, HandleInputStart=753763835434, AnimationStart=753763838208, PerformTraversalsStart=753763839450, DrawStart=753767564336, FrameDeadline=752528710658, FrameInterval=753763381352, FrameStartTime=16666666, SyncQueued=753767747137, SyncStart=753767758303, IssueDrawCommandsStart=753768236341, SwapBuffers=753768722431, FrameCompleted=753772542808, DequeueBufferDuration=2834, QueueBufferDuration=262128, GpuCompleted=753772374158, SwapBuffersCompleted=753772542808, DisplayPresentTime=0, CommandSubmissionCompleted=753768722431, 
+All tests passed.
+Leaving the application running.
