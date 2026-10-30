@@ -192,9 +192,11 @@ class _GpmPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final pts = s.where((e) => e.t > 60).toList();
     if (pts.length < 2) return;
-    final maxT = pts.last.t.toDouble();
+    final minT = pts.first.t.toDouble();
+    final span = (pts.last.t - minT).clamp(1, 1 << 30).toDouble();
     final maxV = [...pts.map((e) => e.gpm.toDouble()), bench ?? 0].reduce((a, b) => a > b ? a : b) * 1.15 + 1;
-    Offset at(num t, num v) => Offset(t / maxT * size.width, size.height - v / maxV * size.height);
+    const top = 14.0; // место под подпись
+    Offset at(num t, num v) => Offset((t - minT) / span * size.width, top + (size.height - top) * (1 - v / maxV));
     final g = Paint()
       ..color = grid
       ..strokeWidth = 1;
