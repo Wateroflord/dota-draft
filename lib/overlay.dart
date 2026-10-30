@@ -266,7 +266,7 @@ String keyLabel(KeyEvent e) {
   return l.isEmpty ? '#${e.physicalKey.usbHidUsage & 0xFFFF}' : l.toUpperCase();
 }
 
-bool isModifierKey(PhysicalKeyboardKey k) => const {
+bool isModifierKey(PhysicalKeyboardKey k) => <PhysicalKeyboardKey>{
       PhysicalKeyboardKey.controlLeft,
       PhysicalKeyboardKey.controlRight,
       PhysicalKeyboardKey.shiftLeft,

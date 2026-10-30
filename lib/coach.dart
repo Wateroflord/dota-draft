@@ -227,14 +227,13 @@ class Coach extends ChangeNotifier {
     final current = {for (final a in g.abilities) a.name: a.level};
     final abil = {for (final a in info.abilities) a.id: a};
     // Начиная с текущего шага берём популярный вариант, который ещё можно качать.
-    for (var i = step; i < seq.length; i++) {
-      for (final o in seq[i]) {
+    if (step < seq.length) {
+      for (final o in seq[step]) {
         final a = abil[o.$1];
         if (a == null) continue;
         final max = a.maxLevel > 0 ? a.maxLevel : (a.ult ? 3 : 4);
         if ((current[a.key] ?? 0) < max) return a;
       }
-      break;
     }
     return null;
   }
