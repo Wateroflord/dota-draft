@@ -1,0 +1,14 @@
+
+FullName
+--------
+C:\Users\runneradmin\AppData\Roaming\com.dotadraft\dota_draft
+C:\Users\runneradmin\AppData\Roaming\com.dotadraft\dota_draft\draft_state.json
+C:\Users\runneradmin\AppData\Roaming\com.dotadraft\dota_draft\heroinfo.json
+C:\Users\runneradmin\AppData\Roaming\com.dotadraft\dota_draft\Inter_regular_ecdb53099b1a68cd24c6900ea5beeafec81bd3c8cb9…
+C:\Users\runneradmin\AppData\Roaming\com.dotadraft\dota_draft\items.json
+C:\Users\runneradmin\AppData\Roaming\com.dotadraft\dota_draft\libCachedImageData.json
+C:\Users\runneradmin\AppData\Roaming\com.dotadraft\dota_draft\patch.json
+C:\Users\runneradmin\AppData\Roaming\com.dotadraft\dota_draft\portraits.json
+C:\Users\runneradmin\AppData\Roaming\com.dotadraft\dota_draft\pro_drafts.json
+C:\Users\runneradmin\AppData\Roaming\com.dotadraft\dota_draft\tools_state.json
+

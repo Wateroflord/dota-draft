@@ -1,0 +1,9 @@
+installer_exit=0 exe_exists=True
+
+FullName
+--------
+C:\Users\runneradmin\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Dota Draft
+C:\Users\runneradmin\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Dota Draft\Dota Draft.lnk
+
+running=True
+running_end=True
