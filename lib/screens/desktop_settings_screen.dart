@@ -117,6 +117,15 @@ class _DesktopSettingsScreenState extends State<DesktopSettingsScreen> {
               _switch(L('Озвучивать подсказки', 'Speak hints'), L('прокачка, таланты, ТП, выкуп, варды, план по минутам', 'skills, talents, TP, buyback, wards, timeline'),
                   t.coachVoice, (v) => t.setFlags(coachVoice: v)),
               if (isWindows)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(
+                    L('Для русской озвучки нужен русский голос Windows: Параметры → Время и язык → Речь → Добавить голоса → Русский.',
+                        'Speech uses Windows voices: Settings → Time & Language → Speech → Add voices.'),
+                    style: T.small,
+                  ),
+                ),
+              if (isWindows)
                 _switch(L('Уведомления Windows', 'Windows notifications'), L('всплывающие сообщения возле часов', 'pop-ups near the clock'), t.toasts,
                     (v) => t.setFlags(toasts: v)),
               _switch(L('Открывать разбор после матча', 'Open breakdown after the match'),

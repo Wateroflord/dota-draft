@@ -6,6 +6,7 @@ import 'platform.dart';
 
 /// Озвучка. На телефоне — flutter_tts, на Windows — голоса Windows через PowerShell
 /// (родной модуль flutter_tts ронял приложение на части ПК с Windows 10).
+/// Если голоса нужного языка нет — молчим (иначе английский голос читает русский текст как попало).
 class Tts {
   FlutterTts? _tts;
   String _lang = 'ru-RU';
@@ -53,7 +54,8 @@ Add-Type -AssemblyName System.Speech
 $s = New-Object System.Speech.Synthesis.SpeechSynthesizer
 $v = $s.GetInstalledVoices() | Where-Object { $_.Enabled -and $_.VoiceInfo.Culture.Name -eq $env:DD_LANG } | Select-Object -First 1
 if (-not $v) { $p = $env:DD_LANG.Split('-')[0]; $v = $s.GetInstalledVoices() | Where-Object { $_.Enabled -and $_.VoiceInfo.Culture.TwoLetterISOLanguageName -eq $p } | Select-Object -First 1 }
-if ($v) { $s.SelectVoice($v.VoiceInfo.Name) }
+if (-not $v) { exit 3 }
+$s.SelectVoice($v.VoiceInfo.Name)
 $s.Rate = [int]$env:DD_RATE
 $s.Speak($env:DD_TEXT)
 ''';
