@@ -13,7 +13,8 @@ dependencies:
   google_fonts: ^6.2.1
   http: ^1.2.2
   path_provider: ^2.1.4
-  flutter_tts: ^4.2.0
+  flutter_tts:
+    path: third_party/flutter_tts
   wakelock_plus: ^1.2.8
   image_picker: ^1.1.2
   qr_flutter: ^4.1.0

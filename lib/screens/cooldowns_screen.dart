@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../data.dart';
@@ -15,6 +14,7 @@ import '../tools_state.dart';
 import '../widgets.dart';
 import 'hero_picker.dart';
 import 'timer_screen.dart' show mmss;
+import '../tts.dart';
 
 class _Cd {
   final String label;
@@ -32,7 +32,7 @@ class CooldownsScreen extends StatefulWidget {
 }
 
 class _CooldownsScreenState extends State<CooldownsScreen> {
-  final FlutterTts tts = FlutterTts();
+  final Tts tts = Tts();
   Timer? ticker;
   final List<int> heroes = [];
   final Map<int, int> ultLevel = {};

@@ -3,13 +3,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../theme.dart';
 import '../gsi.dart';
 import '../tools_state.dart';
 import '../widgets.dart';
+import '../tts.dart';
 
 String mmss(int sec) {
   final neg = sec < 0;
@@ -33,7 +33,7 @@ class _OneShot {
 }
 
 class _TimerScreenState extends State<TimerScreen> {
-  final FlutterTts tts = FlutterTts();
+  final Tts tts = Tts();
   Timer? ticker;
   DateTime? startedAt; // когда в реальном времени было «0:00» игры
   int pausedAt = 0; // игровое время в момент паузы

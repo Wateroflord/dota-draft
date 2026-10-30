@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 
 import 'advice.dart';
 import 'gsi.dart';
@@ -15,6 +14,7 @@ import 'state.dart';
 import 'storage.dart';
 import 'tools_state.dart';
 import 'winutil.dart';
+import 'tts.dart';
 
 /// Точка записи матча: время, позиция, жив ли, золото.
 class Sample {
@@ -80,7 +80,7 @@ class Coach extends ChangeNotifier {
   ToolsState? tools;
   void Function(int matchId, int heroId)? openMatch;
 
-  final FlutterTts _tts = FlutterTts();
+  final Tts _tts = Tts();
   bool _ttsReady = false;
   MatchRecord? current;
   final List<MatchRecord> history = [];
