@@ -2,7 +2,6 @@
 /ios/
 /build/
 /.dart_tool/
-/test/
 .flutter-plugins
 .flutter-plugins-dependencies
 .metadata
@@ -15,3 +14,4 @@ pubspec.lock
 /assets/pro_drafts.json
 /assets/portraits.json
 /assets/items.json
+/test/widget_test.dart
