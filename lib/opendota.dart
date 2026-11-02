@@ -168,8 +168,8 @@ class OpenDota {
   }
 
   /// hero_id -> [игр, побед, игр с героем в команде, побед с ним, игр против героя, побед против него]
-  static Future<Map<int, List<int>>> heroes(int id) async {
-    final j = await _get('/players/$id/heroes');
+  static Future<Map<int, List<int>>> heroes(int id, {int? days}) async {
+    final j = await _get(days == null ? '/players/$id/heroes' : '/players/$id/heroes?date=$days');
     final out = <int, List<int>>{};
     if (j is List) {
       for (final r in j.whereType<Map>()) {

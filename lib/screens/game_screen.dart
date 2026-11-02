@@ -18,6 +18,7 @@ import 'cm_screen.dart';
 import 'item_timings_screen.dart';
 import 'items_screen.dart';
 import 'live_screen.dart';
+import 'lobby_screen.dart';
 import 'personal_screen.dart';
 import 'trainer_screen.dart';
 import 'compare_screen.dart';
@@ -54,6 +55,12 @@ class GameScreen extends StatelessWidget {
           _tile(Icons.photo_camera_outlined, L('Драфт по скриншоту', 'Draft from screenshot'),
               L('Сфотографируй экран драфта — герои заполнятся сами', 'Photo of the draft screen — heroes fill in automatically'), C.gold,
               () => go(const ScanDraftScreen())),
+          _tile(Icons.groups_outlined, L('Соперники и баны', 'Opponents & bans'),
+              isWindows
+                  ? L('Кто в лобби, их любимые герои и кого банить — само, как только матч загрузится',
+                      'Who is in the lobby, their favourite heroes and who to ban — automatically once the match loads')
+                  : L('Любимые герои соперников по их ID и кого банить', 'Opponents’ favourite heroes by ID and who to ban'),
+              C.enemy, () => go(const LobbyScreen())),
           _tile(Icons.format_list_numbered, 'Captains Mode',
               L('Пики и баны по очереди с подсказками на каждый ход', 'Step-by-step picks and bans with advice on every turn'), C.accent,
               () => go(const CmScreen())),

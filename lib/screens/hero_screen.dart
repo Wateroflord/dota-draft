@@ -176,6 +176,16 @@ class HeroScreen extends StatelessWidget {
             ),
           ],
           VersusSection(hero: h),
+          if (s.lane.has(h.id)) ...[
+            _list(context, L('Легко на линии против · STRATZ', 'Easy lane against · STRATZ'), s.lane.easiest(s.data!, h.id), C.ally),
+            _list(context, L('Тяжело на линии против · STRATZ', 'Hard lane against · STRATZ'), s.lane.hardest(s.data!, h.id), C.enemy),
+            _list(context, L('Лучшие напарники по линии · STRATZ', 'Best lane partners · STRATZ'), s.lane.partners(s.data!, h.id), C.gold),
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(L('Сколько линий герой выигрывает чаще или реже 50% — по данным STRATZ за ${s.lane.updated}.',
+                  'How much more or less often the hero wins the lane than 50% — STRATZ data from ${s.lane.updated}.'), style: T.small),
+            ),
+          ],
           _list(context, L('Силён против', 'Strong against'), e.matchups(h, best: true), C.ally),
           _list(context, L('Его контрят', 'Countered by'), e.matchups(h, best: false), C.enemy, invert: true),
           _list(context, L('Лучшие союзники', 'Best allies'), e.partners(h), C.gold),

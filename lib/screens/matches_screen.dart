@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../ai_review.dart';
 import '../data.dart';
 import '../engine.dart';
 import '../opendota.dart';
@@ -431,6 +432,16 @@ class _MatchScreenState extends State<MatchScreen> {
             ],
           ]),
         ),
+        if (mePlayer != null) ...[
+          SectionLabel(L('Разбор от ИИ-тренера', 'AI coach review')),
+          AiReviewCard(
+            match: m,
+            me: mePlayer,
+            reasons: verdict.reasons,
+            draftChance: chance,
+            score: myRating?.score.round(),
+          ),
+        ],
         SectionLabel(L('Заметка к матчу', 'Match note')),
         _NoteCard(matchId: m.matchId),
         if (m.goldAdv != null && m.goldAdv!.length > 2) ...[

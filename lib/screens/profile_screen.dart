@@ -1,3 +1,4 @@
+import '../ai_review.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -307,6 +308,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
               ]),
             ),
+          SectionLabel(L('ИИ-разбор матчей', 'AI match review')),
+          const GeminiKeyCard(),
           SectionLabel(L('Настройки', 'Settings')),
           AppCard(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

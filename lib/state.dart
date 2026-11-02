@@ -13,6 +13,7 @@ import 'engine.dart';
 import 'i18n.dart';
 import 'info.dart';
 import 'opendota.dart';
+import 'stratz.dart';
 import 'theme.dart';
 
 /// Сохранённый драфт для истории и проверки точности.
@@ -118,6 +119,12 @@ class AppState extends ChangeNotifier {
 
   // История драфтов
   final List<SavedDraft> history = [];
+  bool autoSaveDraft = true; // сохранять драфт сам, когда выбраны все 10 героев
+  String _autoSig = '';
+
+  // ИИ-разбор матчей (Gemini): ключ и готовые разборы (id матча_игрок_язык -> текст)
+  String geminiKey = '';
+  final Map<String, String> aiReviews = {};
 
   // Моя позиция в драфте (0 — любая), друзья для пати, цели, история ранга, язык
   int myPos = 0;
@@ -135,6 +142,7 @@ class AppState extends ChangeNotifier {
   List<ProDraft> proDrafts = const [];
   Portraits portraits = Portraits.empty;
   Map<String, ItemRef> itemRef = const {};
+  LaneData lane = LaneData.empty; // исходы линий из STRATZ
 
   Map<int, List<String>> get friendHeroes {
     final out = <int, List<String>>{};
@@ -244,6 +252,7 @@ class AppState extends ChangeNotifier {
     proDrafts = ProDraft.parse(await JsonRepo.load('pro_drafts.json'));
     portraits = Portraits.parse(await JsonRepo.load('portraits.json'));
     itemRef = ItemRef.parse(await JsonRepo.load('items.json'));
+    lane = LaneData.parse(await JsonRepo.load('stratz.json'));
   }
 
   Future<void> _fetchInfo({bool force = false}) async {
@@ -257,6 +266,8 @@ class AppState extends ChangeNotifier {
     if (po != null) portraits = Portraits.parse(po);
     final it = await JsonRepo.fetch('items.json', force: force);
     if (it != null) itemRef = ItemRef.parse(it);
+    final st = await JsonRepo.fetch('stratz.json', force: force);
+    if (st != null) lane = LaneData.parse(st);
   }
 
   // Средние показатели игроков по рангам + мои подробные матчи (загружаются по запросу)
@@ -515,6 +526,81 @@ class AppState extends ChangeNotifier {
     _changed();
   }
 
+  void setGeminiKey(String k) {
+    geminiKey = k.trim();
+    _changed();
+  }
+
+  void saveReview(String id, String text) {
+    aiReviews.remove(id);
+    aiReviews[id] = text;
+    while (aiReviews.length > 150) {
+      aiReviews.remove(aiReviews.keys.first);
+    }
+    _changed();
+  }
+
+  void setAutoSaveDraft(bool v) {
+    autoSaveDraft = v;
+    _changed();
+  }
+
+  /// Драфт полный (5 на 5) — сохраняем его в историю один раз.
+  void _maybeAutoSave() {
+    if (!autoSaveDraft || data == null) return;
+    final a = allies.whereType<int>().toList(), e = enemies.whereType<int>().toList();
+    if (a.length < 5 || e.length < 5) return;
+    final sig = '${[...a]..sort()}|${[...e]..sort()}';
+    if (sig == _autoSig) return;
+    _autoSig = sig;
+    final recent = history.take(5).any((d) => '${[...d.allies]..sort()}|${[...d.enemies]..sort()}' == sig);
+    if (recent) return;
+    history.insert(
+        0,
+        SavedDraft('${DateTime.now().microsecondsSinceEpoch}', DateTime.now().millisecondsSinceEpoch, a, e, group,
+            engine.winChance(allyHeroes, enemyHeroes), null));
+  }
+
+  /// Подставить результаты сохранённых драфтов по последним матчам из OpenDota.
+  /// Матч подходит, если начался в пределах часа от сохранения драфта и мой герой есть в драфте.
+  /// Возвращает, сколько результатов отмечено.
+  Future<int> autoFillResults() async {
+    final id = accountId;
+    if (id == null || history.every((d) => d.win != null)) return 0;
+    final List<RecentMatch> recent;
+    try {
+      recent = await OpenDota.recent(id);
+    } catch (_) {
+      return 0;
+    }
+    var n = 0;
+    final used = <int>{};
+    for (var i = 0; i < history.length; i++) {
+      final d = history[i];
+      if (d.win != null) continue;
+      for (final m in recent) {
+        if (used.contains(m.matchId)) continue;
+        final start = m.startTime * 1000;
+        // Драфт сохраняют во время пиков (до начала) или сразу после игры.
+        final fits = d.ts >= start - 60 * 60000 && d.ts <= start + m.duration * 1000 + 30 * 60000;
+        if (!fits) continue;
+        if (d.allies.contains(m.heroId)) {
+          history[i] = d.withResult(m.win);
+        } else if (d.enemies.contains(m.heroId)) {
+          // Драфт был записан «с другой стороны».
+          history[i] = d.withResult(!m.win);
+        } else {
+          continue;
+        }
+        used.add(m.matchId);
+        n++;
+        break;
+      }
+    }
+    if (n > 0) _changed();
+    return n;
+  }
+
   void setResult(String id, bool? win) {
     final i = history.indexWhere((d) => d.id == id);
     if (i < 0) return;
@@ -586,6 +672,7 @@ class AppState extends ChangeNotifier {
 
   Timer? _t;
   void _changed() {
+    _maybeAutoSave();
     notifyListeners();
     _t?.cancel();
     _t = Timer(const Duration(milliseconds: 500), _savePrefs);
@@ -627,6 +714,9 @@ class AppState extends ChangeNotifier {
         'lang': lang,
         'notify': notify,
         'theme': theme,
+        'autoSaveDraft': autoSaveDraft,
+        'geminiKey': geminiKey,
+        'aiReviews': aiReviews,
       }));
     } catch (_) {}
   }
@@ -680,6 +770,10 @@ class AppState extends ChangeNotifier {
       lang = j['lang'] == 'en' ? 'en' : 'ru';
       notify = j['notify'] == true;
       theme = j['theme'] == 'light' ? 'light' : 'dark';
+      autoSaveDraft = j['autoSaveDraft'] != false;
+      geminiKey = j['geminiKey']?.toString() ?? '';
+      final ar = j['aiReviews'];
+      if (ar is Map) ar.forEach((k, v) => aiReviews['$k'] = '$v');
       C.dark = theme != 'light';
       isEn = lang == 'en';
     } catch (_) {}

@@ -7,8 +7,36 @@ import '../theme.dart';
 import '../widgets.dart';
 
 /// История сохранённых драфтов и точность предсказаний.
-class HistoryScreen extends StatelessWidget {
+class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
+
+  @override
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends State<HistoryScreen> {
+  bool checking = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _check(silent: true));
+  }
+
+  Future<void> _check({bool silent = false}) async {
+    final s = StateScope.read(context);
+    if (s.accountId == null) {
+      if (!silent) showToast(context, L('Сначала загрузи профиль Steam во вкладке «Мои герои»', 'Load your Steam profile on the My heroes tab first'));
+      return;
+    }
+    setState(() => checking = true);
+    final n = await s.autoFillResults();
+    if (!mounted) return;
+    setState(() => checking = false);
+    if (n > 0 || !silent) {
+      showToast(context, n > 0 ? L('Результаты отмечены по матчам: $n', 'Results filled from matches: $n') : L('Новых совпадений с матчами нет', 'No new matches found'));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +66,41 @@ class HistoryScreen extends StatelessWidget {
             'через 20–30 матчей станет понятно, насколько подсказкам можно доверять.', 'Accuracy — how often the draft favourite actually won. Mark the result after each game: '
             'after 20–30 matches you will see how much the advice can be trusted.'),
             style: T.small,
+          ),
+          if (rated.length >= 4) ...[
+            const SizedBox(height: 10),
+            _calibration(rated),
+          ],
+          const SizedBox(height: 10),
+          AppCard(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(L('Сохранять драфт сам', 'Save drafts automatically'), style: T.body),
+                    Text(L('Когда выбраны все 10 героев', 'When all 10 heroes are picked'), style: T.small),
+                  ]),
+                ),
+                Switch(value: s.autoSaveDraft, activeTrackColor: C.accent, onChanged: s.setAutoSaveDraft),
+              ]),
+              const SizedBox(height: 6),
+              Text(
+                L('Результат отмечается сам по твоим матчам из OpenDota (нужен профиль Steam). Матчи появляются там через несколько минут после игры.',
+                    'Results are filled in from your OpenDota matches (needs a Steam profile). Matches appear there a few minutes after the game.'),
+                style: T.small,
+              ),
+              const SizedBox(height: 4),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: checking ? null : () => _check(),
+                  icon: checking
+                      ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.sync, size: 18),
+                  label: Text(L('Проверить по матчам', 'Check against matches')),
+                ),
+              ),
+            ]),
           ),
           const SizedBox(height: 10),
           if (s.history.isEmpty)
@@ -87,6 +150,50 @@ class HistoryScreen extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+
+  /// Насколько честен шанс: в каждой группе прогнозов — сколько побед было на самом деле.
+  Widget _calibration(List<SavedDraft> rated) {
+    final groups = [
+      (L('Шанс до 45%', 'Chance under 45%'), rated.where((x) => x.chance < 0.45).toList()),
+      (L('45–55%', '45–55%'), rated.where((x) => x.chance >= 0.45 && x.chance <= 0.55).toList()),
+      (L('Шанс больше 55%', 'Chance over 55%'), rated.where((x) => x.chance > 0.55).toList()),
+    ];
+    return AppCard(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(L('ПРОГНОЗ И РЕАЛЬНОСТЬ', 'FORECAST VS REALITY'), style: T.label),
+        const SizedBox(height: 8),
+        for (final g in groups)
+          if (g.$2.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Builder(builder: (_) {
+                final n = g.$2.length;
+                final w = g.$2.where((x) => x.win == true).length;
+                final exp = g.$2.map((x) => x.chance).reduce((a, b) => a + b) / n;
+                final real = w / n;
+                return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Row(children: [
+                    Expanded(child: Text(g.$1, style: T.body.copyWith(fontSize: 13))),
+                    Text(L('ждали ${pct(exp, digits: 0)} · было ${pct(real, digits: 0)} ($w из $n)', 'expected ${pct(exp, digits: 0)} · got ${pct(real, digits: 0)} ($w of $n)'),
+                        style: T.num(12.5, color: (real - exp).abs() <= 0.1 ? C.ally : C.gold)),
+                  ]),
+                  const SizedBox(height: 4),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(value: real, minHeight: 6, backgroundColor: C.surface2, color: C.accent),
+                  ),
+                ]);
+              }),
+            ),
+        const SizedBox(height: 4),
+        Text(
+          L('Если «было» близко к «ждали» — шанс победы можно принимать всерьёз. Нужно хотя бы 10 игр в группе.',
+              'If “got” is close to “expected”, the win chance can be trusted. Needs at least 10 games per group.'),
+          style: T.small,
+        ),
+      ]),
     );
   }
 
