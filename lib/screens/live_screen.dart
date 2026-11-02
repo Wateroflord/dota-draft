@@ -12,7 +12,9 @@ import '../state.dart';
 import '../theme.dart';
 import '../tools_state.dart';
 import '../widgets.dart';
+import 'build_card.dart';
 import 'live_coach.dart';
+import 'spectator_panel.dart';
 import 'timer_screen.dart' show mmss;
 
 /// Отметки Рошана/Торментора для живого режима (общие для экрана и оверлея).
@@ -95,6 +97,7 @@ class _LivePanelState extends State<LivePanel> {
         if (!gsi.live || g == null) {
           return widget.compact ? _waitingCompact() : const GsiSetup();
         }
+        if (g.spectating) return SpectatorPanel(compact: widget.compact);
         return _live(context, g);
       },
     );
@@ -173,7 +176,7 @@ class _LivePanelState extends State<LivePanel> {
               ),
               Text(
                 g.alive
-                    ? '${g.kills}/${g.deaths}/${g.assists} · ${g.lastHits}/${g.denies} · ${g.gpm} GPM'
+                    ? '${g.kills}/${g.deaths}/${g.assists} · ${g.lastHits}/${g.denies} · ${g.gpm} GPM · ${g.xpm} XPM${g.killStreak >= 2 ? ' · 🔥${g.killStreak}' : ''}'
                     : L('Мёртв: ${g.respawn} с · выкуп ${g.buybackCost}', 'Dead: ${g.respawn}s · buyback ${g.buybackCost}'),
                 style: T.small.copyWith(color: g.alive ? C.muted : C.enemy, fontSize: c ? 11 : 12),
               ),
@@ -195,6 +198,7 @@ class _LivePanelState extends State<LivePanel> {
         ),
       ],
       if (show('alerts')) CoachAlertsCard(compact: c),
+      if (hero != null && clock <= 0 && show('build')) ...[const SizedBox(height: 6), BuildCard(hero: hero, compact: c)],
       if (hero != null && clock < 240 && show('hero')) LiveHeroCard(hero: hero, compact: c),
       if (show('farm') && (s.myPos <= 3)) LiveFarmCard(g: g, compact: c),
       if (advice.isNotEmpty && show('items')) ...[
@@ -302,9 +306,19 @@ class _GsiSetupState extends State<GsiSetup> {
     if (mounted) setState(() {});
   }
 
+  late final TextEditingController phoneCtl = TextEditingController(text: ToolsScope.read(context).phoneHost);
+
+  @override
+  void dispose() {
+    phoneCtl.dispose();
+    super.dispose();
+  }
+
   Future<void> _autoInstall() async {
     try {
-      final p = await gsi.installCfgOnWindows();
+      final tools = ToolsScope.read(context);
+      tools.setFlags(phoneHost: phoneCtl.text);
+      final p = await gsi.installCfgOnWindows(phoneHost: tools.phoneHost, phonePort: tools.gsiPort);
       if (mounted) setState(() => installed = p);
     } catch (e) {
       if (mounted) showToast(context, '$e'.replaceFirst('Exception: ', ''));
@@ -372,18 +386,52 @@ class _GsiSetupState extends State<GsiSetup> {
             label: Text(L('Настроить автоматически', 'Set up automatically')),
           ),
         ),
+        Padding(
+          padding: const EdgeInsets.only(left: 32, bottom: 6),
+          child: TextField(
+            controller: phoneCtl,
+            style: T.body,
+            keyboardType: TextInputType.number,
+            decoration: fieldDeco(L('IP телефона (необязательно)', 'Phone IP (optional)'), icon: Icons.phone_android),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 32, bottom: 6),
+          child: Text(
+            L('Впиши IP из приложения на телефоне (экран «Живой матч») и нажми кнопку выше ещё раз — '
+                'тогда Dota будет слать данные и на ПК, и на телефон: драфт, твой герой, а в режиме зрителя — все 10 игроков. '
+                'Оставь пустым, чтобы отключить телефон.',
+                'Enter the IP shown in the phone app (Live match page) and press the button above again — '
+                'Dota will then send data to both the PC and the phone: draft, your hero and, when spectating, all 10 players. '
+                'Leave empty to turn the phone off.'),
+            style: T.small,
+          ),
+        ),
         if (installed != null)
           Padding(
             padding: const EdgeInsets.only(left: 32, bottom: 6),
             child: Text(L('Готово: $installed', 'Done: $installed'), style: T.small.copyWith(color: C.ally)),
           ),
-      ] else
+      ] else ...[
+        if (ips.isNotEmpty)
+          AppCard(
+            padding: const EdgeInsets.all(10),
+            color: C.accent.withValues(alpha: 0.12),
+            child: Text(
+              L('Есть Dota Draft для Windows? Тогда проще: на ПК в «Живой матч» впиши IP этого телефона — ${ips.first} — '
+                  'и нажми «Настроить автоматически». Шаг 2 ниже тогда не нужен.',
+                  'Have Dota Draft for Windows? Easier: on the PC, Live match page, enter this phone\'s IP — ${ips.first} — '
+                  'and press "Set up automatically". Then step 2 below is not needed.'),
+              style: T.small.copyWith(color: C.text),
+            ),
+          ),
         step(
             '2',
             L('На ПК создай файл\n…\\steamapps\\common\\dota 2 beta\\game\\dota\\cfg\\gamestate_integration\\${GsiService.cfgFileName}\n'
                 'и вставь в него текст ниже (кнопка «Копировать»). Перешли себе текст, например, в Telegram.',
                 'On the PC create the file\n…\\steamapps\\common\\dota 2 beta\\game\\dota\\cfg\\gamestate_integration\\${GsiService.cfgFileName}\n'
                 'and paste the text below (Copy button). Send the text to yourself, e.g. via Telegram.')),
+      ],
       if (!isWindows) ...[
         AppCard(
           padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),

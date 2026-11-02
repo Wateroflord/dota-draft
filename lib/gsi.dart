@@ -30,8 +30,17 @@ class GsiState {
   final int wardCd; // через сколько секунд в лавке снова появятся варды (0 — есть)
   final int wardsHeld;
   final int netWorth;
+  final int killStreak;
+  /// Режим зрителя (реплей, Dota TV, наблюдатель в лобби): данные всех 10 игроков.
+  final List<GsiPlayer> players;
+  /// Драфт (пики и баны), если игра его прислала.
+  final GsiDraft? draft;
   final DateTime received;
+  bool get spectating => players.isNotEmpty;
   const GsiState({
+    this.killStreak = 0,
+    this.players = const [],
+    this.draft,
     this.x,
     this.y,
     this.abilities = const [],
@@ -80,12 +89,15 @@ class GsiState {
 
   static GsiState parse(Map j) {
     final map = j['map'] is Map ? j['map'] as Map : const {};
-    final player = j['player'] is Map ? j['player'] as Map : const {};
-    final hero = j['hero'] is Map ? j['hero'] as Map : const {};
+    final players = GsiPlayer.parseAll(j);
+    final spectating = players.isNotEmpty;
+    // У зрителя в player/hero/items/abilities лежат команды (team2, team3), а не один игрок.
+    final player = !spectating && j['player'] is Map ? j['player'] as Map : const {};
+    final hero = !spectating && j['hero'] is Map ? j['hero'] as Map : const {};
     final items = <String>[];
     var hasTp = false;
     var wards = 0;
-    if (j['items'] is Map) {
+    if (!spectating && j['items'] is Map) {
       (j['items'] as Map).forEach((slot, v) {
         if (v is Map) {
           final n = '${v['name'] ?? ''}';
@@ -99,7 +111,7 @@ class GsiState {
       });
     }
     final abilities = <GsiAbility>[];
-    if (j['abilities'] is Map) {
+    if (!spectating && j['abilities'] is Map) {
       (j['abilities'] as Map).forEach((k, v) {
         if (v is Map) {
           abilities.add(GsiAbility('${v['name'] ?? ''}', _i(v['level']), v['ultimate'] == true, _i(v['cooldown'])));
@@ -141,8 +153,169 @@ class GsiState {
       wardCd: _i(map['ward_purchase_cooldown']),
       wardsHeld: wards,
       netWorth: _i(player['net_worth']),
+      killStreak: _i(player['kill_streak']),
+      players: players,
+      draft: GsiDraft.parse(j['draft']),
       received: DateTime.now(),
     );
+  }
+}
+
+/// Предмет в слоте (для панели зрителя).
+class GsiItem {
+  final String key; // без item_
+  final int charges;
+  final int cooldown;
+  final bool backpack;
+  const GsiItem(this.key, this.charges, this.cooldown, {this.backpack = false});
+}
+
+/// Один игрок в режиме зрителя.
+class GsiPlayer {
+  final int slot; // 0–9
+  final bool radiant;
+  final String name;
+  final int heroId;
+  final String heroName; // без npc_dota_hero_
+  final int level;
+  final bool alive;
+  final int respawn;
+  final int healthPct, manaPct;
+  final int kills, deaths, assists, lastHits, denies;
+  final int gpm, xpm, gold, netWorth, killStreak;
+  final int buybackCd;
+  final List<GsiAbility> abilities;
+  final List<GsiItem> items; // инвентарь + рюкзак
+  final GsiItem? neutral;
+  final GsiItem? tp;
+  const GsiPlayer({
+    required this.slot,
+    required this.radiant,
+    this.name = '',
+    this.heroId = 0,
+    this.heroName = '',
+    this.level = 0,
+    this.alive = true,
+    this.respawn = 0,
+    this.healthPct = 100,
+    this.manaPct = 100,
+    this.kills = 0,
+    this.deaths = 0,
+    this.assists = 0,
+    this.lastHits = 0,
+    this.denies = 0,
+    this.gpm = 0,
+    this.xpm = 0,
+    this.gold = 0,
+    this.netWorth = 0,
+    this.killStreak = 0,
+    this.buybackCd = 0,
+    this.abilities = const [],
+    this.items = const [],
+    this.neutral,
+    this.tp,
+  });
+
+  /// Способности без талантов и скрытых/пустых.
+  List<GsiAbility> get skills => abilities
+      .where((a) => a.name.isNotEmpty && !a.name.startsWith('special_bonus') && !a.name.contains('empty') && a.name != 'generic_hidden')
+      .toList();
+
+  static Map _m(dynamic v) => v is Map ? v : const {};
+
+  static GsiItem? _item(dynamic v, {bool backpack = false}) {
+    if (v is! Map) return null;
+    final n = '${v['name'] ?? ''}';
+    if (n.isEmpty || n == 'empty') return null;
+    return GsiItem(n.replaceFirst('item_', ''), GsiState._i(v['charges']), GsiState._i(v['cooldown']), backpack: backpack);
+  }
+
+  /// Данные зрителя: player/hero/items/abilities → team2/team3 → player0…player9. Пусто, если это обычная игра.
+  static List<GsiPlayer> parseAll(Map j) {
+    final pl = _m(j['player']);
+    if (pl['team2'] is! Map && pl['team3'] is! Map) return const [];
+    final out = <GsiPlayer>[];
+    for (final team in ['team2', 'team3']) {
+      final tp = _m(pl[team]);
+      final th = _m(_m(j['hero'])[team]);
+      final ti = _m(_m(j['items'])[team]);
+      final ta = _m(_m(j['abilities'])[team]);
+      for (final key in tp.keys) {
+        final slot = int.tryParse('$key'.replaceFirst('player', ''));
+        if (slot == null) continue;
+        final p = _m(tp[key]);
+        final h = _m(th[key]);
+        final it = _m(ti[key]);
+        final ab = _m(ta[key]);
+        final items = <GsiItem>[];
+        for (var i = 0; i <= 8; i++) {
+          final x = _item(it['slot$i'], backpack: i >= 6);
+          if (x != null) items.add(x);
+        }
+        final abilities = <GsiAbility>[];
+        final abKeys = ab.keys.map((k) => '$k').toList()
+          ..sort((a, b) => (int.tryParse(a.replaceFirst('ability', '')) ?? 0).compareTo(int.tryParse(b.replaceFirst('ability', '')) ?? 0));
+        for (final k in abKeys) {
+          final v = _m(ab[k]);
+          abilities.add(GsiAbility('${v['name'] ?? ''}', GsiState._i(v['level']), v['ultimate'] == true, GsiState._i(v['cooldown']),
+              passive: v['passive'] == true));
+        }
+        out.add(GsiPlayer(
+          slot: slot,
+          radiant: team == 'team2',
+          name: '${p['name'] ?? ''}',
+          heroId: GsiState._i(h['id']),
+          heroName: '${h['name'] ?? ''}'.replaceFirst('npc_dota_hero_', ''),
+          level: GsiState._i(h['level']),
+          alive: h['alive'] != false,
+          respawn: GsiState._i(h['respawn_seconds']),
+          healthPct: h['health_percent'] is num ? GsiState._i(h['health_percent']) : 100,
+          manaPct: h['mana_percent'] is num ? GsiState._i(h['mana_percent']) : 100,
+          kills: GsiState._i(p['kills']),
+          deaths: GsiState._i(p['deaths']),
+          assists: GsiState._i(p['assists']),
+          lastHits: GsiState._i(p['last_hits']),
+          denies: GsiState._i(p['denies']),
+          gpm: GsiState._i(p['gpm']),
+          xpm: GsiState._i(p['xpm']),
+          gold: GsiState._i(p['gold']),
+          netWorth: GsiState._i(p['net_worth']),
+          killStreak: GsiState._i(p['kill_streak']),
+          buybackCd: GsiState._i(h['buyback_cooldown']),
+          abilities: abilities,
+          items: items,
+          neutral: _item(it['neutral0']),
+          tp: _item(it['teleport0']),
+        ));
+      }
+    }
+    out.sort((a, b) => a.slot.compareTo(b.slot));
+    return out;
+  }
+}
+
+/// Пики и баны из узла draft (team2 — Свет, team3 — Тьма).
+class GsiDraft {
+  final List<int> radiantPicks, direPicks, bans;
+  const GsiDraft(this.radiantPicks, this.direPicks, this.bans);
+
+  bool get isEmpty => radiantPicks.isEmpty && direPicks.isEmpty && bans.isEmpty;
+
+  static GsiDraft? parse(dynamic v) {
+    if (v is! Map) return null;
+    final rp = <int>[], dp = <int>[], bans = <int>[];
+    for (final (team, picks) in [('team2', rp), ('team3', dp)]) {
+      final t = v[team];
+      if (t is! Map) continue;
+      for (var i = 0; i < 10; i++) {
+        final p = GsiState._i(t['pick${i}_id']);
+        if (p > 0) picks.add(p);
+        final b = GsiState._i(t['ban${i}_id']);
+        if (b > 0) bans.add(b);
+      }
+    }
+    final d = GsiDraft(rp, dp, bans);
+    return d.isEmpty ? null : d;
   }
 }
 
@@ -151,7 +324,10 @@ class GsiAbility {
   final int level;
   final bool ultimate;
   final int cooldown;
-  const GsiAbility(this.name, this.level, this.ultimate, this.cooldown);
+  final bool passive;
+  const GsiAbility(this.name, this.level, this.ultimate, this.cooldown, {this.passive = false});
+
+  String get image => 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/abilities/$name.png';
 }
 
 /// Приёмник данных от Dota 2 (Game State Integration). Игра шлёт POST-запросы на http://<адрес>:<порт>/.
@@ -238,9 +414,9 @@ class GsiService extends ChangeNotifier {
   }
 
   /// Текст файла настройки для Dota 2.
-  String cfgText(String host) => '''"Dota Draft"
+  String cfgText(String host, {int? onPort}) => '''"Dota Draft"
 {
-    "uri"        "http://$host:$port/"
+    "uri"        "http://$host:${onPort ?? port}/"
     "timeout"    "5.0"
     "buffer"     "0.1"
     "throttle"   "0.5"
@@ -259,9 +435,25 @@ class GsiService extends ChangeNotifier {
 ''';
 
   static const cfgFileName = 'gamestate_integration_dotadraft.cfg';
+  static const phoneCfgFileName = 'gamestate_integration_dotadraft_phone.cfg';
 
-  /// Windows: найти папку Dota 2 через реестр Steam и записать файл настройки. Возвращает путь или бросает ошибку.
-  Future<String> installCfgOnWindows() async {
+  /// Windows: записать файл настройки и (если указан адрес телефона) второй файл, чтобы Dota слала данные и на телефон.
+  Future<String> installCfgOnWindows({String? phoneHost, int phonePort = 3000}) async {
+    final dir = Directory('${(await dotaGameDir()).path}\\cfg\\gamestate_integration');
+    await dir.create(recursive: true);
+    final f = File('${dir.path}\\$cfgFileName');
+    await f.writeAsString(cfgText('127.0.0.1'));
+    final ph = File('${dir.path}\\$phoneCfgFileName');
+    if (phoneHost != null && phoneHost.trim().isNotEmpty) {
+      await ph.writeAsString(cfgText(phoneHost.trim(), onPort: phonePort).replaceFirst('"Dota Draft"', '"Dota Draft Phone"'));
+    } else if (await ph.exists()) {
+      await ph.delete();
+    }
+    return f.path;
+  }
+
+  /// Windows: папка `...\dota 2 beta\game\dota` (ищется через реестр Steam и библиотеки Steam).
+  static Future<Directory> dotaGameDir() async {
     if (!Platform.isWindows) throw Exception(L('Только для Windows', 'Windows only'));
     final r = await Process.run('reg', ['query', r'HKCU\Software\Valve\Steam', '/v', 'SteamPath']);
     final m = RegExp(r'SteamPath\s+REG_SZ\s+(.+)').firstMatch('${r.stdout}');
@@ -278,14 +470,8 @@ class GsiService extends ChangeNotifier {
       }
     }
     for (final lib in libs.toSet()) {
-      final cfg = Directory('$lib\\steamapps\\common\\dota 2 beta\\game\\dota\\cfg');
-      if (await cfg.exists()) {
-        final dir = Directory('${cfg.path}\\gamestate_integration');
-        await dir.create(recursive: true);
-        final f = File('${dir.path}\\$cfgFileName');
-        await f.writeAsString(cfgText('127.0.0.1'));
-        return f.path;
-      }
+      final game = Directory('$lib\\steamapps\\common\\dota 2 beta\\game\\dota');
+      if (await Directory('${game.path}\\cfg').exists()) return game;
     }
     throw Exception(L('Папка Dota 2 не найдена', 'Dota 2 folder not found'));
   }

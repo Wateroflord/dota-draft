@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'background.dart';
+import 'build_guide.dart';
 import 'coach.dart';
 import 'desktop.dart';
 import 'gsi.dart';
@@ -53,6 +54,16 @@ Future<void> main() async {
     }
   });
   await state.init();
+  // Драфт из игры → в приложение; на Windows — билд под драфт прямо в Dota.
+  gsi.addListener(() async {
+    final g = gsi.last;
+    if (g == null) return;
+    applyGsiDraft(state, g);
+    if (tools.autoBuild) {
+      final msg = await BuildWriter.autoWrite(state, g);
+      if (msg != null) desktopMessage?.call(msg);
+    }
+  });
   await desktopStart(state, tools);
   if (isAndroid) {
     try {

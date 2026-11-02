@@ -18,6 +18,8 @@ import '../theme.dart';
 import '../widgets.dart';
 import 'cooldowns_screen.dart';
 import 'live_screen.dart';
+import 'spectator_panel.dart';
+import 'build_card.dart';
 
 /// Компактный оверлей поверх игры (Windows).
 class OverlayScreen extends StatefulWidget {
@@ -29,6 +31,30 @@ class OverlayScreen extends StatefulWidget {
 
 class _OverlayScreenState extends State<OverlayScreen> {
   int tab = 0;
+  bool? _wasSpectating;
+
+  @override
+  void initState() {
+    super.initState();
+    gsi.addListener(_onGsi);
+  }
+
+  @override
+  void dispose() {
+    gsi.removeListener(_onGsi);
+    super.dispose();
+  }
+
+  /// Начали смотреть реплей/трансляцию — сами переключаемся на «Все 10», вернулись в свою игру — на «Матч».
+  void _onGsi() {
+    final sp = gsi.last?.spectating ?? false;
+    if (sp != _wasSpectating) {
+      final first = _wasSpectating == null;
+      _wasSpectating = sp;
+      if (!mounted || (first && !sp)) return;
+      setState(() => tab = sp ? 3 : (tab == 3 ? 0 : tab));
+    }
+  }
 
   Future<void> _scan() async {
     final s = StateScope.read(context);
@@ -72,7 +98,7 @@ class _OverlayScreenState extends State<OverlayScreen> {
           Container(
             color: C.surface,
             child: Row(children: [
-              for (final t in [(0, L('Матч', 'Match')), (1, L('Драфт', 'Draft')), (2, L('Ульты', 'Ults'))])
+              for (final t in [(0, L('Матч', 'Match')), (1, L('Драфт', 'Draft')), (2, L('Ульты', 'Ults')), (3, L('Все 10', 'All 10'))])
                 Expanded(
                   child: InkWell(
                     onTap: () => setState(() => tab = t.$1),
@@ -93,6 +119,7 @@ class _OverlayScreenState extends State<OverlayScreen> {
               const SingleChildScrollView(padding: EdgeInsets.all(8), child: LivePanel(compact: true)),
               const SingleChildScrollView(padding: EdgeInsets.all(8), child: _DraftCompact()),
               const CooldownsScreen(embedded: true),
+              const SingleChildScrollView(padding: EdgeInsets.all(8), child: SpectatorPanel(compact: true)),
             ]),
           ),
           if (overlay.clickThrough)
@@ -147,6 +174,10 @@ class _DraftCompact extends StatelessWidget {
       Text(L('Героев выбирай в обычном окне (Ctrl+Shift+O) или по скриншоту.', 'Pick heroes in the normal window (Ctrl+Shift+O) or from a screenshot.'),
           style: T.small.copyWith(fontSize: 10.5)),
       const SizedBox(height: 6),
+      if (gsi.last != null && gsi.last!.heroId > 0 && s.data?.byId[gsi.last!.heroId] != null) ...[
+        BuildCard(hero: s.data!.byId[gsi.last!.heroId]!, compact: true),
+        const SizedBox(height: 6),
+      ],
       for (final p in picks)
         Padding(
           padding: const EdgeInsets.only(bottom: 4),

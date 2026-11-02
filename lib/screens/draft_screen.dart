@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 import '../data.dart';
+import 'build_card.dart';
 import '../engine.dart';
 import '../state.dart';
 import '../theme.dart';
@@ -139,9 +140,12 @@ class DraftScreen extends StatelessWidget {
                   Navigator.of(context).push(MaterialPageRoute(builder: (_) => const InfoScreen()));
                 case 4:
                   Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TrainerScreen()));
+                case 5:
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const BuildScreen()));
               }
             },
             itemBuilder: (_) => [
+              PopupMenuItem(value: 5, child: Text(L('Билд под драфт', 'Build for the draft'))),
               PopupMenuItem(value: 0, child: Text(L('Captains Mode (пики и баны по очереди)', 'Captains Mode (step by step)'))),
               PopupMenuItem(value: 1, child: Text(L('Поменять команды местами', 'Swap teams'))),
               PopupMenuItem(value: 2, child: Text(L('Очистить драфт', 'Clear draft'))),

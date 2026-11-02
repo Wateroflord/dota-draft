@@ -132,6 +132,8 @@ class ToolsState extends ChangeNotifier {
   bool trayOnClose = true; // при закрытии окна — в трей
   bool obsServer = false; // страница для OBS
   bool autoEnemies = true; // в начале матча распознать врагов с экрана
+  bool autoBuild = true; // записывать в Dota билд под драфт, когда выбран герой
+  String phoneHost = ''; // IP телефона: Dota шлёт данные и туда
   double overlayOpacity = 0.9;
   double overlayScale = 1.0;
   int overlayCorner = 0; // 0 — где оставил, 1 ↖, 2 ↗, 3 ↙, 4 ↘
@@ -227,8 +229,10 @@ class ToolsState extends ChangeNotifier {
     _changed();
   }
 
-  void setFlags({bool? coachVoice, bool? toasts, bool? autoBreakdown, bool? autoOverlay, bool? trayOnClose, bool? obsServer, bool? autoEnemies}) {
+  void setFlags({bool? autoBuild, String? phoneHost, bool? coachVoice, bool? toasts, bool? autoBreakdown, bool? autoOverlay, bool? trayOnClose, bool? obsServer, bool? autoEnemies}) {
     if (autoEnemies != null) this.autoEnemies = autoEnemies;
+    if (autoBuild != null) this.autoBuild = autoBuild;
+    if (phoneHost != null) this.phoneHost = phoneHost.trim();
     if (coachVoice != null) this.coachVoice = coachVoice;
     if (toasts != null) this.toasts = toasts;
     if (autoBreakdown != null) this.autoBreakdown = autoBreakdown;
@@ -298,6 +302,8 @@ class ToolsState extends ChangeNotifier {
         'trayOnClose': trayOnClose,
         'obsServer': obsServer,
         'autoEnemies': autoEnemies,
+        'autoBuild': autoBuild,
+        'phoneHost': phoneHost,
         'lastHitBest': lastHitBest,
         'overlayOpacity': overlayOpacity,
         'overlayScale': overlayScale,
@@ -348,6 +354,8 @@ class ToolsState extends ChangeNotifier {
       trayOnClose = j['trayOnClose'] != false;
       obsServer = j['obsServer'] == true;
       autoEnemies = j['autoEnemies'] != false;
+      autoBuild = j['autoBuild'] != false;
+      phoneHost = j['phoneHost']?.toString() ?? '';
       lastHitBest = (j['lastHitBest'] as num?)?.toInt() ?? 0;
       overlayOpacity = (j['overlayOpacity'] as num?)?.toDouble() ?? 0.9;
       overlayScale = (j['overlayScale'] as num?)?.toDouble() ?? 1.0;
