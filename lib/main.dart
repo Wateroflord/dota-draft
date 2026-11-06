@@ -23,7 +23,7 @@ import 'package:winter_core/winter_core.dart';
 final messengerKey = GlobalKey<ScaffoldMessengerState>();
 final navigatorKey = GlobalKey<NavigatorState>();
 
-void main() => runWinterApp(repo: 'dota-draft', appName: 'Dota Draft', body: _main);
+Future<void> main() => runWinterApp(repo: 'dota-draft', appName: 'Dota Draft', body: _main);
 
 Future<void> _main() async {
   WidgetsFlutterBinding.ensureInitialized();
