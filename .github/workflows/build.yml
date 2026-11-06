@@ -70,9 +70,6 @@ jobs:
       - name: Configure Android
         run: python3 tools/patch_android.py
 
-      - name: Install signing key
-        run: |
-
       - name: Get packages
         run: flutter pub get
 
