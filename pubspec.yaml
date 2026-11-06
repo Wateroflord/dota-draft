@@ -9,6 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  winter_core:
+    git:
+      url: https://github.com/Wateroflord/winter-hub.git
+      path: packages/winter_core
   cached_network_image: ^3.4.1
   google_fonts: ^6.2.1
   http: ^1.2.2

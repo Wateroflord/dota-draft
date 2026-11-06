@@ -17,12 +17,15 @@ import 'screens/overlay_screen.dart';
 import 'state.dart';
 import 'theme.dart';
 import 'tools_state.dart';
+import 'package:winter_core/winter_core.dart';
 
 /// Для сообщений без контекста (например, напоминание о перерыве после матча).
 final messengerKey = GlobalKey<ScaffoldMessengerState>();
 final navigatorKey = GlobalKey<NavigatorState>();
 
-Future<void> main() async {
+void main() => runWinterApp(repo: 'dota-draft', appName: 'Dota Draft', body: _main);
+
+Future<void> _main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initDesktop();
   if (isAndroid) {
@@ -35,7 +38,7 @@ Future<void> main() async {
   }
   final state = AppState();
   final tools = ToolsState();
-  runApp(StateScope(state: state, child: ToolsScope(state: tools, child: const DotaDraftApp())));
+  runApp(WinterCrashBanner(child: StateScope(state: state, child: ToolsScope(state: tools, child: const DotaDraftApp()))));
   await tools.load();
   overlay.attach(tools);
   coach.attach(state, tools);
