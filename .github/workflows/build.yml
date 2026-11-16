@@ -31,7 +31,7 @@ permissions:
 
 jobs:
   app:
-    uses: Wateroflord/winter-hub/.github/workflows/flutter-app.yml@abi-split
+    uses: Wateroflord/winter-hub/.github/workflows/flutter-app.yml@main
     secrets: inherit
     with:
       project: dota_draft
@@ -42,4 +42,3 @@ jobs:
       prepare: bash tools/prepare_assets.sh
       notes: 'Windows без установки: Dota-Draft-Windows.zip — распакуй и запусти dota_draft.exe.'
       publish: ${{ github.event_name != 'workflow_dispatch' || inputs.publish }}
-      hub_ref: abi-split  # TEMP: test
