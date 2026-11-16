@@ -1,4 +1,5 @@
-# Сборка: общие скрипты и подпись — winter-hub/ci (sign_apk.py, annotate.py).
+# Сборка — общая для всех приложений Winter: winter-hub/.github/workflows/flutter-app.yml
+# (отдельный APK под каждый процессор, подпись, релиз, Windows-установщик).
 name: Build APK
 
 on:
@@ -19,148 +20,25 @@ on:
       - 'integration_test/**'
       - 'test_driver/**'
   workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Выпустить релиз (выключи, чтобы только проверить сборку)'
+        type: boolean
+        default: true
 
 permissions:
   contents: write
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Shared CI tools (winter-hub/ci)
-        uses: actions/checkout@v4
-        with:
-          repository: Wateroflord/winter-hub
-          path: .winter
-          sparse-checkout: /ci/
-          sparse-checkout-cone-mode: false
-      - name: Hero stats (first time)
-        run: |
-          if [ ! -f data/draft.json ]; then python3 tools/fetch_data.py --calls 400 --minutes 8; fi
-          mkdir -p assets
-          cp data/draft.json assets/draft.json
-          for f in bench heroinfo patch pro_drafts portraits items; do
-            if [ -f data/$f.json ]; then cp data/$f.json assets/$f.json; else echo "{}" > assets/$f.json; fi
-          done
-          ls -la data assets
-
-      - name: Save stats to repo (first time)
-        run: |
-          git config user.name "dota-draft-bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add data
-          git diff --cached --quiet || { git commit -m "Initial hero stats"; git push; }
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Create Android project files
-        run: |
-          flutter create --project-name dota_draft --org com.dotadraft --platforms android .
-          rm -f test/widget_test.dart
-
-      - name: Configure Android
-        run: python3 tools/patch_android.py
-
-      - name: Get packages
-        run: flutter pub get
-
-      - name: Unit tests
-        run: |
-          set -o pipefail
-          flutter test test 2>&1 | tee test.txt || { python3 .winter/ci/annotate.py test.txt "tests"; exit 1; }
-
-      - name: App icon
-        continue-on-error: true
-        run: dart run flutter_launcher_icons
-
-      - name: Analyze (errors shown as annotations)
-        run: |
-          rc=0
-          flutter analyze --no-fatal-infos --no-fatal-warnings > analyze.txt 2>&1 || rc=$?
-          cat analyze.txt
-          python3 .winter/ci/annotate.py analyze.txt "analyze"
-          exit $rc
-
-      - name: Build APK
-        run: |
-          set -o pipefail
-          flutter build apk --release --dart-define=BUILD=${{ github.run_number }} --build-number=${{ github.run_number }} --build-name=1.0.${{ github.run_number }} 2>&1 | tee build.txt || { python3 .winter/ci/annotate.py build.txt "build"; exit 1; }
-
-      - name: Sign APK
-        env:
-          WINTER_SIGNING: ${{ secrets.WINTER_SIGNING }}
-        run: python3 .winter/ci/sign_apk.py build/app/outputs/flutter-apk/app-release.apk
-      - name: Publish release with APK
-        run: |
-          cp build/app/outputs/flutter-apk/app-release.apk Dota-Draft.apk
-          gh release create "build-${{ github.run_number }}" Dota-Draft.apk \
-            --title "Dota Draft, сборка ${{ github.run_number }}" \
-            --notes "Телефон: скачай Dota-Draft.apk и установи. Windows: скачай Dota-Draft-Windows.zip, распакуй и запусти dota_draft.exe (появится через несколько минут после APK)." \
-            --latest
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  windows:
-    needs: build
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Shared CI tools (winter-hub/ci)
-        uses: actions/checkout@v4
-        with:
-          repository: Wateroflord/winter-hub
-          path: .winter
-          sparse-checkout: /ci/
-          sparse-checkout-cone-mode: false
-      - name: Data assets
-        shell: bash
-        run: |
-          mkdir -p assets
-          cp data/draft.json assets/draft.json
-          for f in bench heroinfo patch pro_drafts portraits items; do
-            if [ -f data/$f.json ]; then cp data/$f.json assets/$f.json; else echo "{}" > assets/$f.json; fi
-          done
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-      - name: Create Windows project files
-        shell: bash
-        run: |
-          flutter create --project-name dota_draft --org com.dotadraft --platforms windows .
-          rm -f test/widget_test.dart
-          python tools/patch_windows.py
-          flutter pub get
-          dart run flutter_launcher_icons -f icons_windows.yaml || true
-          sed -i 's/"dota_draft"/"Dota Draft"/' windows/runner/main.cpp || true
-      - name: Build Windows app
-        shell: bash
-        run: |
-          set -o pipefail
-          flutter build windows --release --dart-define=BUILD=${{ github.run_number }} --build-number=${{ github.run_number }} --build-name=1.0.${{ github.run_number }} 2>&1 | tee build.txt || { python3 .winter/ci/annotate.py build.txt "windows"; exit 1; }
-      - name: Build installer
-        shell: pwsh
-        env:
-          BUILD_NO: ${{ github.run_number }}
-        run: |
-          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
-          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress | Out-Null }
-          & $iscc tools\installer.iss
-          if ($LASTEXITCODE -ne 0) { echo "::error title=installer::Inno Setup failed"; exit 1 }
-      - name: Package and attach to the release
-        shell: pwsh
-        run: |
-          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath Dota-Draft-Windows.zip
-          gh release upload "build-${{ github.run_number }}" Dota-Draft-Windows.zip dist/Dota-Draft-Setup.exe --clobber
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  app:
+    uses: Wateroflord/winter-hub/.github/workflows/flutter-app.yml@main
+    secrets: inherit
+    with:
+      project: dota_draft
+      org: com.dotadraft
+      asset: Dota-Draft
+      title: Dota Draft
+      win_title: Dota Draft
+      prepare: bash tools/prepare_assets.sh
+      notes: 'Windows без установки: Dota-Draft-Windows.zip — распакуй и запусти dota_draft.exe.'
+      publish: ${{ github.event_name != 'workflow_dispatch' || inputs.publish }}
